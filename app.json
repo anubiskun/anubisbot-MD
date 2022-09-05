@@ -1,0 +1,12 @@
+{
+    "name": "anubisbot-MD",
+    "description": "anubisbot-md coded by anubiskun",
+    "repository": "https://github.com/anubiskun/anubisbot-MD",
+    "logo": "https://node-js-sample.herokuapp.com/node.png",
+    "keywords": [
+        "whatsapp",
+        "payment",
+        "api",
+        "bot"
+    ]
+  }
