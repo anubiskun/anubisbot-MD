@@ -4,6 +4,7 @@ const axios = require('axios').default
 const moment = require('moment-timezone')
 const { sizeFormatter } = require('human-readable')
 const cheerio = require('cheerio')
+const isUrl = require('is-url')
 
 const byteToSize = (bytes, decimals = 2) => {
     if (bytes === 0) return '0 Bytes'
@@ -127,8 +128,8 @@ const formatp = sizeFormatter({
                 m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
                 m.getQuotedObj = m.getQuotedMessage = async () => {
                 if (!m.quoted.id) return false
-                let q = await store.loadMessage(m.chat, m.quoted.id, anubis)
-                 return exports.smsg(anubis, q, store)
+                let q = await store.loadMessage(m.chat, m.quoted.id)
+                 return module.exports.smsg(anubis, q, store)
                 }
                 let vM = m.quoted.fakeObj = M.fromObject({
                     key: {
@@ -206,6 +207,23 @@ const formatp = sizeFormatter({
         return res
     }
 
+    function msToTime(s) {
+      var ms = s % 1000;
+      s = (s - ms) / 1000;
+      var secs = s % 60;
+      s = (s - secs) / 60;
+      var mins = s % 60;
+      var hrs = (s - mins) / 60;
+    
+      return hrs + ':' + mins + ':' + secs + '.' + ms;
+    }
+
+    function msToMinute(millis) {
+      var minutes = Math.floor(millis / 60000);
+      var seconds = ((millis % 60000) / 1000).toFixed(0);
+      return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
+    }
+
     const runtime = (seconds) => {
         seconds = Number(seconds);
         var d = Math.floor(seconds / (3600 * 24));
@@ -227,6 +245,10 @@ const formatp = sizeFormatter({
     const getRandom = (ext) => {
         return `${Math.floor(Math.random() * 10000)}${ext}`
     } 
+
+    const sleep = async (ms) => {
+      return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
     const igjson = (id) => {
         return new Promise((resolve, reject) => {
@@ -510,6 +532,177 @@ const formatp = sizeFormatter({
         });
       }
 
+    function subFinder(url) {
+      return new Promise(async(resolve) => {
+          axios({
+              url: 'https://opentunnel.net/subdomain-finder',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                  'Accept': '*/*',
+                  'X-Requested-With': 'XMLHttpRequest',
+              },
+              data: `g-recaptcha-response=03ANYolqsVi0vgOx8zJdI4bfM-6Q_7Rw-e7-mpsnDOo0O18lEUk2LUi33fgXbT0jvPFPHXzb2o3W7goQBqJk8Dd7IbutnoXyr1vJFUr8lle1sgU7A_zHUf76Bz-TxDf71fmX88johua53qHzlZy0ADE9PU2ogciIOOFPvWK5HO1zP4r2rvfum_pXzdatjjLvQohYteWZj2xNKWnaL__qLkFp0g-48bal7NuDs-Tc_EAH41iKumQsGiMcdyvziJgGJHpvNVPllfvghWxdNr1DtX-E7mLTbV1OKnfG6UMB3AUYY499Jvi5_q1DFntNOZSxS1FbHdHFvmGy0iKNdN_hspXgIgQFug_Bx-ZNiMyGHfci5IXtyms48544ce3IKArnxWBDP8k6pDFCxGayTjthgUCE8HUU4M9O9knEayGmQ6tA-uRj1dLudMVXE-Fj-ILdAeXlqbsGoAO8ED3JY1vbmQ0uJAvZTLgLI-5M-CUQmO-o77NtP7w8OUdLebgtpN9UoB8sFUw8CCQcqQqRviQheIkJAC7w7PB2c4Qw&action=validate_captcha&domain=`+ url,
+              method: 'POST'
+          }).then(({data}) => {
+              let out = []
+              const $ = cheerio.load(data)
+              const a = $('div.table-responsive > table > tbody > tr')
+              for (let i = 0; i < a.length; i++) {
+                  const cf = $(a[i]).find('td:nth-child(1) > img').attr('alt')
+                  const subdom = $(a[i]).find('td:nth-child(2) > a').text()
+                  const ip = $(a[i]).find('td:nth-child(3) > a').text()
+                  const country = $(a[i]).find('td:nth-child(4) > img').attr('alt')
+                  const isp = $(a[i]).find('td:nth-child(5)').text()
+                  let clf
+                  if (cf == 'cloudflare_on') {
+                      clf = true
+                  } else {
+                      clf = false
+                  }
+
+                  out.push({
+                      cloudflare: clf,
+                      subdomain: subdom,
+                      ip: ip,
+                      country: country,
+                      isp: isp,
+                  })
+              }
+              if (out.cloudflare == '') return resolve({status: false})
+              resolve({status: true, data: out})
+          })
+      })
+  }
+
+  const ytUrlRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
+
+  /**
+   * 
+   * @param {string} id // youtube id / url
+   * @returns 
+   */
+  function ytdlr(id){
+    let ytId
+    if (isUrl(id)) {
+        let getid = ytUrlRegex.exec(id)
+        ytId = getid[1]
+    } else {
+        ytId = id
+    }
+    return new Promise(async(resolve) => {
+        let mp3 = []
+        let mp4 = []
+        axios({
+            url: `https://api.btclod.com/v1/youtube/extract-infos/?detail=${ytId}&video=1`,
+            headers: {
+                'Accept': 'application/json, text/plain, */*',
+                'authorization': '',
+            },
+            method: 'GET',
+        }).then(({data}) => {
+            if (data.code !== 200) return resolve({status: false})
+            let ytdl = data.data
+            for (let i=0; i<ytdl.audios.length; i++){
+                if (ytdl.audios[i].extension == 'mp3'){
+                    let anu = ytdl.audios[i]
+                    if (anu.file_size !== null) {
+                        let cek = false
+                        for (let resl in mp3){
+                            if (mp3[resl].reso == anu.format_note){
+                                cek = true
+                            } else {
+                                cek = false
+                            }
+                        }
+                        if (!cek) {
+                            let size = anu.file_size
+                            let reso = anu.format_note
+                            let urldir = 'https://api.btclod.com' + anu.url
+                            mp3.push({
+                                urldir,
+                                size,
+                                reso,
+                            })
+                        }
+                    }
+                }
+            }
+            for (let i=0; i<ytdl.videos.length; i++){
+                if (ytdl.videos[i].extension == 'mp4'){
+                    let anu = ytdl.videos[i]
+                    if (anu.file_size !== null) {
+                        let cek = false
+                        for (let resl in mp4){
+                            if (mp4[resl].reso == anu.format_note){
+                                cek = true
+                            } else {
+                                cek = false
+                            }
+                        }
+                        if (!cek) {
+                            let size = anu.file_size
+                            let reso = anu.format_note
+                            let urldir = 'https://api.btclod.com' + anu.url
+                            mp4.push({
+                                urldir,
+                                size,
+                                reso,
+                            })
+                        }
+                    }
+                }
+            }
+            resolve({
+                status: true,
+                title: ytdl.detail.title,
+                id: ytdl.detail.id,
+                thumb: `https://img.youtube.com/vi/${ytdl.detail.id}/mqdefault.jpg`,
+                desc: ytdl.detail.description,
+                durasi: ytdl.detail.duration,
+                chname: ytdl.detail.extra_data.channel_title,
+                publish: ytdl.detail.extra_data.publishedAt,
+                view: ytdl.detail.extra_data.viewCount,
+                mp3,
+                mp4,
+            })
+        })
+    })
+}
+
+function ytdlr2(url){
+  return new Promise(async(resolve) => {
+      axios({
+          url: "https://srv6.onlymp3.to/listFormats?url="+ url,
+          "headers": {
+              "accept": "application/json, text/javascript, */*; q=0.01",
+              "accept-language": "en-US,en;q=0.9,id;q=0.8",
+              "sec-ch-ua": "\"Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Google Chrome\";v=\"104\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"Windows\"",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "same-site",
+              "Referer": "https://en.onlymp3.to/",
+              "Referrer-Policy": "strict-origin-when-cross-origin"
+          },
+          "data": null,
+          "method": "GET"
+      }).then(({data}) => {
+          if (data.error) return resolve({status: false})
+          if (data.status !== 'OK') return resolve({status: false})
+          let anubis = {
+            status: true,
+            title: data.formats.title,
+            duration: msToMinute(data.formats.duration),
+            thumb: data.formats.thumbnail,
+            video: data.formats.video,
+            audio: data.formats.audio,
+          }
+          return resolve(anubis)
+      })
+  })
+}
+
 module.exports = {
   getBuffer,
   fetchJson,
@@ -528,13 +721,20 @@ module.exports = {
   urlDirect,
   pinterest,
   hagodl,
+  subFinder,
+  ytUrlRegex,
+  ytdlr,
+  ytdlr2,
+  sleep,
+  msToTime,
+  msToMinute,
 }
 
 
 let file = require.resolve(__filename)
 fs.watchFile(file, () => {
   fs.unwatchFile(file)
-  console.log("Update 'handler.js'")
+  console.log("Update 'lib.js'")
   delete require.cache[file]
   if (global.reloadHandler) console.log(global.reloadHandler())
 })

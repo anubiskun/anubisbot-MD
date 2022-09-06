@@ -7,7 +7,6 @@ const Path = require('path')
 const _ = require('lodash')
 const axios = require('axios').default
 const pino = require('pino').default
-const yargs = require('yargs/yargs')
 const PhoneNumber = require('awesome-phonenumber')
 const syntaxerror = require('syntax-error')
 const {getBuffer, getSizeMedia, smsg} = require('./library/lib')
@@ -18,7 +17,6 @@ const mongoDB = require('./library/mongoDB')
 
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 
-// global.opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 if (mongoUser == '') {
     global.db = new Low(new JSONFile(`database.json`))
 } else {

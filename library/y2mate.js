@@ -15,8 +15,7 @@ function post(url, formdata) {
     data: new URLSearchParams(Object.entries(formdata)),
   });
 }
-const ytIdRegex =
-  /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
+const ytIdRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
 
 /**
  * Download YouTube Video via y2mate

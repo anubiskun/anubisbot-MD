@@ -3,6 +3,7 @@ const { hagodl } = require("../library/lib")
 
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
     if (!isUrl(text)) return m.reply(`*Example* : ${usedPrefix + command} https://i-863.ihago.net/d/HtSJY1`)
+    m.reply(mess.wait);
     let hago = await hagodl(text)
     if (!hago.status) return m.reply('Url Error ngab!')
     let pesen = `「 HAGO VIDEO DOWNLOADER 」\n\n*Nick* : ${hago.nick}`;
