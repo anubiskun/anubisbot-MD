@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const anubisPingger = require('./library/pingger')
+const anubisPingger = require('sitepinger')
 
 const app = express();
 const host = '0.0.0.0'
