@@ -37,7 +37,9 @@ global.apirnobg = [
     "CwTa6J7FhrH32JfxULgAexHc",
     "Swpj4r78BBg6WU6SEHHJ1qLg",
   ]
-global.changelogs = [
+  global.changelogs = [
+    '[ V 1.6.4 ]\n- Fix any command error',
+    '[ V 1.6.3 ]\n- Support Download highlights url Instagram',
     '[ V 1.6.2 ]\n- Fix YT Downloader and Added new YT Downloader v2\n- Added any command support',
     '[ V 1.6.1 ]\n- Bug Fix Menu can`t display in any whatsapp version',
     '[ V 1.6.0 ]\n- Bug Fix\n- Benerin command google & gimage\n- Added command gimgrev -> for search similar image use reply image',

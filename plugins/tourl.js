@@ -1,4 +1,4 @@
-const { UploadFileUgu, telegraphUp } = require('../library/upload')
+const { tmpfiles, telegraphUp } = require('../library/upload')
 const fs = require('fs')
 const util = require('util')
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
@@ -15,7 +15,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     const mime = (quoted.msg || quoted).mimetype || "";
     const qmsg = quoted.msg || quoted;
     const isMedia = /image|video|sticker|audio/.test(mime);
-    console.log(isMedia)
+    // console.log(isMedia)
     if (!isMedia) return m.reply(`Reply media dengan caption *${usedPrefix + command}*`)
     try {
         let media = await anubis.downloadAndSaveMediaMessage(qmsg, 'anubiskun');
@@ -23,8 +23,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
             let anu = await telegraphUp(media);
             m.reply(util.format(anu));
         } else if (!/image/.test(mime)) {
-            let anu = await UploadFileUgu(media);
-            m.reply(util.format(anu.url));
+            let anu = await tmpfiles(media);
+            m.reply(util.format(anu));
         }
         await fs.unlinkSync(media);
     } catch (err) {

@@ -50,9 +50,9 @@ setInterval(async () => {
     await global.db.write()
 }, 10 * 1000)
 
-async function startAnubis() {
+function startAnubis() {
 
-    const anubis = anubisCon({
+    global.anubis = anubisCon({
         logger: pino({ level: 'silent' }),
         printQRInTerminal: true,
         browser: ["Anubis-Bot", "Safari", "1.0.0"],
@@ -61,6 +61,8 @@ async function startAnubis() {
         keepAliveIntervalMs: 60000,
     })
 
+    require('./server')
+    
     store.bind(anubis.ev)
 
     // Anti Call Security
@@ -107,14 +109,12 @@ async function startAnubis() {
         }
         if (update.isOnline) console.log('BOT RUNNING!')
         if (update.receivedPendingNotifications) {
-            ownerNum.forEach((parseOwner) => {
-                anubis.sendMessage(parseOwner + '@s.whatsapp.net', { text: 'Bot jalan ngab!' })
+            global.ownerNum.forEach((Owner) => {
+                anubis.sendMessage(Owner + '@s.whatsapp.net', { text: 'Bot jalan ngab!' })
             })
         }
     })
 
-    global.anubis = anubis
-    require('./server')
     anubis.ev.on('messages.upsert', (chatUpdate) => {
         const anu = chatUpdate.messages[0]
         if (!anu.message) return
@@ -122,8 +122,7 @@ async function startAnubis() {
         if (anu.key && anu.key.remoteJid === 'status@broadcast') return
         if (anu.key.id.startsWith('BAE5') && anu.key.id.length === 16) return
         const m = smsg(anubis, anu, store)
-        // return console.log(anubis.user)
-        require('./library/conector').anuConector(chatUpdate, m, anubis, store)
+        require('./library/conector').anuConector(chatUpdate, m)
     })
 
     anubis.ev.on('creds.update', saveState)
@@ -145,24 +144,24 @@ async function startAnubis() {
     // plugin reloader
     global.reload = (_event, filename) => {
         if (pluginFilter(filename)) {
-        let dir = Path.join(pluginFolder, filename)
-        if (dir in require.cache) {
-            delete require.cache[dir]
-            if (fs.existsSync(dir)) console.log(`re - require plugin '${filename}'`)
-            else {
-            console.log(`deleted plugin '${filename}'`)
-            return delete global.plugins[filename]
+            let dir = Path.join(pluginFolder, filename)
+            if (dir in require.cache) {
+                delete require.cache[dir]
+                if (fs.existsSync(dir)) console.log(`re - require plugin '${filename}'`)
+                else {
+                console.log(`deleted plugin '${filename}'`)
+                return delete global.plugins[filename]
+                }
+            } else console.log(`requiring new plugin '${filename}'`)
+            let err = syntaxerror(fs.readFileSync(dir), filename)
+            if (err) console.log(`syntax error while loading '${filename}'\n${err}`)
+            else try {
+                global.plugins[filename] = require(dir)
+            } catch (e) {
+                console.log(e)
+            } finally {
+                global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)))
             }
-        } else console.log(`requiring new plugin '${filename}'`)
-        let err = syntaxerror(fs.readFileSync(dir), filename)
-        if (err) console.log(`syntax error while loading '${filename}'\n${err}`)
-        else try {
-            global.plugins[filename] = require(dir)
-        } catch (e) {
-            console.log(e)
-        } finally {
-            global.plugins = Object.fromEntries(Object.entries(global.plugins).sort(([a], [b]) => a.localeCompare(b)))
-        }
         }
     }
     Object.freeze(global.reload)
@@ -215,8 +214,8 @@ async function startAnubis() {
     anubis.reSize = async (image, width, height) => {
     let jimp = require('jimp')
     var oyy = await jimp.read(image);
-    var kiyomasa = await oyy.resize(width, height).getBufferAsync(jimp.MIME_JPEG)
-    return kiyomasa
+    return await oyy.resize(width, height).getBufferAsync(jimp.MIME_JPEG)
+
     }
 
         
@@ -229,25 +228,25 @@ async function startAnubis() {
      * @param {*} options
      */
     anubis.sendFileUrl = async (jid, url, caption, quoted, options = {}) => {
-    let mime = '';
-    let res = await axios.head(url)
-    mime = res.headers['content-type']
-    if (mime.split("/")[1] === "gif") {
-    return anubis.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options}, { quoted: quoted, ...options})
-    }
-    let type = mime.split("/")[0]+"Message"
-    if(mime === "application/pdf"){
-    return anubis.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options}, { quoted: quoted, ...options })
-    }
-    if(mime.split("/")[0] === "image"){
-    return anubis.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options}, { quoted: quoted, ...options})
-    }
-    if(mime.split("/")[0] === "video"){
-    return anubis.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options}, { quoted: quoted, ...options })
-    }
-    if(mime.split("/")[0] === "audio"){
-    return anubis.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options}, { quoted: quoted, ...options })
-    }
+        let mime = '';
+        let res = await axios.head(url)
+        mime = res.headers['content-type']
+        if (mime.split("/")[1] === "gif") {
+            return anubis.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options}, { quoted: quoted, ...options})
+        }
+        let type = mime.split("/")[0]+"Message"
+        if(mime === "application/pdf"){
+            return anubis.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options}, { quoted: quoted, ...options })
+        }
+        if(mime.split("/")[0] === "image"){
+            return anubis.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options}, { quoted: quoted, ...options})
+        }
+        if(mime.split("/")[0] === "video"){
+            return anubis.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options}, { quoted: quoted, ...options })
+        }
+        if(mime.split("/")[0] === "audio"){
+            return anubis.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options}, { quoted: quoted, ...options })
+        }
     }
 
     /** Send Payment Message 
@@ -278,7 +277,7 @@ async function startAnubis() {
 
     anubis.relayMessage(jid, payment.message, { messageId: payment.key.id })
     }
-    
+
     /** Send Catalog Message 
      *
      * @param {*} jid
@@ -309,7 +308,7 @@ async function startAnubis() {
         }), { userJid: jid })
         anubis.relayMessage(jid, order.message, { messageId: order.key.id })
     }
-    
+
     /** Send List Messaage
      *
      *@param {*} jid
@@ -331,7 +330,7 @@ async function startAnubis() {
     }
     anubis.sendMessage(jid, listMes, { quoted: quoted })
     }
-    
+
     /**
      *
      * @param {*} jid
@@ -371,7 +370,7 @@ async function startAnubis() {
     }
     anubis.sendMessage(jid, templateMessage, { ...options })
     }
-    
+
     /** Send Button 5 Image
      *
      * @param {*} jid
@@ -385,7 +384,7 @@ async function startAnubis() {
     anubis.send5ButImg = async (jid , text = '', img, buttons = [], quoted, options = {}) =>{
     anubis.sendMessage(jid, { image: img, caption: text, footer: anuFooter, buttons }, { quoted, ...options })
     }
-    
+
     /** Send Button 5 Location
     *
     * @param {*} jid
@@ -399,7 +398,7 @@ async function startAnubis() {
     let bb = await anubis.reSize(lok, 300, 150)
     anubis.sendMessage(jid, { location: { jpegThumbnail: bb }, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
     }
-    
+
     /** Send Button 5 Video
      *
      * @param {*} jid
@@ -414,7 +413,7 @@ async function startAnubis() {
     let lol = await anubis.reSize(buf, 300, 150)
     anubis.sendMessage(jid, { video: vid, jpegThumbnail: lol, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
     }
-    
+
     /** Send Button 5 Gif
      *
      * @param {*} jid
@@ -431,7 +430,7 @@ async function startAnubis() {
     let b = a[Math.floor(Math.random() * a.length)]
     anubis.sendMessage(jid, { video: gif, gifPlayback: true, gifAttribution: b, caption: text, footer: anuFooter, jpegThumbnail: ahh, templateButtons: but }, { ...options })
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -441,7 +440,7 @@ async function startAnubis() {
      * @param {*} quoted 
      * @param {*} options 
      */
-    anubis.sendButtonText = (jid, buttons = [], text, footer, quoted = '', options = {}) => {
+    anubis.sendButtonText = (jid, buttons = [], text, quoted = '', options = {}) => {
         let buttonMessage = {
             text,
             footer: anuFooter,
@@ -461,7 +460,7 @@ async function startAnubis() {
      * @returns 
      */
     anubis.sendText = (jid, text, quoted = '', options) => anubis.sendMessage(jid, { text: text, ...options }, { quoted, ...options })
-    
+
     /**
      * 
      * @param {*} jid 
@@ -475,7 +474,7 @@ async function startAnubis() {
     let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
         return await anubis.sendMessage(jid, { image: buffer, caption: caption, ...options }, { quoted })
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -489,7 +488,7 @@ async function startAnubis() {
         let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
         return await anubis.sendMessage(jid, { video: buffer, caption: caption, gifPlayback: gif, ...options }, { quoted })
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -503,7 +502,7 @@ async function startAnubis() {
         let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
         return await anubis.sendMessage(jid, { audio: buffer, ptt: ptt, ...options }, { quoted })
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -513,7 +512,7 @@ async function startAnubis() {
      * @returns 
      */
     anubis.sendTextWithMentions = async (jid, text, quoted, options = {}) => anubis.sendMessage(jid, { text: text, mentions: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + '@s.whatsapp.net'), ...options }, { quoted })
-    
+
     /**
      * 
      * @param {*} jid 
@@ -534,7 +533,7 @@ async function startAnubis() {
         await anubis.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
         return buffer
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -563,22 +562,22 @@ async function startAnubis() {
      * @param {*} attachExtension 
      * @returns 
      */
-    anubis.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
+     anubis.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
         let quoted = message.msg ? message.msg : message
         let mime = (message.msg || message).mimetype || ''
         let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
-        const stream = await downloadContentFromMessage(quoted, messageType)
+        const stream = await downloadContentFromMessage({mediaKey: quoted.mediaKey, directPath: quoted.directPath}, messageType)
         let buffer = Buffer.from([])
         for await(const chunk of stream) {
             buffer = Buffer.concat([buffer, chunk])
         }
-    let type = await FileType.fromBuffer(buffer)
+        let type = await FileType.fromBuffer(buffer)
         trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
         // save to file
         await fs.writeFileSync(trueFileName, buffer)
         return trueFileName
     }
-    
+
     anubis.downloadMediaMessage = async (message) => {
         let mime = (message.msg || message).mimetype || ''
         let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
@@ -586,9 +585,9 @@ async function startAnubis() {
         let buffer = Buffer.from([])
         for await(const chunk of stream) {
             buffer = Buffer.concat([buffer, chunk])
-        }
-    return buffer
-    }
+	}
+	return buffer
+    } 
         
     /**
      * 
@@ -624,7 +623,7 @@ async function startAnubis() {
     await anubis.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
     return fs.promises.unlink(pathFile)
     }
-    
+
     /**
      * 
      * @param {*} jid 
@@ -667,7 +666,7 @@ async function startAnubis() {
         await anubis.relayMessage(jid, waMessage.message, { messageId:  waMessage.key.id })
         return waMessage
     }
-    
+
     anubis.cMod = (jid, copy, text = '', sender = anubis.user.id, options = {}) => {
         //let copy = message.toJSON()
         let mtype = Object.keys(copy.message)[0]
@@ -693,8 +692,8 @@ async function startAnubis() {
 
         return proto.WebMessageInfo.fromObject(copy)
     }
-    
-    
+
+
     /**
      * 
      * @param {*} path 

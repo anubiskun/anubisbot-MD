@@ -5,6 +5,7 @@ const moment = require('moment-timezone')
 const { sizeFormatter } = require('human-readable')
 const cheerio = require('cheerio')
 const isUrl = require('is-url')
+const {startFollowing} = require('follow-redirect-url')
 
 const byteToSize = (bytes, decimals = 2) => {
     if (bytes === 0) return '0 Bytes'
@@ -66,6 +67,21 @@ const formatp = sizeFormatter({
       }
     }
 
+    const urlDirect2 = async(url) => {
+      return new Promise(async(resolve) => {
+        try {
+          let a = await startFollowing(url)
+          for (let i = 0; i < a.length; i++) {
+            if (a[i].status == 200 && !a[i].redirect){
+              resolve(a[i].url)
+            }
+          }
+        } catch (e) {
+          
+        }
+      })
+    }
+
     const getSizeMedia = async(path) => {
         return new Promise((resolve, reject) => {
             if (/http/.test(path)) {
@@ -84,13 +100,14 @@ const formatp = sizeFormatter({
             }
         })
     }
-    /**
+    
+        /**
      * Serialize Message
-     * @param {WAanubisection} anubis 
+     * @param {WAConnection} conn 
      * @param {Object} m 
      * @param {store} store 
      */
-    const smsg = (anubis, m, store) => {
+      const smsg = (conn, m, store) => {
         if (!m) return m
         let M = proto.WebMessageInfo
         if (m.key) {
@@ -99,8 +116,8 @@ const formatp = sizeFormatter({
             m.chat = m.key.remoteJid
             m.fromMe = m.key.fromMe
             m.isGroup = m.chat.endsWith('@g.us')
-            m.sender = anubis.decodeJid(m.fromMe && anubis.user.id || m.participant || m.key.participant || m.chat || '')
-            if (m.isGroup) m.participant = anubis.decodeJid(m.key.participant) || ''
+            m.sender = conn.decodeJid(m.fromMe && conn.user.id || m.participant || m.key.participant || m.chat || '')
+            if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || ''
         }
         if (m.message) {
             m.mtype = getContentType(m.message)
@@ -110,26 +127,26 @@ const formatp = sizeFormatter({
             m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
             if (m.quoted) {
                 let type = Object.keys(m.quoted)[0]
-                m.quoted = m.quoted[type]
+          m.quoted = m.quoted[type]
                 if (['productMessage'].includes(type)) {
-                    type = Object.keys(m.quoted)[0]
-                    m.quoted = m.quoted[type]
-                }
+            type = Object.keys(m.quoted)[0]
+            m.quoted = m.quoted[type]
+          }
                 if (typeof m.quoted === 'string') m.quoted = {
-                    text: m.quoted
-                }
+            text: m.quoted
+          }
                 m.quoted.mtype = type
                 m.quoted.id = m.msg.contextInfo.stanzaId
-                m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
+          m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
                 m.quoted.isBaileys = m.quoted.id ? m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16 : false
-                m.quoted.sender = anubis.decodeJid(m.msg.contextInfo.participant)
-                m.quoted.fromMe = m.quoted.sender === anubis.decodeJid(anubis.user.id)
+          m.quoted.sender = conn.decodeJid(m.msg.contextInfo.participant)
+          m.quoted.fromMe = m.quoted.sender === conn.decodeJid(conn.user.id)
                 m.quoted.text = m.quoted.text || m.quoted.caption || m.quoted.conversation || m.quoted.contentText || m.quoted.selectedDisplayText || m.quoted.title || ''
-                m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
+          m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
                 m.getQuotedObj = m.getQuotedMessage = async () => {
-                if (!m.quoted.id) return false
-                let q = await store.loadMessage(m.chat, m.quoted.id)
-                 return module.exports.smsg(anubis, q, store)
+          if (!m.quoted.id) return false
+          let q = await store.loadMessage(m.chat, m.quoted.id, conn)
+          return exports.smsg(conn, q, store)
                 }
                 let vM = m.quoted.fakeObj = M.fromObject({
                     key: {
@@ -140,54 +157,62 @@ const formatp = sizeFormatter({
                     message: quoted,
                     ...(m.isGroup ? { participant: m.quoted.sender } : {})
                 })
-    
+
                 /**
                  * 
                  * @returns 
                  */
-                m.quoted.delete = () => anubis.sendMessage(m.quoted.chat, { delete: vM.key })
-    
-           /**
-            * 
-            * @param {*} jid 
-            * @param {*} forceForward 
-            * @param {*} options 
-            * @returns 
-           */
-                m.quoted.copyNForward = (jid, forceForward = false, options = {}) => anubis.copyNForward(jid, vM, forceForward, options)
-    
+                m.quoted.delete = () => conn.sendMessage(m.quoted.chat, { delete: vM.key })
+
+        /**
+        * 
+        * @param {*} jid 
+        * @param {*} forceForward 
+        * @param {*} options 
+        * @returns 
+        */
+                m.quoted.copyNForward = (jid, forceForward = false, options = {}) => conn.copyNForward(jid, vM, forceForward, options)
+
                 /**
                   *
                   * @returns
                 */
-                m.quoted.download = () => anubis.downloadMediaMessage(m.quoted)
+                m.quoted.download = () => conn.downloadMediaMessage(m.quoted)
             }
         }
-        if (m.msg.url) m.download = () => anubis.downloadMediaMessage(m.msg)
+        if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg)
         m.text = m.msg.text || m.msg.caption || m.message.conversation || m.msg.contentText || m.msg.selectedDisplayText || m.msg.title || ''
         /**
-        * Reply to this message
-        * @param {String|Object} text 
-        * @param {String|false} chatId 
-        * @param {Object} options 
-        */
-        m.reply = (text, chatId = m.chat, options = {}) => Buffer.isBuffer(text) ? anubis.sendMedia(chatId, text, 'file', '', m, { ...options }) : anubis.sendText(chatId, text, m, { ...options })
+      * Reply to this message
+      * @param {String|Object} text 
+      * @param {String|false} chatId 
+      * @param {Object} options 
+      */
+        m.reply = (text, chatId = m.chat, options = {}) => Buffer.isBuffer(text) ? conn.sendMedia(chatId, text, 'file', '', m, { ...options }) : conn.sendText(chatId, text, m, { ...options })
         /**
-        * Copy this message
-        */
-        m.copy = () => exports.smsg(anubis, M.fromObject(M.toObject(m)))
-    
-        /**
-         * 
-         * @param {*} jid 
-         * @param {*} forceForward 
-         * @param {*} options 
-         * @returns 
-         */
-        m.copyNForward = (jid = m.chat, forceForward = false, options = {}) => anubis.copyNForward(jid, m, forceForward, options)
-    
+      * Copy this message
+      */
+      m.copy = () => exports.smsg(conn, M.fromObject(M.toObject(m)))
+
+      /**
+       * 
+       * @param {*} jid 
+       * @param {*} forceForward 
+       * @param {*} options 
+       * @returns 
+       */
+      m.copyNForward = (jid = m.chat, forceForward = false, options = {}) => conn.copyNForward(jid, m, forceForward, options)
+
         return m
     }
+
+    const getGroupAdmins = (participants) => {
+      let admins = []
+      for (let i of participants) {
+          i.admin === "superadmin" ? admins.push(i.id) :  i.admin === "admin" ? admins.push(i.id) : ''
+      }
+      return admins || []
+   }    
 
     const ucapan = () => {
         const time = moment.tz('Asia/Jakarta').format('HH')
@@ -375,27 +400,27 @@ const formatp = sizeFormatter({
 
       const igstory = (query) => {
         return new Promise(async(resolve, reject) => {
+          let igPreg = /(?:https?:\/\/)?(?:www.)?instagram.com\/?(?:[a-zA-Z0-9\.\_\-]+)?\/((?:[p]+)?(?:[reel]+)?(?:[tv]+)?(?:[stories]+)?)\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
+          let urll = new URL(query)
+          let url = await urlDirect2(urll.href)
+          let regx = igPreg.exec(url)
           let media = [];
-          let hasil = [];
+          let anubis = {}
           let user = {};
-          let promoses = [];
-          promoses.push(
-            axios
-              .get(
-                `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=${query}`,
-                {
-                  headers: {
-                    "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
-                    cookie: anuCookie.ig,
-                    "x-ig-app-id": 936619743392459,
-                    "x-ig-www-claim":0,
-                    "x-asbd-id":198387,
-                    Accept: "*/*",
-                  },
-                }
-              )
-              .then(({ data }) => {
-                let j = data.reels_media[0];
+          if (regx[2] == 'highlights') {
+            axios({
+              url: `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=highlight:${regx[3]}`,
+              headers: {
+                "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+                cookie: anuCookie.ig,
+                "x-ig-app-id": 936619743392459,
+                "x-ig-www-claim":0,
+                "x-asbd-id":198387,
+                Accept: "*/*",
+              },
+              method: 'GET'
+            }).then(({data}) => {
+              let j = data.reels_media[0];
                 for (var i = 0; i < j.items.length; i++) {
                   let jj = j.items[i];
                   let cap;
@@ -406,6 +431,7 @@ const formatp = sizeFormatter({
                   }
                   if (jj.video_versions) {
                     media.push({
+                      id: jj.id,
                       url: jj.video_versions[0].url,
                       type: "mp4",
                       caption: cap,
@@ -413,6 +439,7 @@ const formatp = sizeFormatter({
                     });
                   } else {
                     media.push({
+                      id: jj.id,
                       url: jj.image_versions2.candidates[0].url,
                       type: "jpg",
                       caption: cap,
@@ -427,19 +454,27 @@ const formatp = sizeFormatter({
                   is_verified: j.user.is_verified,
                   profile_pic_url: j.user.profile_pic_url,
                 };
-                hasil.push({
-                  user: user,
-                  media: media,
+                if (urll.searchParams.get('story_media_id')) {
+                  for (let i = 0; i < media.length; i++) {
+                    if (media[i].id == urll.searchParams.get('story_media_id')) {
+                      anubis = {
+                        id: media[i].id,
+                        url: media[i].url,
+                        type: media[i].type,
+                        caption: media[i].caption,
+                        taken_at: media[i].taken_at,
+                      }
+                    }
+                  }
+                }
+                return resolve({
+                  status: true,
+                  user,
+                  media,
+                  anubis,
                 });
-                Promise.all(promoses).then(() =>
-                  resolve({
-                    creator: "anubis-bot",
-                    status: true,
-                    data: hasil,
-                  })
-                );
-              })
-          );
+            })
+          }
         });
       }
 
@@ -719,6 +754,7 @@ module.exports = {
   igstory,
   tiktok,
   urlDirect,
+  urlDirect2,
   pinterest,
   hagodl,
   subFinder,
@@ -728,6 +764,7 @@ module.exports = {
   sleep,
   msToTime,
   msToMinute,
+  getGroupAdmins,
 }
 
 

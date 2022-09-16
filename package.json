@@ -1,6 +1,6 @@
 {
   "name": "anubisbot-md",
-  "version": "1.6.2",
+  "version": "1.6.4",
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/anubiskun/anubisbot-MD",
   "dependencies": {
-    "@adiwajshing/baileys": "github:adiwajshing/baileys",
+    "@adiwajshing/baileys": "^4.4.0",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hapi/boom": "^10.0.0",
@@ -43,9 +43,11 @@
     "express": "^4.18.1",
     "file-type": "^16.5.3",
     "fluent-ffmpeg": "^2.1.2",
+    "follow-redirect-url": "^2.0.1",
     "googlethis": "^1.3.0",
     "human-readable": "^0.2.1",
     "is-url": "^1.2.4",
+    "jimp": "^0.16.1",
     "jsdom": "^20.0.0",
     "lodash": "^4.17.21",
     "lowdb": "^2.1.0",

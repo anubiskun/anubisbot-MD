@@ -19,6 +19,7 @@ function telegraphUp (Path) {
 				},
 				data: form
 			})
+			// return resolve(data)
 			return resolve("https://telegra.ph" + data.data[0].src)
 		} catch (err) {
 			return reject(new Error(String(err)))
@@ -64,26 +65,28 @@ function webp2mp4File(path) {
 	})
 }
 
-async function UploadFileUgu (input) {
+async function tmpfiles (input) {
 	return new Promise (async (resolve, reject) => {
 			const form = new BodyForm();
-			form.append("files[]", fs.createReadStream(input))
+			form.append("file", fs.createReadStream(input))
 			await axios({
-				url: "https://uguu.se/upload.php",
+				url: "https://tmpfiles.org/api/v1/upload",
 				method: "POST",
 				headers: {
-					"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",
 					...form.getHeaders()
 				},
 				data: form
-			}).then((data) => {
-				resolve(data.data.files[0])
+				
+			}).then(({data}) => {
+				// console.log(data)
+				let ew = /https?:\/\/tmpfiles.org\/(.*)/.exec(data.data.url)
+				resolve('https://tmpfiles.org/dl/' + ew[1])
 			}).catch((err) => reject(err))
 	})
 }
 
 module.exports = {
 telegraphUp,
-UploadFileUgu,
+tmpfiles,
 webp2mp4File,
 }

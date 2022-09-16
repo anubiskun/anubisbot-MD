@@ -14,9 +14,9 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
   const qmsg = quoted.msg || quoted;
   if (!/webp/.test(mime)) return m.reply(`Reply stiker dengan caption *${usedPrefix + command}*`)
   try {
-    let media = await anubis.downloadMediaMessage(qmsg)
+    let media = await anubis.downloadMediaMessage(qmsg);
     const ff = await webpTopng(media)
-    anubis.sendMessage(m.chat, { image: ff.buffer }, { quoted: m })
+    anubis.sendMessage(m.chat, { image: ff }, { quoted: m })
   } catch (err) {
       m.reply('error ngab! cba wa ownernya!')
       console.log(err)

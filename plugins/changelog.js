@@ -7,4 +7,4 @@ m.reply(cap)
 }
 anuplug.help = ['changelog']
 anuplug.tags = ['tools']
-anuplug.command = /^changelog$/i
+anuplug.command = /^(changelog|cl)$/i

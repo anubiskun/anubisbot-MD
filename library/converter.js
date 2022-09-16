@@ -4,7 +4,7 @@ const path = require('path')
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const { spawn } = require('child_process')
 const isUrl = require('is-url')
-const {UploadFileUgu} = require('./upload')
+const {tmpfiles} = require('./upload')
 
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   return new Promise(async (resolve, reject) => {
@@ -30,8 +30,7 @@ function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
           try {
             await fs.promises.unlink(tmp)
             if (code !== 0) return reject(code)
-            const upl = await UploadFileUgu(out)
-            resolve({buffer: await fs.promises.readFile(out), url: upl.url})
+            resolve(await fs.promises.readFile(out))
             await fs.promises.unlink(out)
           } catch (e) {
             reject(e)

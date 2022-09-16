@@ -13,7 +13,7 @@ const defaultMenu = {
 │ Github: %github
 │
 ╰─────〔 *%me* 〕
-  %readmore`.trimStart(),
+`.trimStart(),
   header: '┌─〔 %category 〕',
   body: '├ %cmd',
   footer: '└────\n',
@@ -24,20 +24,24 @@ ${'```%npmdesc```'}
   let anuplug = async (m, { anubis,  usedPrefix, args, command }) => {
     let tags
     let teks = `${args[0]}`.toLowerCase()
-    let arrayMenu = ['all', 'sticker', 'downloader', 'tools', 'main', 'owner' ]
+    let arrayMenu = ['all', 'sticker', 'inject', 'downloader', 'group', 'tools', 'main', 'owner' ]
     if (!arrayMenu.includes(teks)) teks = 'null'
     if (teks == 'all') tags = {
       'sticker': 'Sticker',
+      'inject': 'Inject Tools',
       'downloader': 'Downloader',
+      'group': 'Group',
       'main': 'Main',
       'owner': 'Owner',
       'tools': 'Tools',
     }
     if (teks == 'main') tags = { 'main': 'Main' }
+    if (teks == 'inject') tags = { 'inject': 'Inject Tools' }
     if (teks == 'sticker') tags = { 'sticker': 'Sticker' }
     if (teks == 'tools') tags = { 'tools': 'Tools' }
     if (teks == 'owner') tags = { 'owner': 'Owner' }
     if (teks == 'downloader') tags = { 'downloader': 'Downloader' }
+    if (teks == 'group') tags = { 'group': 'Group' }
     
     try {
       let package = JSON.parse(await fs.promises.readFile(path.join(__dirname, '../package.json')).catch(_ => '{}'))

@@ -1,11 +1,11 @@
 let fs = require('fs')
 const util = require('util')
 const moment = require('moment-timezone')
-const {getBuffer, fetchJson, getSizeMedia} = require('./lib')
+const {getBuffer, fetchJson, getSizeMedia, getGroupAdmins} = require('./lib')
 let isNum = (x) => typeof x === "number" && !isNaN(x)
 
 module.exports = {
-    async anuConector(chatUpdate, m, anubis, store) {
+    async anuConector(chatUpdate, m) {
       // return console.log(presUpdate)
 
       const body = m.mtype === "conversation" ? m.message.conversation : m.mtype == "imageMessage" ? m.message.imageMessage.caption : m.mtype == "videoMessage" ? m.message.videoMessage.caption : m.mtype == "extendedTextMessage" ? m.message.extendedTextMessage.text : m.mtype == "buttonsResponseMessage" ? m.message.buttonsResponseMessage.selectedButtonId : m.mtype == "listResponseMessage" ? m.message.listResponseMessage.singleSelectReply.selectedRowId : m.mtype == "templateButtonReplyMessage" ? m.message.templateButtonReplyMessage.selectedId : m.mtype === "messageContextInfo" ? m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectReply.selectedRowId || m.text : "";
@@ -30,7 +30,6 @@ module.exports = {
           : m;
       const mime = (quoted.msg || quoted).mimetype || "";
       const qmsg = quoted.msg || quoted;
-      const isMedia = /image|video|sticker|audio/.test(mime);
       
       try {
 
@@ -47,6 +46,9 @@ module.exports = {
                 pc: -1,
                 banned: false
             }
+
+            let datab = db.data.database[m.chat]
+            if (typeof datab !== "object") db.data.database[m.chat] = {}
 
             let chats = db.data.chats[m.chat]
             if (typeof chats !== "object") db.data.chats[m.chat] = {}
@@ -93,9 +95,18 @@ module.exports = {
           }
         }
         
+        const isMedia = /image|video|sticker|audio/.test(mime);
         const isAnubis = "6289653909054@s.whatsapp.net".includes(m.sender);
         const itsMe = m.sender == botNumber ? true : false;
         const isCmd = body.startsWith(prefix);
+        const groupMetadata = m.isGroup ? await anubis.groupMetadata(m.chat).catch((e) => {}) : "";
+        const groupName = m.isGroup ? groupMetadata.subject : "";
+        const participants = m.isGroup ? groupMetadata.participants : "";
+        const groupAdmins = m.isGroup ? getGroupAdmins(participants) : "";
+        const isBotAdmin = m.isGroup ? groupAdmins.includes(botNumber) : false;
+        const isAdmin = m.isGroup ? groupAdmins.includes(m.sender) : false;
+
+        // console.log(participants)
 
         if (!global.botpublic) {
           if (!isAnubis) return
@@ -127,9 +138,13 @@ module.exports = {
           if (typeof plugin.before === 'function') if (await plugin.before.call(this, m, {
             match,
             anubis: this,
+            chatUpdate,
             isAnubis,
             itsMe,
-            chatUpdate,
+            groupMetadata,
+            participants,
+            isAdmin,
+            isBotAdmin,
           })) continue
           if (typeof plugin !== 'function') continue
           let usedPrefix = prefix
@@ -157,6 +172,16 @@ module.exports = {
               fail('private', m, this)
               continue
             }
+            if (plugin.group && !m.isGroup) { 
+              fail('group', m, this)
+              continue
+            } else if (plugin.botAdmin && !isBotAdmin) { 
+              fail('botAdmin', m, this)
+              continue
+            } else if (plugin.admin && !isAdmin) { 
+              fail('admin', m, this)
+              continue
+            }
             let extra = {
               match,
               usedPrefix,
@@ -172,6 +197,10 @@ module.exports = {
               getSizeMedia,
               getBuffer,
               botNumber,
+              groupMetadata,
+              participants,
+              isAdmin,
+              isBotAdmin,
             }
             try {
               anubis.sendPresenceUpdate('composing', m.chat)
@@ -179,8 +208,10 @@ module.exports = {
             } catch (e) {
               m.error = e
               console.error(e)
-              let text = util.format(e.message ? e.message : e)
-              m.reply(text)
+              if (e) {
+                let text = util.format(e.message ? e.message : e)
+                m.reply(text)
+              }
             } finally {
               if (typeof plugin.after === 'function') {
                 try {
@@ -224,13 +255,16 @@ module.exports = {
         }
       }
 
-    }
+    },
 }
 
-global.dfail = (type, m, conn) => {
+global.dfail = (type, m, anubis) => {
   let msg = {
     isAnubis: 'Cuma buat Owner Anubis ngab! lu siapa???!!',
-    botAdmin: 'Jadikan bot sebagai *Admin* untuk menggunakan perintah ini!',
+    group: 'Cuma bisa di Group ngab ga bisa di sini',
+    private: 'Cuma bisa di Private Chat ngab ga bisa di sini!',
+    admin: 'Cuma buat admin ngab! lu siapa???!!',
+    botAdmin: 'Perintah di luar nalar!\njadiin admin dulu ngab! ',
   }[type]
   if (msg) return m.reply(msg)
 }

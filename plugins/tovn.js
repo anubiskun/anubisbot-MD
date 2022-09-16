@@ -19,7 +19,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     let audio = await toPTT(media, "mp4");
     anubis.sendMessage(
       m.chat,
-      { audio: audio.buffer, mimetype: "audio/mpeg", ptt: true },
+      { audio: audio, mimetype: "audio/mpeg", ptt: true },
       { quoted: m }
     );
     } catch (err) {
