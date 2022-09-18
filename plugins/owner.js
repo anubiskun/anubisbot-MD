@@ -1,5 +1,5 @@
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
-    anubis.sendContact(m.chat, global.owner, m);
+    anubis.sendContact(m.chat, global.ownerNum, m);
 }
 anuplug.help = ['owner']
 anuplug.tags = ['tools']
