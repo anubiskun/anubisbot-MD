@@ -29,15 +29,15 @@ global.pingWeb = 'anuwapay.herokuapp.com'
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author
-global.owner = ['6289653909054']
 global.apirnobg = [
     "bru3EGkeVy8QnFMfyhSBjp5U",
     "Wu6eovAy7DeVFz1v2yuzYKJb",
     "1gdCEVhDVAbQHwV8LgWcrMHA",
     "CwTa6J7FhrH32JfxULgAexHc",
     "Swpj4r78BBg6WU6SEHHJ1qLg",
-  ]
-  global.changelogs = [
+]
+global.changelogs = [
+    '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group',
     '[ V 1.6.4 ]\n- Fix any command error',
     '[ V 1.6.3 ]\n- Support Download highlights url Instagram',
     '[ V 1.6.2 ]\n- Fix YT Downloader and Added new YT Downloader v2\n- Added any command support',

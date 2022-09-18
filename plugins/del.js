@@ -15,4 +15,3 @@ anuplug.command = /^(del|delete)$/i
 anuplug.group = true
 anuplug.isAnubis = true
 anuplug.botAdmin = true
-// anuplug.admin = true

@@ -40,10 +40,13 @@ Anubis Bot
 ## FOR LINUX / UBUNTU USER
 
 ```bash
-apt update && apt upgrade
+apt update && apt upgrade -y
 ```
 ```bash
-apt install git nodejs -y
+apt install git curl -y
+```
+```bash
+curl -sL https://deb.nodesource.com/setup_18.x | bash - && sudo apt install nodejs -y
 ```
 ```bash
 git clone https://github.com/anubiskun/anubisbot-MD
@@ -53,6 +56,11 @@ cd anubisbot-MD
 ```
 ```bash
 npm install
+```
+
+## 1script run
+```bash
+apt update && apt upgrade -y && apt install git curl -y && curl -sL https://deb.nodesource.com/setup_18.x | bash - && sudo apt install nodejs -y && git clone https://github.com/anubiskun/anubisbot-MD && cd anubisbot-MD && npm install && npm start
 ```
 
 #
@@ -127,7 +135,6 @@ Content-Type: application/json
 ```
 #
 
-<p align="center">
 <table style="border: 1px solid black;">
   <tr>
     <th style="border: 1px solid black;"><img src="https://github.com/anubiskun.png?size=200" alt="anubiskun"></th>
@@ -139,7 +146,6 @@ Content-Type: application/json
     <th style="border: 1px solid black;">Author / Creator</th>
   </tr>
 </table>
-</p>
 <br />
 
 

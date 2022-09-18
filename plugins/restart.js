@@ -1,6 +1,6 @@
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
-    m.reply('Bot sedang di restart tunggu beberapa saat ngab!')
-    process.send('reset')
+    let a = await m.reply('Bot sedang di restart tunggu beberapa saat ngab!')
+    if (a.status = 1) process.send('reset')
 }
 
 anuplug.help = ['restart']

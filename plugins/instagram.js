@@ -55,7 +55,6 @@ try {
             }
         }
     } else {
-        // if (igreg[2] == "highlights") return m.reply("*Download ig highlights belum support bwang!*");
         if (igreg[1] == 's' || igreg[2] == "highlights") {
            let json = await igstory(text)
            if (!json.status) return m.reply('Media error ngab! / cek urlnya!')
