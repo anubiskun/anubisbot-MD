@@ -7,6 +7,12 @@ const cheerio = require('cheerio')
 const isUrl = require('is-url')
 const {startFollowing} = require('follow-redirect-url')
 
+/**
+ * 
+ * @param {number} bytes 
+ * @param {number} decimals 
+ * @returns 
+ */
 const byteToSize = (bytes, decimals = 2) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -23,6 +29,12 @@ const formatp = sizeFormatter({
     render: (literal, symbol) => `${literal} ${symbol}B`,
 })
 
+/**
+ * 
+ * @param {uri} url 
+ * @param {*} options 
+ * @returns 
+ */
     const getBuffer = async(url, options) => {
         try {
             options ? options : {}
@@ -42,6 +54,12 @@ const formatp = sizeFormatter({
         }
     }
 
+    /**
+     * 
+     * @param {uri} url 
+     * @param {*} options 
+     * @returns 
+     */
     const fetchJson = async(url, options) => {
         try {
             options ? options : {}
@@ -59,6 +77,11 @@ const formatp = sizeFormatter({
         }
     }
 
+    /**
+     * 
+     * @param {uri} url 
+     * @returns 
+     */
     const urlDirect = async(url) => {
       try {
         return await fetchJson('https://anubis.6te.net/api/getredirect.php?url=' + url)
@@ -67,6 +90,11 @@ const formatp = sizeFormatter({
       }
     }
 
+    /**
+     * 
+     * @param {uri} url 
+     * @returns 
+     */
     const urlDirect2 = async(url) => {
       return new Promise(async(resolve) => {
         try {
@@ -82,6 +110,11 @@ const formatp = sizeFormatter({
       })
     }
 
+    /**
+     * 
+     * @param {string} path 
+     * @returns 
+     */
     const getSizeMedia = async(path) => {
         return new Promise((resolve, reject) => {
             if (/http/.test(path)) {
@@ -206,6 +239,11 @@ const formatp = sizeFormatter({
         return m
     }
 
+    /**
+     * 
+     * @param {string} participants 
+     * @returns 
+     */
     const getGroupAdmins = (participants) => {
       let admins = []
       for (let i of participants) {
@@ -232,6 +270,11 @@ const formatp = sizeFormatter({
         return res
     }
 
+    /**
+     * 
+     * @param {number} s 
+     * @returns 
+     */
     function msToTime(s) {
       var ms = s % 1000;
       s = (s - ms) / 1000;
@@ -243,12 +286,46 @@ const formatp = sizeFormatter({
       return hrs + ':' + mins + ':' + secs + '.' + ms;
     }
 
+    /**
+     * 
+     * @param {number} millis 
+     * @returns 
+     */
     function msToMinute(millis) {
       var minutes = Math.floor(millis / 60000);
       var seconds = ((millis % 60000) / 1000).toFixed(0);
       return minutes + ":" + (seconds < 10 ? '0' : '') + seconds;
     }
 
+    /**
+     * 
+     * @param {number} duration 
+     * @returns 
+     */
+    function durasiConverter(duration)
+    {   
+        // Hours, minutes and seconds
+        var hrs = ~~(duration / 3600);
+        var mins = ~~((duration % 3600) / 60);
+        var secs = ~~duration % 60;
+    
+        // Output like "1:01" or "4:03:59" or "123:03:59"
+        var ret = "";
+    
+        if (hrs > 0) {
+            ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+        }
+    
+        ret += "" + mins + ":" + (secs < 10 ? "0" : "");
+        ret += "" + secs;
+        return ret;
+    }
+
+    /**
+     * 
+     * @param {number} seconds 
+     * @returns 
+     */
     const runtime = (seconds) => {
         seconds = Number(seconds);
         var d = Math.floor(seconds / (3600 * 24));
@@ -261,20 +338,42 @@ const formatp = sizeFormatter({
         var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
         return dDisplay + hDisplay + mDisplay + sDisplay;
     }
+
+    /**
+     * 
+     * @param {string} id youtube id
+     * @returns 
+     */
     const ytDislike = (id) => {
         return new Promise(async (resolve, reject) => {
           const ax = await axios.get("https://returnyoutubedislikeapi.com/votes?videoId=" + id)
           resolve(ax.data)
         });
     }
+
+    /**
+     * 
+     * @param {string} ext extension like `jpg/mp4/png`
+     * @returns 
+     */
     const getRandom = (ext) => {
         return `${Math.floor(Math.random() * 10000)}${ext}`
     } 
 
+    /**
+     * 
+     * @param {number} ms 
+     * @returns 
+     */
     const sleep = async (ms) => {
       return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  /**
+   * 
+   * @param {number} id 
+   * @returns 
+   */
     const igjson = (id) => {
         return new Promise((resolve, reject) => {
           //   const regex = /(https?:\/\/)?(www.)?instagram.com\/?([a-zA-Z0-9\.\_\-]+)?\/([p]+)?([reel]+)?([tv]+)?([stories]+)?\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
@@ -373,14 +472,19 @@ const formatp = sizeFormatter({
         });
       }
 
-      const iggetid = (query) => {
+      /**
+       * 
+       * @param {string} shortcode 
+       * @returns 
+       */
+      const iggetid = (shortcode) => {
         return new Promise( async(resolve, reject) => {
           // const regex = /(https?:\/\/)?(www.)?instagram.com\/?([a-zA-Z0-9\.\_\-]+)?\/([p]+)?([reel]+)?([tv]+)?([stories]+)?\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
           let promoses = [];
           // let iglink = regex.exec(query);
           const igid = await axios(
             {
-                url: `https://www.instagram.com/graphql/query/?query_hash=d4e8ae69cb68f66329dcebe82fb69f6d&variables={"shortcode":"${query}"}`,
+                url: `https://www.instagram.com/graphql/query/?query_hash=d4e8ae69cb68f66329dcebe82fb69f6d&variables={"shortcode":"${shortcode}"}`,
                 headers: {
                     "User-Agent":
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
@@ -398,10 +502,15 @@ const formatp = sizeFormatter({
         });
       }
 
-      const igstory = (query) => {
+      /**
+       * 
+       * @param {uri} urlnya 
+       * @returns 
+       */
+      const igstory = (urlnya) => {
         return new Promise(async(resolve, reject) => {
           let igPreg = /(?:https?:\/\/)?(?:www.)?instagram.com\/?(?:[a-zA-Z0-9\.\_\-]+)?\/((?:[p]+)?(?:[reel]+)?(?:[tv]+)?(?:[stories]+)?)\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
-          let urll = new URL(query)
+          let urll = new URL(urlnya)
           let url = await urlDirect2(urll.href)
           let regx = igPreg.exec(url)
           let media = [];
@@ -478,6 +587,11 @@ const formatp = sizeFormatter({
         });
       }
 
+      /**
+       * 
+       * @param {uri} url 
+       * @returns 
+       */
       const tiktok = (url) => {
         return new Promise(async(resolve, reject) => {
           const tt = await axios({
@@ -500,6 +614,11 @@ const formatp = sizeFormatter({
         })
       }
 
+      /**
+       * 
+       * @param {string} querry 
+       * @returns 
+       */
       function pinterest(querry){
         return new Promise(async(resolve,reject) => {
            axios.get('https://id.pinterest.com/search/pins/?autologin=true&q=' + querry, {
@@ -524,11 +643,16 @@ const formatp = sizeFormatter({
         })
       }
 
-      function hagodl(query) {
+      /**
+       * 
+       * @param {uri} url 
+       * @returns 
+       */
+      function hagodl(url) {
         return new Promise(async(resolve, reject) => {
           let promoses = [];
           let media = [];
-          axios.get(query).then(({request}) => {
+          axios.get(url).then(({request}) => {
             let regx = /postId\=([0-9]*)\&/i
             let preg = regx.exec(request.res.responseUrl);
             // console.log()
@@ -567,6 +691,11 @@ const formatp = sizeFormatter({
         });
       }
 
+      /**
+       * 
+       * @param {uri} url 
+       * @returns 
+       */
     function subFinder(url) {
       return new Promise(async(resolve) => {
           axios({
@@ -609,7 +738,7 @@ const formatp = sizeFormatter({
       })
   }
 
-  const ytUrlRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
+ const ytUrlRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
 
   /**
    * 
@@ -704,6 +833,11 @@ const formatp = sizeFormatter({
     })
 }
 
+/**
+ * 
+ * @param {uri} url 
+ * @returns 
+ */
 function ytdlr2(url){
   return new Promise(async(resolve) => {
       axios({
@@ -738,6 +872,169 @@ function ytdlr2(url){
   })
 }
 
+/**
+ * 
+ * @param {string} query 
+ * @returns 
+ */
+function jooxSearch (query) {
+  let Query = query.replace(' ', '-')
+  let tracks = []
+  return new Promise (async (resolve, reject) => {
+      axios({
+          url: `https://api-jooxtt.sanook.com/openjoox/v2/search_type?country=id&lang=id&key=${Query}&type=0`,
+          headers: {
+            "accept": "application/json, text/plain, */*",
+            "accept-language": "en-US,en;q=0.9,id;q=0.8",
+            "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
+            "sec-ch-ua-mobile": "?1",
+            "sec-ch-ua-platform": "\"Android\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "cross-site",
+            "Referer": "https://www.joox.com/",
+            "Referrer-Policy": "strict-origin-when-cross-origin"
+          },
+          data: null,
+          method: "GET"
+      }).then(({data}) => {
+          if (data.error_code !== 0) return resolve({status: false})
+          for (let i = 0; i < data.tracks.length; i++) {
+            let track = data.tracks[i][0]
+            let artis_list = ''
+              for (let j = 0; j < track.artist_list.length; j++) {
+                  artis_list += track.artist_list[j].name
+                  artis_list += ', '
+              }
+              if (track.is_playable) {
+                  let duration = durasiConverter(track.play_duration)
+                  tracks.push({
+                      id: track.id,
+                      name: track.name,
+                      album_name: track.album_name,
+                      artis_list,
+                      duration,
+                      thumb: track.images[0].url
+                  })
+              }
+          }
+          resolve({status: true, anubis: tracks})
+        })
+  })
+}
+
+/**
+ * 
+ * @param {string} id 
+ * @returns 
+ */
+function jooxDownloader(id) {
+  return new Promise(async(resolve) => {
+      axios({
+          url: "http://api.joox.com/web-fcgi-bin/web_get_songinfo?songid=" + id,
+          headers: {
+              "X-Forwarded-For": "36.73.34.109",
+              Cookie: anuCookie.joox,
+          },
+          data: null,
+          method: 'GET'
+      }).then(({data}) => {
+          const res = JSON.parse(data.replace("MusicInfoCallback(", "").replace("\n)", ""));
+          if (res.code !== 0) return resolve({status: false})
+          let hasil = {
+              msong: res.msong,
+              malbum: res.malbum,
+              msinger: res.msinger,
+              public_time: res.public_time,
+              imgSrc: res.imgSrc,
+              mp3Url: res.mp3Url,
+              duration: durasiConverter(res.minterval),
+              sizeByte: res.size128,
+              size: byteToSize(res.size128),
+          }
+          resolve({status: true, anubis: hasil})
+      })
+  })
+}
+
+/**
+ * 
+ * @param {string} id 
+ * @returns 
+ */
+function jooxLyric(id) {
+  return new Promise(async(resolve) => {
+      axios({
+          url: "http://api.joox.com/web-fcgi-bin/web_lyric?musicid=" + id,
+          headers: {
+              "X-Forwarded-For": "36.73.34.109",
+              Cookie: anuCookie.joox,
+          },
+          data: null,
+          method: 'GET'
+      }).then(({data}) => {
+          const res = JSON.parse(data.replace("MusicJsonCallback(", "").replace("\n)", ""));
+          if (res.code !== 0) return resolve({status: false})
+          const lir = Buffer.from(res.lyric, "base64").toString("utf8");
+          const lirik = lir.replace(/[[0-9]+\:[0-9]+\.[0-9]+\]/g, "").replace(/\n(\*\*\*(.)+\*\*\*)/g, "\n\n***By anubisbot-MD***");
+          resolve({status: true, anubis: lirik})
+      })
+  })
+}
+
+/**
+ * 
+ * @param {string} query 
+ * @returns 
+ */
+ function soundcloud(query) {
+  let search = encodeURIComponent(query)
+  let hasil = []
+  let headers = {
+      "accept": "application/json, text/javascript, */*; q=0.1",
+      "accept-language": "en-US,en;q=0.9",
+      "content-type": "application/json",
+      "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
+      "sec-ch-ua-mobile": "?1",
+      "sec-ch-ua-platform": "\"Android\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+      "Referer": "https://m.soundcloud.com/",
+      "Referrer-Policy": "origin",
+      'X-Forwarded-For': '13.227.231.38:443',
+  }
+  return new Promise(async(resolve) => {
+      const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=${global.anuCookie.soundcloud}&stage=`, {headers})
+      
+      if (typeof res.data.collection !== 'object') return resolve({status: false})
+      for (let i = 0; i < res.data.collection.length; i++) {
+          let json = res.data.collection[i]
+          const getLagu = await axios.get(`${json.media.transcodings[1].url}?client_id=${global.anuCookie.soundcloud}&track_authorization=${json.track_authorization}`, {headers})
+          
+          hasil.push({
+              artwork_url: json.artwork_url,
+              full_name: json.user.full_name,
+              username: json.user.username,
+              verified: json.user.verified,
+              user_url: json.user.permalink_url,
+              comment_count: json.comment_count,
+              created_at: json.created_at,
+              description: json.description,
+              duration: msToMinute(json.duration),
+              genre: json.genre,
+              title: json.title,
+              playback_count: json.playback_count,
+              likes_count: json.likes_count,
+              reposts_count: json.reposts_count,
+              id: json.id,
+              urlmp3: getLagu.data.url,
+          })
+      }
+      resolve({status: true, anubis: hasil})
+  })
+}
+
 module.exports = {
   getBuffer,
   fetchJson,
@@ -747,6 +1044,11 @@ module.exports = {
   runtime,
   formatp,
   byteToSize,
+  sleep,
+  msToTime,
+  msToMinute,
+  durasiConverter,
+  getGroupAdmins,
   ytDislike,
   getRandom,
   igjson,
@@ -761,17 +1063,8 @@ module.exports = {
   ytUrlRegex,
   ytdlr,
   ytdlr2,
-  sleep,
-  msToTime,
-  msToMinute,
-  getGroupAdmins,
+  jooxSearch,
+  jooxDownloader,
+  jooxLyric,
+  soundcloud,
 }
-
-
-let file = require.resolve(__filename)
-fs.watchFile(file, () => {
-  fs.unwatchFile(file)
-  console.log("Update 'lib.js'")
-  delete require.cache[file]
-  if (global.reloadHandler) console.log(global.reloadHandler())
-})

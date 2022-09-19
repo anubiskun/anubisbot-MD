@@ -41,5 +41,5 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     anubis.sendList(m.chat, "*YOUTUBE SEARCH*", pesane, 'RESULT', secs, {quoted: m});
 }
 anuplug.help = ['ytsearch']
-anuplug.tags = ['tools']
+anuplug.tags = ['downloader']
 anuplug.command = /^(yts|ytsearch)$/i

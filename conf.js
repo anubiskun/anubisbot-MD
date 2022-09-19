@@ -9,7 +9,7 @@ global.fla = 'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=tr
 global.thumb = fs.readFileSync('./library/anubis.jpg')
 global.__root = path.join(__dirname)
 global.msg = {
-    err: "error ngab coba hubungi owner",
+    err: "error ngab! coba hubungi owner",
     nUrl: "bad URL",
     nText: "Invalid param text!",
     nNumber: "Invalid number",
@@ -24,6 +24,8 @@ global.mess = {
 }
 global.anuCookie = {
     ig: '', // instagram cookies
+    joox: '', // joox cookies
+    soundcloud: 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX', //soundcloud client_id
 }
 global.pingWeb = 'anuwapay.herokuapp.com'
 global.anuFooter = 'made with ❤️ by anubis' //footer text
@@ -37,7 +39,7 @@ global.apirnobg = [
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
 global.changelogs = [
-    '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group',
+    '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group\n- Added Joox Search and DL command\n- Added SoundCloud Search and DL command\n- Bug Fix',
     '[ V 1.6.4 ]\n- Fix any command error',
     '[ V 1.6.3 ]\n- Support Download highlights url Instagram',
     '[ V 1.6.2 ]\n- Fix YT Downloader and Added new YT Downloader v2\n- Added any command support',
