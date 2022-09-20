@@ -18,7 +18,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     try {
       media = await anubis.downloadMediaMessage(qmsg);
     } catch (e) {
-      media = await anubis.downloadAndSaveMediaMessage(qmsg);
+      let med = await anubis.downloadAndSaveMediaMessage(qmsg);
+      media = await fs.readFileSync(med)
     }
     const ff = await webpTopng(media)
     anubis.sendMessage(m.chat, { image: ff }, { quoted: m })
