@@ -24,4 +24,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['ytmp4']
 anuplug.tags = ['downloader']
-anuplug.command = /^(ytv|ytmp4)/i
+anuplug.command = /^(ytv|ytmp4)$/i

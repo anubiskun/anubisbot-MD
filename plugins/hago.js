@@ -13,17 +13,17 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     if (hago.text) pesen += `\n*Caption* : ${hago.text}`;
     if (hago.media[0].type == "mp4") {
         anubis.sendMessage(
-        m.chat,
-        { video: { url: hago.media[0].url }, caption: pesen },
-        { quoted: m }
+            m.chat,
+            { video: { url: hago.media[0].url }, caption: pesen },
+            { quoted: m }
         );
     } else if (hago.media[0].type == "jpg") {
         for (let i = 0; i < hago.media[0].url.length; i++) {
-        anubis.sendMessage(
-            m.chat,
-            { image: { url: hago.media[0].url[i] }, caption: pesen },
-            { quoted: m }
-        );
+            anubis.sendMessage(
+                m.chat,
+                { image: { url: hago.media[0].url[i] }, caption: pesen },
+                { quoted: m }
+            );
         }
     } else {
         m.reply("url tidak mengandung media ngab!");
@@ -31,4 +31,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['hago']
 anuplug.tags = ['downloader']
-anuplug.command = /^(hago|hg)/i
+anuplug.command = /^(hago|hg)$/i

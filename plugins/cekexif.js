@@ -3,4 +3,4 @@ module.exports = anuplug = async(m, { text, command, args, usedPrefix }) => {
 }
 anuplug.help = ['cekexif']
 anuplug.tags = ['tools']
-anuplug.command = /^cekexif$/i
+anuplug.command = /^(cekexif)$/i

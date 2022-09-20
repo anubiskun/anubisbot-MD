@@ -136,7 +136,7 @@ ${'```%npmdesc```'}
   }
   anuplug.help = ['menu', 'help', '?']
   anuplug.tags = ['main']
-  anuplug.command = /^(menu|help|\/)$/i
+  anuplug.command = /^(menu|help|\?)$/i
   module.exports = anuplug
   
   const more = String.fromCharCode(8206)

@@ -25,4 +25,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['jooxsearch']
 anuplug.tags = ['downloader']
-anuplug.command = /^(jooxs|jooxsearch)/i
+anuplug.command = /^(jooxs|jooxsearch)$/i

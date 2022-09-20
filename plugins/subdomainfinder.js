@@ -25,4 +25,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['subfinder']
 anuplug.tags = ['inject']
-anuplug.command = /^(subfind|subfinder|sf)/i
+anuplug.command = /^(subfind|subfinder|sf)$/i

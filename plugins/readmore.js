@@ -9,4 +9,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['readmore']
 anuplug.tags = ['tools']
-anuplug.command = /^(rm|readmore)/i
+anuplug.command = /^(rm|readmore)$/i

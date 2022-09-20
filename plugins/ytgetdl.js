@@ -45,4 +45,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     }
     
 }
-anuplug.command = /^(getytdl)/i
+anuplug.command = /^(getytdl)$/i

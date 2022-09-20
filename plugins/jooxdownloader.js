@@ -15,4 +15,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 // anuplug.help = ['jooxdownloader']
 // anuplug.tags = ['downloader']
-anuplug.command = /^(jooxdl|jooxdownloader)/i
+anuplug.command = /^(jooxdl|jooxdownloader)$/i

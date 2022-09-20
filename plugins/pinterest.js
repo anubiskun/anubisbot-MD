@@ -48,4 +48,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['pinterest']
 anuplug.tags = ['tools']
-anuplug.command = /^(pinterest)/i
+anuplug.command = /^(pinterest)$/i

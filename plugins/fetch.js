@@ -26,4 +26,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     }
     
 }
-anuplug.command = /^(fetch)/i
+anuplug.command = /^(fetch)$/i

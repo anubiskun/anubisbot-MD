@@ -20,4 +20,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['google']
 anuplug.tags = ['tools']
-anuplug.command = /^(google)/i
+anuplug.command = /^(google)$/i

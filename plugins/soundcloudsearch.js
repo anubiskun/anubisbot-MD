@@ -25,4 +25,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['soundcloudsearch']
 anuplug.tags = ['downloader']
-anuplug.command = /^(scs|soundcloudsearch)/i
+anuplug.command = /^(scs|soundcloudsearch)$/i

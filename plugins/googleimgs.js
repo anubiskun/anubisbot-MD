@@ -38,4 +38,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['gimgrev']
 anuplug.tags = ['tools']
-anuplug.command = /^(gimgrev)/i
+anuplug.command = /^(gimgrev)$/i

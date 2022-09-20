@@ -29,4 +29,4 @@ module.exports = anuplug = async(m, {anubis, text, command, args, usedPrefix }) 
 }
 anuplug.help = ['stickermeme']
 anuplug.tags = ['sticker']
-anuplug.command = /^(stickermeme|smeme)/i
+anuplug.command = /^(stickermeme|smeme)$/i

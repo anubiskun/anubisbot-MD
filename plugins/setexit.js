@@ -8,5 +8,5 @@ module.exports = anuplug = async(m, { text, command, args, usedPrefix }) => {
 }
 anuplug.help = ['setexif']
 anuplug.tags = ['owner']
-anuplug.command = /^(setexif)/i
+anuplug.command = /^(setexif)$/i
 anuplug.isAnubis = true

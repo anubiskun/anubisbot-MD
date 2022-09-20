@@ -6,6 +6,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     let igPreg = /(?:https?:\/\/)?(?:www.)?instagram.com\/?(?:[a-zA-Z0-9\.\_\-]+)?\/((?:[p]+)?(?:[reel]+)?(?:[tv]+)?(?:[stories]+)?)\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
 if (!text) return m.reply("No Query Url!");
 if (!isUrl(text)) return m.reply("coba cek lagi urlnya ngab!!!!!!!!!!");
+// let url = await urlDirect(text);
+// console.log(url)
 let igreg = igPreg.exec(text);
 m.reply(mess.wait);
 
@@ -55,6 +57,7 @@ try {
             }
         }
     } else {
+        // if (igreg[2] == "highlights") return m.reply("*Download ig highlights belum support bwang!*");
         if (igreg[1] == 's' || igreg[2] == "highlights") {
            let json = await igstory(text)
            if (!json.status) return m.reply('Media error ngab! / cek urlnya!')
@@ -155,7 +158,7 @@ try {
 }
 anuplug.help = ['instagram']
 anuplug.tags = ['downloader']
-anuplug.command = /^(ig|instagram)/i
+anuplug.command = /^(ig|instagram)$/i
 
 function ses(secs) {
     let sec_num = parseInt(secs, 10);

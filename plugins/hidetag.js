@@ -7,6 +7,6 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix, p
 }
 anuplug.help = ['hidetag']
 anuplug.tags = ['owner']
-anuplug.command = /^(hidetag|ht)/i
+anuplug.command = /^(hidetag|ht)$/i
 anuplug.group = true
 anuplug.isAnubis = true

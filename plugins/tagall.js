@@ -12,5 +12,5 @@ Pesan : ${text ? text : 'kosong'}\n\n`
 }
 anuplug.help = ['tagall']
 anuplug.tags = ['group']
-anuplug.command = /^(tagall)/i
+anuplug.command = /^(tagall)$/i
 anuplug.group = true

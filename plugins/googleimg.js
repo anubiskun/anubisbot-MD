@@ -26,4 +26,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['gimage']
 anuplug.tags = ['tools']
-anuplug.command = /^(gimage)/i
+anuplug.command = /^(gimage)$/i

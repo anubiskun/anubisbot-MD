@@ -16,4 +16,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['ytmp3']
 anuplug.tags = ['downloader']
-anuplug.command = /^(yta|ytmp3)/i
+anuplug.command = /^(yta|ytmp3)$/i

@@ -22,4 +22,4 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
 }
 anuplug.help = ['tiktok']
 anuplug.tags = ['downloader']
-anuplug.command = /^(tt|tiktok)/i
+anuplug.command = /^(tt|tiktok)$/i

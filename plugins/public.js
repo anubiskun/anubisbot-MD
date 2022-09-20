@@ -27,10 +27,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix, b
     } else {
         anubis.sendMessage(m.chat, {text: 'Mau lu apa bangsad??!!'}, {quoted: m})
     }
-    // hisoka.public = true;
-    // m.reply("Sukse Change To Public Usage");
 }
 anuplug.help = ['public']
 anuplug.tags = ['owner']
-anuplug.command = /^(public)/i
+anuplug.command = /^(public)$/i
 anuplug.isAnubis = true
