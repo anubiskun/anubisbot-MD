@@ -9,7 +9,7 @@ const axios = require('axios').default
 const pino = require('pino').default
 const PhoneNumber = require('awesome-phonenumber')
 const syntaxerror = require('syntax-error')
-const {getBuffer, getSizeMedia, smsg} = require('./library/lib')
+const {getBuffer, getSizeMedia, smsg, getRandom} = require('./library/lib')
 const FileType = require('file-type')
 const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./library/exif')
 const { Low, JSONFile }  = require('./library/lowdb')
@@ -562,7 +562,7 @@ function startAnubis() {
      * @param {*} attachExtension 
      * @returns 
      */
-     anubis.downloadAndSaveMediaMessage = async (message, filename, attachExtension = true) => {
+     anubis.downloadAndSaveMediaMessage = async (message, filename = getRandom(), attachExtension = true) => {
         let quoted = message.msg ? message.msg : message
         let mime = (message.msg || message).mimetype || ''
         let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
@@ -585,8 +585,8 @@ function startAnubis() {
         let buffer = Buffer.from([])
         for await(const chunk of stream) {
             buffer = Buffer.concat([buffer, chunk])
-	}
-	return buffer
+	    }
+	    return buffer
     } 
         
     /**

@@ -356,7 +356,7 @@ const formatp = sizeFormatter({
      * @param {string} ext extension like `jpg/mp4/png`
      * @returns 
      */
-    const getRandom = (ext) => {
+    const getRandom = (ext = '') => {
         return `${Math.floor(Math.random() * 10000)}${ext}`
     } 
 

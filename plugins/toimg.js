@@ -12,9 +12,14 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
       : m;
   const mime = (quoted.msg || quoted).mimetype || "";
   const qmsg = quoted.msg || quoted;
+  let media
   if (!/webp/.test(mime)) return m.reply(`Reply stiker dengan caption *${usedPrefix + command}*`)
   try {
-    let media = await anubis.downloadMediaMessage(qmsg);
+    try {
+      media = await anubis.downloadMediaMessage(qmsg);
+    } catch (e) {
+      media = await anubis.downloadAndSaveMediaMessage(qmsg);
+    }
     const ff = await webpTopng(media)
     anubis.sendMessage(m.chat, { image: ff }, { quoted: m })
   } catch (err) {
