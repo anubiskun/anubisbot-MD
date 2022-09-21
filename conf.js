@@ -39,7 +39,7 @@ global.apirnobg = [
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
 global.changelogs = [
-    '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group',
+    '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group\n- Marge any command\n- fixing sticker command to improve performance\n- Fix Tiktok command',
     '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group\n- Added Joox Search and DL command\n- Added SoundCloud Search and DL command\n- Bug Fix',
     '[ V 1.6.4 ]\n- Fix any command error',
     '[ V 1.6.3 ]\n- Support Download highlights url Instagram',
