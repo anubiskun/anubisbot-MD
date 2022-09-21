@@ -4,6 +4,7 @@ const Crypto = require("crypto")
 const webp = require("node-webpmux")
 const path = require("path");
 const { imageToWebp, videoToWebp, webpTopng, WebpToWebp } = require('./converter');
+const { webp2mp4File } = require('./upload');
 
 async function writeExifImg (media, metadata) {
     let wMedia = await imageToWebp(media)
@@ -58,10 +59,15 @@ async function writeExif (file, metadata) {
         const jsonBuff = Buffer.from(JSON.stringify(json), "utf-8")
         const exif = Buffer.concat([exifAttr, jsonBuff])
         exif.writeUIntLE(jsonBuff.length, 14, 4)
-        await img.load(media)
+        try {
+            await img.load(media)
+        } catch (err) {
+            let media = videoToWebp(file)
+            await img.load(media)
+        }
         img.exif = exif
         await img.save(tmpFileOut)
-        resolve(tmpFileOut)
+        return tmpFileOut
     }
 }
 
