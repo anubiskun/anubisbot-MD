@@ -6,6 +6,7 @@ const { sizeFormatter } = require('human-readable')
 const cheerio = require('cheerio')
 const isUrl = require('is-url')
 const {startFollowing} = require('follow-redirect-url')
+const BodyForm = require('form-data')
 
 /**
  * 
@@ -594,23 +595,56 @@ const formatp = sizeFormatter({
        */
       const tiktok = (url) => {
         return new Promise(async(resolve, reject) => {
-          const tt = await axios({
-            url: "https://api.app.downtik.com/a.php",
-            method: "POST",
-            headers: {
-              accept: "*/*",
-              "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-              "x-requested-with": "XMLHttpRequest",
-            },
-            data: `url=${url}&lang=id`,
-          })
-          const $ = cheerio.load(tt.data)
-            resolve({
-              profile: $("div > div > div:nth-child(1) > img").attr("src"),
-              name: $("div > div > div:nth-child(1) > div > h3").text(),
-              cap: $("div > div > div:nth-child(1) > div > p").text(),
-              nowm: $("div > div > div:nth-child(2) > a:nth-child(1)").attr("href"),
+          try {
+          const form = new BodyForm()
+          form.append('id', url)
+          form.append('locale', 'en')
+          form.append('gc', '0')
+          form.append('tt', '0')
+          form.append('ts', '0')
+            axios({
+              url: "https://tiktokdownload.online/abc?url=dl",
+              headers: {
+                "accept": "*/*",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "hx-current-url": "https://tiktokdownload.online/",
+                "hx-request": "true",
+                "hx-target": "target",
+                "hx-trigger": "_gcaptcha_pt",
+                "cookie": "PHPSESSID=jmervhqkr5e2mj7rlpgh1jnvkp; ad_client=ssstik",
+                "Referer": "https://tiktokdownload.online/",
+              },
+              data: form,
+              method: "POST"
+            }).then(({data})=> {
+              const $ = cheerio.load(data)
+              resolve({
+                profile: $("#mainpicture > div > img").attr('src'),
+                name: $("#mainpicture > div > h2").text(),
+                cap: $("#mainpicture > div > p").text(),
+                nowm: $("#mainpicture > div > div > a.pure-button.pure-button-primary.is-center.u-bl.dl-button.download_link.without_watermark_direct").attr('href'),
+              })
             })
+          } catch (err) {
+            axios({
+              url: "https://api.app.downtik.com/a.php",
+              method: "POST",
+              headers: {
+                accept: "*/*",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "x-requested-with": "XMLHttpRequest",
+              },
+              data: `url=${url}&lang=id`,
+            }).then(({data}) => {
+              const $ = cheerio.load(data)
+              resolve({
+                profile: $("div > div > div:nth-child(1) > img").attr("src"),
+                name: $("div > div > div:nth-child(1) > div > h3").text(),
+                cap: $("div > div > div:nth-child(1) > div > p").text(),
+                nowm: $("div > div > div:nth-child(2) > a:nth-child(1)").attr("href"),
+              })
+            })
+          }
         })
       }
 
@@ -1005,12 +1039,12 @@ function jooxLyric(id) {
       'X-Forwarded-For': '13.227.231.38:443',
   }
   return new Promise(async(resolve) => {
-      const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=${global.anuCookie.soundcloud}&stage=`, {headers})
+      const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&stage=`, {headers})
       
       if (typeof res.data.collection !== 'object') return resolve({status: false})
       for (let i = 0; i < res.data.collection.length; i++) {
           let json = res.data.collection[i]
-          const getLagu = await axios.get(`${json.media.transcodings[1].url}?client_id=${global.anuCookie.soundcloud}&track_authorization=${json.track_authorization}`, {headers})
+          const getLagu = await axios.get(json.media.transcodings[1].url+'?client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&track_authorization='+json.track_authorization, {headers})
           
           hasil.push({
               artwork_url: json.artwork_url,

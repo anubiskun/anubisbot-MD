@@ -5,6 +5,11 @@ const isUrl = require('is-url')
 let cheerio = require('cheerio')
 let { fromBuffer } = require('file-type')
 
+/**
+ * 
+ * @param {path} Path 
+ * @returns 
+ */
 function telegraphUp (Path) {
 	return new Promise (async (resolve, reject) => {
 		if (!fs.existsSync(Path)) return reject(new Error("File not Found"))
@@ -27,6 +32,11 @@ function telegraphUp (Path) {
 	})
 }
 
+/**
+ * 
+ * @param {path} path 
+ * @returns 
+ */
 function webp2mp4File(path) {
 	return new Promise((resolve, reject) => {
 		 const form = new BodyForm()
@@ -65,6 +75,11 @@ function webp2mp4File(path) {
 	})
 }
 
+/**
+ * 
+ * @param {path} input 
+ * @returns 
+ */
 async function tmpfiles (input) {
 	return new Promise (async (resolve, reject) => {
 			const form = new BodyForm();
