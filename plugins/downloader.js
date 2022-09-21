@@ -1,5 +1,5 @@
 const isUrl = require('is-url');
-const {iggetid, igjson, urlDirect2, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud} = require('../library/lib')
+const {iggetid, igjson, urlDirect2, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud, pinterest} = require('../library/lib')
 const moment = require('moment-timezone');
 
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
@@ -194,11 +194,13 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
             {
                 if (!text) return m.reply("Masukkan Query Link!");
                 if (!isUrl(text)) return m.reply("coba cek lagi urlnya ngab!");
+                let uri = new URL(text)
                 m.reply(mess.wait)
                 try {
-                    let url = await urlDirect2(text);
+                    let url = await urlDirect2(uri.href);
                     if (/tiktok/.test(url)) {
                         let tt = await tiktok(url);
+                        if (!tt.status) return m.reply('Command error ngab!\nLapor ke Owner!')
                         if (typeof tt.nowm !== 'string') return m.reply("Video tidak di temukan, coba cek urlnya\natau akun private!");
                         let teks = `「 TIKTOK DOWNLOADER 」\n\n*Username*: ${tt.name}\n*Caption*: ${tt.cap}`;
                         anubis.sendMessage(
@@ -278,18 +280,67 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                             rows: rows
                         }
                     ]
-                    return anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, {quoted: m})
+                    anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, {quoted: m})
                 } catch (err) {
                     console.log(err)
-                    return m.reply(global.msg.err)
+                    m.reply(global.msg.err)
+                }
+            }
+        break;
+        case 'pinterest':
+            {
+                if (!text) throw `Example : ${usedPrefix + command} gojo satoru`
+                m.reply(mess.wait)
+                try {
+                    anu = await pinterest(text);
+                    result = anu[Math.floor(Math.random() * anu.length)];
+                    let buttons = [
+                        {
+                        buttonId: `${usedPrefix}pinterest ${text}`,
+                        buttonText: { displayText: "Next Image" },
+                        type: 1,
+                        },
+                    ];
+                    let buttonMessage = {
+                        image: { url: result },
+                        caption: `*-------「 PINTEREST SEARCH 」-------*hero
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${result}`,
+                        footer: anuFooter,
+                        buttons: buttons,
+                        headerType: 4,
+                    };
+                    anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                    
+                } catch (e) {
+                    anu = await pinterest(text);
+                    result = anu[Math.floor(Math.random() * anu.length)];
+                    let buttons = [
+                        {
+                        buttonId: `${usedPrefix}pinterest ${text}`,
+                        buttonText: { displayText: "Next Image" },
+                        type: 1,
+                        },
+                    ];
+                    let buttonMessage = {
+                        image: { url: result },
+                        caption: `*-------「 PINTEREST SEARCH 」-------*hero
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${result}`,
+                        footer: anuFooter,
+                        buttons: buttons,
+                        headerType: 4,
+                    };
+                    anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                    
                 }
             }
         break;
     }
 }
-anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch']
+anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch','pinterest']
 anuplug.tags = ['downloader']
-anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs)$/i
+anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs|pinterest)$/i
 
 function ses(secs) {
     let sec_num = parseInt(secs, 10);

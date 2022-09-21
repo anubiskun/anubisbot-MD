@@ -595,56 +595,40 @@ const formatp = sizeFormatter({
        */
       const tiktok = (url) => {
         return new Promise(async(resolve, reject) => {
-          try {
-          const form = new BodyForm()
-          form.append('id', url)
-          form.append('locale', 'en')
-          form.append('gc', '0')
-          form.append('tt', '0')
-          form.append('ts', '0')
-            axios({
-              url: "https://tiktokdownload.online/abc?url=dl",
+          axios.get('https://musicaldown.com/id', {
               headers: {
-                "accept": "*/*",
-                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "hx-current-url": "https://tiktokdownload.online/",
-                "hx-request": "true",
-                "hx-target": "target",
-                "hx-trigger": "_gcaptcha_pt",
-                "cookie": "PHPSESSID=jmervhqkr5e2mj7rlpgh1jnvkp; ad_client=ssstik",
-                "Referer": "https://tiktokdownload.online/",
-              },
-              data: form,
-              method: "POST"
-            }).then(({data})=> {
-              const $ = cheerio.load(data)
-              resolve({
-                profile: $("#mainpicture > div > img").attr('src'),
-                name: $("#mainpicture > div > h2").text(),
-                cap: $("#mainpicture > div > p").text(),
-                nowm: $("#mainpicture > div > div > a.pure-button.pure-button-primary.is-center.u-bl.dl-button.download_link.without_watermark_direct").attr('href'),
-              })
+                  'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
+              }
+          }).then(res => {
+              const $ = cheerio.load(res.data)
+              const url_name = $("#link_url").attr("name")
+              const token_name = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("name")
+              const token_ = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("value")
+              const verify = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(3)").attr("value")
+              let data = {
+                  [`${url_name}`]: URL,
+                  [`${token_name}`]: token_,
+                  verify: verify
+              }
+            axios.request({
+                url: 'https://musicaldown.com/id/download',
+                method: 'post',
+                data: new URLSearchParams(Object.entries(data)),
+                headers: {
+                    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+                    'cookie': res.headers["set-cookie"]
+                }
+            }).then(respon => {
+                const ch = cheerio.load(respon.data)
+                resolve({
+                    status: true,
+                    profile: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > div > img').attr('src'),
+                    name: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(2) > b').text(),
+                    cap: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(3)').text(),
+                    nowm: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l8 > a:nth-child(4)').attr('href'),
+                })
             })
-          } catch (err) {
-            axios({
-              url: "https://api.app.downtik.com/a.php",
-              method: "POST",
-              headers: {
-                accept: "*/*",
-                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-                "x-requested-with": "XMLHttpRequest",
-              },
-              data: `url=${url}&lang=id`,
-            }).then(({data}) => {
-              const $ = cheerio.load(data)
-              resolve({
-                profile: $("div > div > div:nth-child(1) > img").attr("src"),
-                name: $("div > div > div:nth-child(1) > div > h3").text(),
-                cap: $("div > div > div:nth-child(1) > div > p").text(),
-                nowm: $("div > div > div:nth-child(2) > a:nth-child(1)").attr("href"),
-              })
-            })
-          }
+          })
         })
       }
 

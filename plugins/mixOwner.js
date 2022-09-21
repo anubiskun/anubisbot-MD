@@ -47,9 +47,45 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 m.reply('berhasil ngab!')
             }
         break;
+        case 'public':
+            {
+                let public = botpublic
+                let pubMes
+                if (public) pubMes = 'public nyala ngab!'
+                if (!public) pubMes = 'public mati ngab!'
+                let buttons = [
+                    { buttonId: `${usedPrefix}public on`, buttonText: { displayText: "ON" }, type: 1 },
+                    { buttonId: `${usedPrefix}public off`, buttonText: { displayText: "OFF" }, type: 1 },
+                ];
+                let buttonMessage = { text: 'Pilih untuk switch mode bot\n\n' + pubMes, footer: global.anuFooter, buttons };
+                if (!text) return anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                if (text == 'on') {
+                    botpublic = true
+                    anubis.sendMessage(m.chat, {text: 'Bot sekarang bisa merespons semua orang!'}, {quoted: m})
+                } else if (text == 'off') {
+                    botpublic = false
+                    anubis.sendMessage(m.chat, {text: 'Bot sekarang hanya merespons owner/admin!'}, {quoted: m})
+                } else {
+                    anubis.sendMessage(m.chat, {text: 'Mau lu apa bangsad??!!'}, {quoted: m})
+                }
+            }
+        break;
+        case 'setexif':
+            {
+                if (!text) return m.reply(`Example : ${usedPrefix + command} stiker by anubiskun`);
+                global.packname = text;
+                m.reply(`Exif berhasil diubah menjadi\n\n🌀> Packname : ${global.packname}\n🌀> Author : ${global.author}`);
+            }
+        break;
+        case 'restart':
+            {
+                let a = await m.reply('Bot sedang di restart tunggu beberapa saat ngab!')
+                if (a.status = 1) process.send('reset')
+            }
+        break;
     }
 }
-anuplug.help = ['add','del','ren'].map(v => v + 'note')
+anuplug.help = ['addnote','delnote','rennote','public','setexif','restart']
 anuplug.tags = ['owner']
-anuplug.command = /^(addnote|an|delnote|dn|rennote|rn)/i
+anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart)/i
 anuplug.isAnubis = true

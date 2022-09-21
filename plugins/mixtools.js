@@ -151,8 +151,14 @@ ${cpus
                 m.reply(d + readMore + b)
             }
         break;
+        case 'owner':
+        case 'admin':
+        case 'sewa':
+            {
+                anubis.sendContact(m.chat, global.ownerNum, m);
+            }
     }
 }
-anuplug.help = ['cekexif','changelogs','ping','readmore']
+anuplug.help = ['cekexif','changelogs','ping','readmore','owner']
 anuplug.tags = ['tools']
-anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore)$/i
+anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa)$/i
