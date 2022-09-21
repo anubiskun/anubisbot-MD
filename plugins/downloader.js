@@ -1,6 +1,8 @@
 const isUrl = require('is-url');
 const {iggetid, igjson, urlDirect2, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud, pinterest} = require('../library/lib')
 const moment = require('moment-timezone');
+const { yta, ytv, ytIdRegex } = require('../library/y2mate')
+let youtube = require("youtube-search-api")
 
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
     switch(command){
@@ -59,6 +61,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                             }
                         }
                     } else {
+                        // if (igreg[2] == "highlights") return m.reply("*Download ig highlights belum support bwang!*");
                         if (igreg[1] == 's' || igreg[2] == "highlights") {
                         let json = await igstory(text)
                         if (!json.status) return m.reply('Media error ngab! / cek urlnya!')
@@ -336,11 +339,102 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 }
             }
         break;
+        case 'ytmp3':
+        case 'yta':
+            {
+                if (!text.match(ytIdRegex) || !text) return m.reply(`Example : ${usedPrefix + command} https://youtube.com/watch?v=PtFMh6Tccag 128kbps`)
+                m.reply(mess.wait)
+                let quality = args[1] ? args[1] : "128kbps"
+                try {
+                    let media = await yta(text, quality)
+                    if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}\n*Link* : ${media.dl_link}`,m);
+                    anubis.sendImage(m.chat,media.thumb,`🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}`,m);
+                    anubis.sendMessage(m.chat,{audio: { url: media.dl_link },mimetype: "audio/mpeg",fileName: `${media.title}.mp3`},{ quoted: m });
+                } catch (e) {
+                    let buttons = [{ buttonId: `${usedPrefix}ytdla ${text}`, buttonText: { displayText: "YT Downloader" }, type: 1 }];
+                    anubis.sendButtonText(jid, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
+                }
+            }
+        break;
+        case 'ytmp4':
+        case 'ytv':
+            {
+                if (!text.match(ytIdRegex) || !text) return m.reply(`Example : ${usedPrefix + command} https://youtube.com/watch?v=PtFMh6Tccag%27 360p`)
+                m.reply(mess.wait)
+                let quality = args[1] ? args[1] : "360p"
+                try {
+                    let media = await ytv(text, quality)
+                    
+                    if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${media.dl_link}`,m);
+                    anubis.sendMessage(m.chat,{
+                        video: { url: media.dl_link },
+                        mimetype: "video/mp4",
+                        fileName: `${media.title}.mp4`,
+                        caption: `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}`
+                        },{ quoted: m }
+                    )
+                } catch (e) {
+                    let buttons = [{ buttonId: `${usedPrefix}ytdlv ${text}`, buttonText: { displayText: "YT Downloader" }, type: 1 }];
+                    anubis.sendButtonText(jid, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
+                }
+            }
+        break;
+        case 'yts':
+        case 'ytsearch':
+            {
+                if (!text) return m.reply(`Example : ${usedPrefix + command} bunny girls 1nonly`);
+                m.reply(mess.wait)
+                let json = await youtube.GetListByKeyword(text, false, 25)
+                let ytjson = []
+                for(var i=0; i< json.items.length; i++){
+                    if (json.items[i].type=="video") {
+                        ytjson.push({
+                        url: "https://m.youtube.com/watch?v="+ json.items[i].id,
+                        title: json.items[i].title,
+                        chname: json.items[i].channelTitle,
+                        shortBylineText: json.items[i].shortBylineText,
+                        })
+                    }
+                }
+                let pesane = `Result for : *${text}*\n\n*Download video by click button bellow*`;
+                secs = [];
+                ytjson.splice(ytjson.length, ytjson.length);
+                ytjson.forEach((xres, i) => {
+                    secs.push({
+                    rows: [
+                        {
+                        title: "MP3",
+                        description:
+                            `${xres.title}` +
+                            `\n\n*Channel Name*: ${xres.chname}`,
+                        rowId: `${usedPrefix}ytmp3 ${xres.url}`,
+                        },
+                        {
+                        title: "MP4",
+                        description:
+                            `${xres.title}` +
+                            `\n\n*Channel Name*: ${xres.chname}`,
+                        rowId: `${usedPrefix}ytmp4 ${xres.url}`,
+                        },
+                        {
+                        title: "Alternative YTDL v2",
+                        description:
+                            `${xres.title}` +
+                            `\n\n*Channel Name*: ${xres.chname}`,
+                        rowId: `${usedPrefix}ytdl ${xres.url}`,
+                        },
+                    ],
+                    title: i + 1,
+                    });
+                });
+                anubis.sendList(m.chat, "*YOUTUBE SEARCH*", pesane, 'RESULT', secs, {quoted: m});
+            }
+        break;
     }
 }
-anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch','pinterest']
+anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch','pinterest','ytmp3','ytmp4','ytsearch']
 anuplug.tags = ['downloader']
-anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs|pinterest)$/i
+anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs|pinterest|yta|ytmp3|ytv|ytmp4|yts|ytsearch)$/i
 
 function ses(secs) {
     let sec_num = parseInt(secs, 10);

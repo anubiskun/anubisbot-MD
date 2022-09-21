@@ -859,10 +859,11 @@ const formatp = sizeFormatter({
  * @param {uri} url 
  * @returns 
  */
-function ytdlr2(url){
+function ytdlr2(uri){
   return new Promise(async(resolve) => {
+    let url = await urlDirect2('https://y2mate.is/analyze?url=' + uri)
     axios({
-      url: "https://srv3.y2mate.is/listFormats?url=" + url,
+      url,
       headers: {
         "accept": "application/json, text/javascript, */*; q=0.01",
         "accept-language": "en-US,en;q=0.9,id;q=0.8",
