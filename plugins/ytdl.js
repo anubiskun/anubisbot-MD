@@ -3,7 +3,7 @@ const axios = require("axios");
 const isUrl = require("is-url")
 
 function getLink(url, etag) {
-  return new Promise(async(resolve) => {
+  return new Promise(async(resolve, reject) => {
     let headers
     if (etag) {
       headers = {
@@ -33,17 +33,18 @@ function getLink(url, etag) {
         "Referrer-Policy": "strict-origin-when-cross-origin"
       }
     }
-    const res = await axios.get(url, {
+    axios.get(url, {
       headers,
-    });
-    if (res.data.status == 'converting') getLink(url, res.headers.etag)
-    if (res.data.status == 'ready') resolve(res)
+    }).then((res) => {
+      if (res.data.status == 'converting') getLink(url, res.headers.etag)
+      if (res.data.status == 'ready') resolve(res)
+    }).catch(err => reject(err))
   })
 }
 
 function getConvert(url) {
-  return new Promise(async(resolve) => {
-    const res = await axios({
+  return new Promise(async(resolve, reject) => {
+    axios({
       url,
       headers: {
         "accept": "application/json, text/javascript, */*; q=0.01",
@@ -59,9 +60,10 @@ function getConvert(url) {
       },
       data: null,
       method: "GET"
-    });
-    let result = await getLink(res.data.url)
-    if (result.data.status == 'ready') return resolve(result.data)
+    }).then(async(res) => {
+      let result = await getLink(res.data.url)
+      if (result.data.status == 'ready') return resolve(result.data)
+    }).catch(e => reject(e))
   })
 }
 
@@ -133,7 +135,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
         if (!isUrl(sp[0])) return m.reply('Download Error ngab! Coba contact Owner!')
         m.reply(mess.wait)
         try {
-            let getdl = await getConvert(sp[0])
+            let getdl = await getConvert(sp[0]).catch((e) => console.log(e))
             if (getdl.error) return m.reply('Convert error ngab! coba contact Owner!')
             if (getdl.status == 'ready') {
                 if (sp[1] >= 100000000) return m.reply(`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n*Link* :  ${getdl.url}`);

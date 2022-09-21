@@ -416,13 +416,6 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                             `\n\n*Channel Name*: ${xres.chname}`,
                         rowId: `${usedPrefix}ytmp4 ${xres.url}`,
                         },
-                        {
-                        title: "Alternative YTDL v2",
-                        description:
-                            `${xres.title}` +
-                            `\n\n*Channel Name*: ${xres.chname}`,
-                        rowId: `${usedPrefix}ytdl ${xres.url}`,
-                        },
                     ],
                     title: i + 1,
                     });
