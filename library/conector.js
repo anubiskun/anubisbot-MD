@@ -6,11 +6,9 @@ let isNum = (x) => typeof x === "number" && !isNaN(x)
 
 module.exports = {
     async anuConector(chatUpdate, m) {
-      // return console.log(presUpdate)
 
       const body = m.mtype === "conversation" ? m.message.conversation : m.mtype == "imageMessage" ? m.message.imageMessage.caption : m.mtype == "videoMessage" ? m.message.videoMessage.caption : m.mtype == "extendedTextMessage" ? m.message.extendedTextMessage.text : m.mtype == "buttonsResponseMessage" ? m.message.buttonsResponseMessage.selectedButtonId : m.mtype == "listResponseMessage" ? m.message.listResponseMessage.singleSelectReply.selectedRowId : m.mtype == "templateButtonReplyMessage" ? m.message.templateButtonReplyMessage.selectedId : m.mtype === "messageContextInfo" ? m.message.buttonsResponseMessage?.selectedButtonId || m.message.listResponseMessage?.singleSelectReply.selectedRowId || m.text : "";
       const _prefx = /^[°•π÷×¶∆£¢€¥®™+✓_/=|~!?@#%^&.©^]/gi
-      // const _prefx = /^[/.$!]/gi
       const prefix = _prefx.test(body) ? body.match(_prefx)[0] : ""
       const command = body.replace(prefix, "").trim().split(/ +/).shift().toLowerCase();
       const args = body.trim().split(/ +/).slice(1);
@@ -107,8 +105,6 @@ module.exports = {
         const groupAdmins = m.isGroup ? getGroupAdmins(participants) : "";
         const isBotAdmin = m.isGroup ? groupAdmins.includes(botNumber) : false;
         const isAdmin = m.isGroup ? groupAdmins.includes(m.sender) : false;
-
-        // console.log(participants)
 
         if (!global.botpublic) {
           if (!isAnubis) return

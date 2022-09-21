@@ -17,7 +17,6 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
   const mime = (quoted.msg || quoted).mimetype || "";
   const qmsg = quoted.msg || quoted;
   const isMedia = /image|video|sticker|audio/.test(mime);
-  console.log(command)
   switch(command){
     case 'togif':
       {
