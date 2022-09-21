@@ -29,7 +29,7 @@ function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
         .on('close', async (code) => {
           try {
             await fs.promises.unlink(tmp)
-            if (code !== 0) return reject(code)
+            // if (code !== 0) return false
             resolve(await fs.promises.readFile(out))
             await fs.promises.unlink(out)
           } catch (e) {
@@ -123,10 +123,74 @@ async function toVideo(buffer, ext) {
   ], ext, 'mp4')
 }
 
+async function imageToWebp(buffer) {
+  if (isUrl(buffer)) {
+    const a = await axios.get(buffer, { responseType: 'arraybuffer' })
+    file = a.data
+  } else {
+    file = buffer
+  }
+  return ffmpeg(file, [
+    "-vcodec",
+    "libwebp",
+    "-vf",
+    "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse"
+  ], 'jpg', 'webp')
+}
+
+async function WebpToWebp(buffer) {
+  if (isUrl(buffer)) {
+    const a = await axios.get(buffer, { responseType: 'arraybuffer' })
+    file = a.data
+  } else {
+    file = buffer
+  }
+  return ffmpeg(file, [
+    "-vcodec", "libwebp",
+    "-vf", "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+    "-lossless", "1",
+    "-compression_level", "6",
+    "-loop", "0",
+    "-preset", "default",
+    "-an",
+    "-vsync",
+    "0"
+  ], 'webp', 'webp')
+}
+
+async function videoToWebp(buffer) {
+  if (isUrl(buffer)) {
+    const a = await axios.get(buffer, { responseType: 'arraybuffer' })
+    file = a.data
+  } else {
+    file = buffer
+  }
+  return ffmpeg(file, [
+    "-vcodec",
+    "libwebp",
+    "-vf",
+    "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+    "-loop",
+    "0",
+    "-ss",
+    "00:00:00",
+    "-t",
+    "00:00:10",
+    "-preset",
+    "default",
+    "-an",
+    "-vsync",
+    "0"
+  ], 'mp4', 'webp')
+}
+
 module.exports = {
   toAudio,
   toPTT,
   toVideo,
   ffmpeg,
-  webpTopng
+  webpTopng,
+  imageToWebp,
+  videoToWebp,
+  WebpToWebp,
 }

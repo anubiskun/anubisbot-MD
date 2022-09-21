@@ -1,4 +1,4 @@
-let { telegraphUp } = require("../library/upload");
+let { tmpfiles } = require("../library/upload");
 const fs = require('fs')
 module.exports = anuplug = async(m, {anubis, text, command, args, usedPrefix }) => {
   const mquo = m.quoted || m;
@@ -17,15 +17,15 @@ module.exports = anuplug = async(m, {anubis, text, command, args, usedPrefix }) 
   atas = text.split("|")[0] ? text.split("|")[0] : "-";
   bawah = text.split("|")[1] ? text.split("|")[1] : "-";
   m.reply(mess.wait);
-  let dwnld = await anubis.downloadAndSaveMediaMessage(qmsg, 'anubiskun');
-  let json = await telegraphUp(dwnld);
+  let media = await anubis.downloadAndSaveMediaMessage(qmsg);
+  let json = await tmpfiles(media);
   let smeme = `https://api.memegen.link/images/custom/${encodeURIComponent(atas)}/${encodeURIComponent(bawah)}.png?background=${json}`;
-  let encmedia = await anubis.sendImageAsSticker(m.chat, smeme, m, {
+  let encmedia = await anubis.sendAsSticker(m.chat, smeme, m, {
     packname: global.packname,
     author: global.author,
   });
-  await fs.unlinkSync(encmedia);
-  await fs.unlinkSync(dwnld);
+  if (encmedia) await fs.unlinkSync(encmedia);
+  await fs.unlinkSync(media);
 }
 anuplug.help = ['stickermeme']
 anuplug.tags = ['sticker']
