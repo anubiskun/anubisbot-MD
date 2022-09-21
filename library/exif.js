@@ -4,7 +4,6 @@ const Crypto = require("crypto")
 const webp = require("node-webpmux")
 const path = require("path");
 const { imageToWebp, videoToWebp, webpTopng, WebpToWebp } = require('./converter');
-const { webp2mp4File } = require('./upload');
 
 async function writeExifImg (media, metadata) {
     let wMedia = await imageToWebp(media)
