@@ -9,11 +9,12 @@ const axios = require('axios').default
 const pino = require('pino').default
 const PhoneNumber = require('awesome-phonenumber')
 const syntaxerror = require('syntax-error')
-const {getBuffer, getSizeMedia, smsg, getRandom} = require('./library/lib')
+const {getBuffer, getSizeMedia, smsg, sleep, getRandom} = require('./library/lib')
 const FileType = require('file-type')
-const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./library/exif')
+const { writeExifImg, writeExifVid, writeExif } = require('./library/exif')
 const { Low, JSONFile }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
+const { imageToWebp, videoToWebp } = require('./library/converter')
 
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 
