@@ -15,8 +15,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
           let buttonMessage = {
             image: { url: result },
             caption: `*-------「 PINTEREST SEARCH 」-------*hero
-    🤠 *Query* : ${text}
-    🔗 *Media Url* : ${result}`,
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${result}`,
             footer: anuFooter,
             buttons: buttons,
             headerType: 4,
@@ -36,8 +36,8 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
           let buttonMessage = {
             image: { url: result },
             caption: `*-------「 PINTEREST SEARCH 」-------*hero
-    🤠 *Query* : ${text}
-    🔗 *Media Url* : ${result}`,
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${result}`,
             footer: anuFooter,
             buttons: buttons,
             headerType: 4,
