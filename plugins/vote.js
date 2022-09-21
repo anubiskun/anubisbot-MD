@@ -8,15 +8,15 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 if (m.chat in vote) return m.reply(`_Masih ada vote di chat ini ngab!_`)
                 vote[m.chat] = [text, [], []]
                 sleep(1000)
-                let teks = `*[ VOTE ]*
-            
-            *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
-            
-            *[ SETUJU ]* : ${vote[m.chat][1].length}
-            ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
-            
-            *[ TIDAK ]* : ${vote[m.chat][2].length}
-            ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
+let teks = `*[ VOTE ]*
+
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
                 let buttons = [
                     { buttonId: `${usedPrefix}upvote`, buttonText: { displayText: "SETUJU" }, type: 1 },
                     { buttonId: `${usedPrefix}devote`, buttonText: { displayText: "TIDAK" }, type: 1 },
@@ -32,15 +32,15 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 let wasVote = isVote.includes(m.sender);
                 if (wasVote) return m.reply("Kamu Sudah Vote");
                 vote[m.chat][2].push(m.sender);
-                let teks = `*[ VOTE ]*
+let teks = `*[ VOTE ]*
 
-            *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
 
-            *[ SETUJU ]* : ${vote[m.chat][1].length}
-            ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
 
-            *[ TIDAK ]* : ${vote[m.chat][2].length}
-            ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
                 let buttons = [
                     { buttonId: `${usedPrefix}upvote`, buttonText: { displayText: "SETUJU" }, type: 1 },
                     { buttonId: `${usedPrefix}devote`, buttonText: { displayText: "TIDAK" }, type: 1 },
@@ -56,15 +56,15 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 let wasVote = isVote.includes(m.sender);
                 if (wasVote) return m.reply("Kamu Sudah Vote");
                 vote[m.chat][1].push(m.sender);
-                let teks = `*[ VOTE ]*
+let teks = `*[ VOTE ]*
 
-            *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
 
-            *[ SETUJU ]* : ${vote[m.chat][1].length}
-            ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
 
-            *[ TIDAK ]* : ${vote[m.chat][2].length}
-            ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
                 let buttons = [
                     { buttonId: `${usedPrefix}upvote`, buttonText: { displayText: "SETUJU" }, type: 1 },
                     { buttonId: `${usedPrefix}devote`, buttonText: { displayText: "TIDAK" }, type: 1 },
@@ -76,15 +76,15 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
         case 'cekvote':
             {
                 if (!(m.chat in vote)) return m.reply(`_*gak ada vote di group ini ngab!*_\n\n*${usedPrefix}vote* - untuk memulai vote ngab!`)
-                let teks = `*[ VOTE ]*
-            
-            *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
-            
-            *[ SETUJU ]* : ${vote[m.chat][1].length}
-            ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
-            
-            *[ TIDAK ]* : ${vote[m.chat][2].length}
-            ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
+    let teks = `*[ VOTE ]*
+
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}`
                 let buttons = [
                     { buttonId: `${usedPrefix}upvote`, buttonText: { displayText: "SETUJU" }, type: 1 },
                     { buttonId: `${usedPrefix}devote`, buttonText: { displayText: "TIDAK" }, type: 1 },
