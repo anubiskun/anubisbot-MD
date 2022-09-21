@@ -71,6 +71,8 @@ module.exports = {
                 automess: true,
                 restrict: false
             }
+
+            if (typeof db.data.others.vote !== 'object') (db.data.others.vote = [])
         } catch (err) {
             console.log(err)
         }
