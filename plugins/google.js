@@ -53,9 +53,9 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 let buttonMessage = {
                 image: { url: images.url },
                 caption: `*-------「 GIMAGE SEARCH 」-------*
-            🤠 *Query* : ${text}
-            🔗 *Media Url* : ${images.url}
-            ⬛ *Size* : ${images.width}x${images.height}`,
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${images.url}
+⬛ *Size* : ${images.width}x${images.height}`,
                 footer: anuFooter,
                 buttons: buttons,
                 headerType: 4,
@@ -74,7 +74,6 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                     await fs.unlinkSync(media);
                     qstring = url
                 }
-                // let qstring
                 m.reply(mess.wait)
                 const {results} = await google.search(qstring, { ris: true });
                 let teks = `Result from Google search by Image :\n\n`
