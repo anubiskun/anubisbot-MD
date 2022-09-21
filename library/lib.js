@@ -366,9 +366,11 @@ const formatp = sizeFormatter({
      * @param {number} ms 
      * @returns 
      */
-    const sleep = async (ms) => {
-      return new Promise(resolve => setTimeout(resolve, ms));
-  }
+     function sleep(ms) {
+      return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+      });
+    }
 
   /**
    * 
@@ -593,41 +595,42 @@ const formatp = sizeFormatter({
        * @param {uri} url 
        * @returns 
        */
-      const tiktok = (url) => {
+      function tiktok(url) {
         return new Promise(async(resolve, reject) => {
-          axios.get('https://musicaldown.com/id', {
-              headers: {
-                  'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
-              }
-          }).then(res => {
-              const $ = cheerio.load(res.data)
-              const url_name = $("#link_url").attr("name")
-              const token_name = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("name")
-              const token_ = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("value")
-              const verify = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(3)").attr("value")
-              let data = {
-                  [`${url_name}`]: URL,
-                  [`${token_name}`]: token_,
-                  verify: verify
-              }
-            axios.request({
-                url: 'https://musicaldown.com/id/download',
-                method: 'post',
-                data: new URLSearchParams(Object.entries(data)),
+          // try {
+            axios.get('https://musicaldown.com/id', {
                 headers: {
-                    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
-                    'cookie': res.headers["set-cookie"]
+                    'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
                 }
+            }).then(res => {
+                const $ = cheerio.load(res.data)
+                const url_name = $("#link_url").attr("name")
+                const token_name = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("name")
+                const token_ = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(2)").attr("value")
+                const verify = $("#submit-form > div").find("div:nth-child(1) > input[type=hidden]:nth-child(3)").attr("value")
+                let data = {
+                    [`${url_name}`]: url,
+                    [`${token_name}`]: token_,
+                    verify: verify
+                }
+              return axios({
+                  url: 'https://musicaldown.com/id/download',
+                  method: 'post',
+                  data: new URLSearchParams(Object.entries(data)),
+                  headers: {
+                      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36',
+                      'cookie': res.headers["set-cookie"]
+                  }
+              })
             }).then(respon => {
-                const ch = cheerio.load(respon.data)
-                resolve({
-                    status: true,
-                    profile: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > div > img').attr('src'),
-                    name: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(2) > b').text(),
-                    cap: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(3)').text(),
-                    nowm: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l8 > a:nth-child(4)').attr('href'),
-                })
-            })
+              const ch = cheerio.load(respon.data)
+              resolve({
+                  status: true,
+                  profile: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > div > img').attr('src'),
+                  name: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(2) > b').text(),
+                  cap: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4.center-align > div > h2:nth-child(3)').text(),
+                  nowm: ch('body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l8 > a:nth-child(4)').attr('href'),
+              })
           })
         })
       }
@@ -858,29 +861,29 @@ const formatp = sizeFormatter({
  */
 function ytdlr2(url){
   return new Promise(async(resolve) => {
-      axios({
-          url: "https://srv6.onlymp3.to/listFormats?url="+ url,
-          "headers": {
-              "accept": "application/json, text/javascript, */*; q=0.01",
-              "accept-language": "en-US,en;q=0.9,id;q=0.8",
-              "sec-ch-ua": "\"Chromium\";v=\"104\", \" Not A;Brand\";v=\"99\", \"Google Chrome\";v=\"104\"",
-              "sec-ch-ua-mobile": "?0",
-              "sec-ch-ua-platform": "\"Windows\"",
-              "sec-fetch-dest": "empty",
-              "sec-fetch-mode": "cors",
-              "sec-fetch-site": "same-site",
-              "Referer": "https://en.onlymp3.to/",
-              "Referrer-Policy": "strict-origin-when-cross-origin"
-          },
-          "data": null,
-          "method": "GET"
-      }).then(({data}) => {
+    axios({
+      url: "https://srv3.y2mate.is/listFormats?url=" + url,
+      headers: {
+        "accept": "application/json, text/javascript, */*; q=0.01",
+        "accept-language": "en-US,en;q=0.9,id;q=0.8",
+        "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "Referer": "https://en.y2mate.is/",
+        "Referrer-Policy": "strict-origin-when-cross-origin"
+      },
+      data: null,
+      method: "GET"
+    }).then(({data}) => {
           if (data.error) return resolve({status: false})
           if (data.status !== 'OK') return resolve({status: false})
           let anubis = {
             status: true,
             title: data.formats.title,
-            duration: msToMinute(data.formats.duration),
+            duration: durasiConverter(data.formats.duration),
             thumb: data.formats.thumbnail,
             video: data.formats.video,
             audio: data.formats.audio,
