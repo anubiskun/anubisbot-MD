@@ -876,9 +876,7 @@ function y2mate(url){
     let ytId = ytUrlRegex.exec(url);
     let {likes, dislikes, rating, viewCount} = await ytDislike(ytId[1])
     url = "https://youtu.be/" + ytId[1];
-    let server = await urlDirect2('https://www.y2mate.com/')
-    server = new URL(server).pathname
-    let {data} = await post(`https://www.y2mate.com/mates${server}/analyze/ajax`, {url,q_auto: 0,ajax: 1,});
+    let {data} = await post(`https://www.y2mate.com/mates/en154/analyze/ajax`, {url,q_auto: 0,ajax: 1,});
     let $ = cheerio.load(data.result)
     let video = []
     let audio = []
@@ -1094,7 +1092,7 @@ function jooxLyric(id) {
       const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&stage=`, {headers})
       
       if (typeof res.data.collection !== 'object') return resolve({status: false})
-      for (let i = 0; i < res.data.collection.length; i++) {
+      for (let i = 0; i < 5; i++) {
           let json = res.data.collection[i]
           const getLagu = await axios.get(json.media.transcodings[1].url+'?client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&track_authorization='+json.track_authorization, {headers})
           
