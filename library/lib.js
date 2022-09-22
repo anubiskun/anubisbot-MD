@@ -859,37 +859,101 @@ const formatp = sizeFormatter({
  * @param {uri} url 
  * @returns 
  */
-function ytdlr2(uri){
+function y2mate(url){
   return new Promise(async(resolve) => {
-    let url = await urlDirect2('https://y2mate.is/analyze?url=' + uri)
-    axios({
-      url,
-      headers: {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US,en;q=0.9,id;q=0.8",
-        "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "Referer": "https://en.y2mate.is/",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
-      },
-      data: null,
-      method: "GET"
-    }).then(({data}) => {
-          if (data.error) return resolve({status: false})
-          if (data.status !== 'OK') return resolve({status: false})
-          let anubis = {
-            status: true,
-            title: data.formats.title,
-            duration: durasiConverter(data.formats.duration),
-            thumb: data.formats.thumbnail,
-            video: data.formats.video,
-            audio: data.formats.audio,
-          }
-          return resolve(anubis)
+    const post = (url, formdata) => {
+      return axios({
+        url,
+        method: "POST",
+        headers: {
+          accept: "*/*",
+          "accept-language": "en-US,en;q=0.9",
+          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+        data: new URLSearchParams(Object.entries(formdata)),
+      })
+    }
+    let ytId = ytUrlRegex.exec(url);
+    let {likes, dislikes, rating, viewCount} = await ytDislike(ytId[1])
+    url = "https://youtu.be/" + ytId[1];
+    let server = await urlDirect2('https://www.y2mate.com/')
+    server = new URL(server).pathname
+    let {data} = await post(`https://www.y2mate.com/mates${server}/analyze/ajax`, {url,q_auto: 0,ajax: 1,});
+    let $ = cheerio.load(data.result)
+    let video = []
+    let audio = []
+    let page = $('div.tabs')
+    let mp4 = $(page).find('#mp4 > table > tbody > tr')
+    let mp3 = $(page).find('#mp3 > table > tbody > tr')
+    for (let i = 0; i < mp4.length; i++){
+        let list = $(mp4)[i]
+        video.push({
+            title: $(page).find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b').text(),
+            thumb: $(page).find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img').attr('src'),
+            resText: $(list).find('td:nth-child(1)').text(),
+            size: $(list).find('td:nth-child(2)').text(),
+            sizeByte: parseFloat($(list).find('td:nth-child(2)').text()) * (1000000 * /MB$/.test($(list).find('td:nth-child(2)').text())),
+            type: $(list).find('td.txt-center > a').attr('data-ftype'),
+            quality: $(list).find('td.txt-center > a').attr('data-fquality'),
+            id: /var k__id = "(.*?)"/.exec($('script').text())[1],
+            ytid: ytId[1],
+            likes,
+            dislikes,
+            rating,
+            viewCount,
+        })
+    }
+    for (let i = 0; i < mp3.length; i++){
+        let list = $(mp3)[i]
+        audio.push({
+            title: $(page).find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b').text(),
+            thumb: $(page).find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img').attr('src'),
+            resText: $(list).find('td:nth-child(1)').text(),
+            size: $(list).find('td:nth-child(2)').text(),
+            sizeByte: parseFloat($(list).find('td:nth-child(2)').text()) * (1000000 * /MB$/.test($(list).find('td:nth-child(2)').text())),
+            type: $(list).find('td.txt-center > a').attr('data-ftype'),
+            quality: $(list).find('td.txt-center > a').attr('data-fquality'),
+            id: /var k__id = "(.*?)"/.exec($('script').text())[1],
+            ytid: ytId[1],
+            likes,
+            dislikes,
+            rating,
+            viewCount,
+        })
+    }
+    resolve({
+      status: true,
+      title: $(page).find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b').text(),
+      audio,
+      video,
+    })
+  })
+}
+
+function y2mateConvert(id, ytid, type, quality){
+  return new Promise(async(resolve) => {
+    let formdata = {
+      type: 'youtube',
+      _id: id,
+      v_id: ytid,
+      ajax: 1,
+      token: '',
+      ftype: type,
+      fquality: quality,
+    }
+      axios({
+        url: 'https://www.y2mate.com/mates/convert',
+        method: "POST",
+        headers: {
+          accept: "*/*",
+          "accept-language": "en-US,en;q=0.9",
+          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+        data: new URLSearchParams(Object.entries(formdata)),
+      }).then(({data}) => {
+        const $ = cheerio.load(data.result)
+        const url = $('div > a').attr('href')
+        resolve({url})
       })
   })
 }
@@ -1057,6 +1121,16 @@ function jooxLyric(id) {
   })
 }
 
+/**
+ * 
+ * @param {uri} url 
+ */
+async function shortlink(url) {
+  let res = await axios.get('https://tinyurl.com/api-create.php?url=' + url)
+  return res.data
+
+}
+
 module.exports = {
   getBuffer,
   fetchJson,
@@ -1084,9 +1158,11 @@ module.exports = {
   subFinder,
   ytUrlRegex,
   ytdlr,
-  ytdlr2,
+  y2mate,
+  y2mateConvert,
   jooxSearch,
   jooxDownloader,
   jooxLyric,
   soundcloud,
+  shortlink,
 }

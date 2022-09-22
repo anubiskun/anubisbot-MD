@@ -3,7 +3,7 @@ const isUrl = require('is-url')
 const util = require('util')
 const os = require('os')
 const speed = require("performance-now");
-const { runtime, formatp } = require('../library/lib')
+const { runtime, formatp, shortlink } = require('../library/lib')
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
     switch(command){
         case 'cekexif':
@@ -157,8 +157,15 @@ ${cpus
             {
                 anubis.sendContact(m.chat, global.ownerNum, m);
             }
+        break;
+        case 'shortlink':
+            {
+                if (!isUrl(text)) return m.reply(`*Example* : ${usedPrefix + command} https://google.com`)
+                m.reply(await shortlink(text))
+            }
+        break;
     }
 }
-anuplug.help = ['cekexif','changelogs','ping','readmore','owner']
+anuplug.help = ['cekexif','changelogs','ping','readmore','owner','shortlink']
 anuplug.tags = ['tools']
-anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa)$/i
+anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa|shortlink)$/i

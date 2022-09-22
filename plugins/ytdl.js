@@ -1,75 +1,8 @@
-const { ytdlr2, sleep } = require("../library/lib");
-const axios = require("axios");
+const { y2mate, y2mateConvert, shortlink } = require("../library/lib");
 const isUrl = require("is-url")
-
-function getLink(url, etag) {
-  return new Promise(async(resolve, reject) => {
-    let headers
-    if (etag) {
-      headers = {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US,en;q=0.9,id;q=0.8",
-        "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "Referer": "https://en.y2mate.is/",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "If-None-Match": etag,
-      }
-    } else {
-      headers = {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US,en;q=0.9,id;q=0.8",
-        "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "Referer": "https://en.y2mate.is/",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
-      }
-    }
-    axios.get(url, {
-      headers,
-    }).then((res) => {
-      if (res.data.status == 'converting') getLink(url, res.headers.etag)
-      if (res.data.status == 'ready') resolve(res)
-    }).catch(err => reject(err))
-  })
-}
-
-function getConvert(url) {
-  return new Promise(async(resolve, reject) => {
-    axios({
-      url,
-      headers: {
-        "accept": "application/json, text/javascript, */*; q=0.01",
-        "accept-language": "en-US,en;q=0.9,id;q=0.8",
-        "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-site",
-        "Referer": "https://en.y2mate.is/",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-      },
-      data: null,
-      method: "GET"
-    }).then(async(res) => {
-      let result = await getLink(res.data.url)
-      if (result.data.status == 'ready') return resolve(result.data)
-    }).catch(e => reject(e))
-  })
-}
 
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
   if (!text) return m.reply(`Example : ${usedPrefix + command} https://youtube.com/watch?v=PtFMh6Tccag`)
-  // return m.reply('ytdl v2 masi error ngab!')
   switch(command){
     case 'ytdl':
     case 'ytdla':
@@ -77,18 +10,14 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
       {
         m.reply(mess.wait)
         try {
-          const ytdl = await ytdlr2(text)
+          if (!isUrl(text)) return m.reply(`Example : ${usedPrefix + command} https://youtube.com/watch?v=PtFMh6Tccag`)
+          const ytdl = await y2mate(text)
           if (!ytdl.status) return m.reply('Coba cek urlnya ngab!')
-          // return console.log(ytdl)
           
           let rowsmp3 = []
           ytdl.audio.splice(ytdl.audio.length, ytdl.audio.length);
           ytdl.audio.forEach((anu, i) => {
-            if (anu.needConvert) {
-              rowsmp3.push({title: anu.quality + ' (CONVERT)', description: ``, rowId: `${usedPrefix}getytdl ${anu.url}|${anu.fileSize}`})
-            } else {
-              rowsmp3.push({title: anu.quality + ' (DOWNLOAD)', description: ``, rowId: `${usedPrefix}fetch ${anu.url}`})
-            }
+              rowsmp3.push({title: anu.resText, description: `*Title*: ${anu.title}\n*Size*: ${anu.size}`, rowId: `${usedPrefix}getytdl ${JSON.stringify(anu)}`})
           });
           let secsmp3 = [
             {
@@ -100,11 +29,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
           let rowsmp4 = []
           ytdl.video.splice(ytdl.video.length, ytdl.video.length);
           ytdl.video.forEach((anu, i) => {
-            if (anu.needConvert) {
-              rowsmp4.push({title: anu.quality + ' (CONVERT)', description: ``, rowId: `${usedPrefix}getytdl ${anu.url}|${anu.fileSize}`})
-            } else {
-              rowsmp4.push({title: anu.quality + ' (DOWNLOAD)', description: ``, rowId: `${usedPrefix}fetch ${anu.url}`})
-            }
+            rowsmp4.push({title: anu.resText, description: `*Title*: ${anu.title}\n*Size*: ${anu.size}`, rowId: `${usedPrefix}getytdl ${JSON.stringify(anu)}`})
           });
           let secsmp4 = [
             {
@@ -131,21 +56,23 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
     break;
     case 'getytdl':
       {
-        const sp = text.split('|')
-        if (!isUrl(sp[0])) return m.reply('Download Error ngab! Coba contact Owner!')
+        const media = JSON.parse(text)
+        const {url} = await y2mateConvert(media.id, media.ytid, media.type, media.quality)
+        if (typeof url == 'undefined') return m.reply('Download Error ngab! Coba contact Owner!')
         m.reply(mess.wait)
         try {
-            let getdl = await getConvert(sp[0]).catch((e) => console.log(e))
-            if (getdl.error) return m.reply('Convert error ngab! coba contact Owner!')
-            if (getdl.status == 'ready') {
-                if (sp[1] >= 100000000) return m.reply(`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n*Link* :  ${getdl.url}`);
-                else await anubis.sendMedia(m.chat, getdl.url, getdl.filename, '', m)
-            }
-        } catch (e) {
-            console.log(e)
-            return m.reply('Convert error ngab! coba contact Owner!')
+          if (media.sizeByte >= 100000000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n*Title* : ${media.title}\n*File Size* : ${media.size}\n*Likes* : ${media.likes}\n*Dislike* : ${media.dislikes}\n*Rating* : ${media.rating}\n*Views* : ${media.viewCount}\n*Ext* : ${media.type}\n*Quality* : ${media.quality}\n*Link* : ${await shortlink(url)}`, m);
+          if (media.type == 'mp3') {
+            anubis.sendImage(m.chat, media.thumb, `*[ YOUTUBE MP3 DOWNLOADER v2 ]*\n\n*Title* : ${media.title}\n*File Size* : ${media.size}\n*Likes* : ${media.likes}\n*Dislike* : ${media.dislikes}\n*Rating* : ${media.rating}\n*Views* : ${media.viewCount}\n*Ext* : ${media.type}\n*Quality* : ${media.quality}`, m);
+            anubis.sendMessage(m.chat,{audio: { url: url },mimetype: "audio/mpeg",fileName: `${media.title}.mp3`},{ quoted: m });
+          } else {
+            anubis.sendMessage(m.chat,{video: { url: url },mimetype: "video/mp4",fileName: `${media.title}.mp4`,caption: `*[ YOUTUBE MP4 DOWNLOADER v2 ]*\n\n*Title* : ${media.title}\n*File Size* : ${media.size}\n*Likes* : ${media.likes}\n*Dislike* : ${media.dislikes}\n*Rating* : ${media.rating}\n*Views* : ${media.viewCount}\n*Ext* : ${media.type}\n*Quality* : ${media.quality}`},{ quoted: m })
+          }
+        } catch (err) {
+          m.reply('command lagi error ngab!')
         }
       }
+    break;
   }
 }
 anuplug.help = ['ytdl']

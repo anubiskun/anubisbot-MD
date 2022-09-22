@@ -1,7 +1,8 @@
 const google = require('googlethis')
 const fs = require('fs')
 const {UploadFileUgu} = require('../library/upload');
-const isUrl = require('is-url')
+const isUrl = require('is-url');
+const { shortlink } = require('../library/lib');
 module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
     const mquo = m.quoted || m;
     const quoted = mquo.mtype == "buttonsMessage"
@@ -54,7 +55,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 image: { url: images.url },
                 caption: `*-------「 GIMAGE SEARCH 」-------*
 🤠 *Query* : ${text}
-🔗 *Media Url* : ${images.url}
+🔗 *Media Url* : ${await shortlink(images.url)}
 ⬛ *Size* : ${images.width}x${images.height}`,
                 footer: anuFooter,
                 buttons: buttons,
