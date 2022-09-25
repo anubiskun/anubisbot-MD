@@ -105,3 +105,4 @@ dist
 
 package-lock.json
 session.json
+database.json
