@@ -10,15 +10,15 @@ const syntaxerror = require('syntax-error')
 const pino = require('pino').default
 const { Low, JSONFile }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-const database = new Low((!opts['test']) ? (mongoUser == '') ? new JSONFile(`database.json`) : new mongoDB(mongoUser) : new JSONFile(`database.json`)) // if u use mongo unscomment this
-// const database = new Low(new JSONFile(`database.json`)) // for testing
+// const database = new Low((opts['test']) ? new JSONFile(`database.json`) : new mongoDB(mongoUser)) // if u use mongo unscomment this
+const database = new Low(new mongoDB(`mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority`)) // for testing
 
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 async function loadDatabase() {
     await database.read()
-    console.log('LOADING DATABASE...', database)
+    console.log('LOADING DATABASE...')
     await sleep(5000)
     if (database.data == null) return loadDatabase()
     if (database.READ) return new Promise((resolve) => setInterval(function () { (!database.READ ? (clearInterval(this), resolve(database.data == null ? loadDatabase() : database.data)) : null) }, 0.5 * 1000))
@@ -95,7 +95,7 @@ async function reloadConnector() {
     anubis.anubiskun = S_WHATSAPP_NET
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)
-    // require('./server')(anubis) // uncomment this line if u use heroku for run this bot
+    require('./server')(anubis) // uncomment this line if u use heroku for run this bot
     const libCon = require('./library/conector')
     anubis.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update

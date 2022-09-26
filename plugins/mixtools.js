@@ -7,6 +7,7 @@ const util = require('util')
 const os = require('os')
 const {UploadFileUgu, tmpfiles, telegraphUp} = require('../library/upload');
 const speed = require("performance-now");
+const { performance } = require("perf_hooks");
 const { runtime, formatp, shortlink, getRandom, byteToSize } = require('../library/lib')
 const { toAudio, toPTT} = require('../library/converter')
 const FileType = require('file-type')
