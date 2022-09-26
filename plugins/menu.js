@@ -21,7 +21,7 @@ const defaultMenu = {
 ${'```%npmdesc```'}
 `,
 }
-  let anuplug = async (m, { anubis,  usedPrefix, args, command }) => {
+  let anuplug = async (m, anubis, {  usedPrefix, args, command }) => {
     let tags
     let teks = `${args[0]}`.toLowerCase()
     let arrayMenu = ['all', 'sticker', 'inject', 'downloader', 'group', 'tools', 'main', 'owner' ]
@@ -45,11 +45,11 @@ ${'```%npmdesc```'}
     
     try {
       let package = JSON.parse(await fs.promises.readFile(path.join(__dirname, '../package.json')).catch(_ => '{}'))
-      let name = global.db.data.users[m.sender].name ? anubis.getName(m.sender) : ''
+      let name = anubis.db.data.users[m.sender].name ? anubis.getName(m.sender) : ''
       let time = moment.tz('Asia/Jakarta').format('HH:mm:ss')
       let date = moment.tz('Asia/Jakarta').format('DD/MM/YY')
       let uptime = clockString(process.uptime() * 1000)
-      let totalreg = Object.keys(global.db.data.users).length
+      let totalreg = Object.keys(anubis.db.data.users).length
       let help = Object.values(global.plugins).filter(plugin => !plugin.disabled).map(plugin => {
         return {
           help: Array.isArray(plugin.tags) ? plugin.help : [plugin.help],

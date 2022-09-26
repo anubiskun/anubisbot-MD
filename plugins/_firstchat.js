@@ -1,6 +1,7 @@
 const moment = require('moment-timezone')
-module.exports = anuplug.all = async(m) => {
-    let user = global.db.data.users[m.sender]
+
+module.exports = anuplug.all = async(m, anubis) => {
+    let user = anubis.db.data.users[m.sender]
     let public = global.botpublic
     if (m.chat.endsWith('broadcast') || m.fromMe || m.isGroup) return
     if (new Date - user.pc < 1800000) return
@@ -13,7 +14,6 @@ module.exports = anuplug.all = async(m) => {
     anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
     user.pc = new Date * 1
 }
-
 function ucapan() {
     const time = moment.tz("Asia/Jakarta").format("HH");
     res = "Selamat dinihari";

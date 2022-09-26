@@ -1,19 +1,19 @@
 const fs = require("fs");
 let { spawn } = require('child_process')
-let path = require('path')
+let Path = require('path')
 var isRunning = false
 
  function start(file) {
   if (isRunning) return
   isRunning = true
-  let args = [path.join(__dirname, file), ...process.argv.slice(2)]
+  let args = [Path.join(__dirname, file), ...process.argv.slice(2)]
   let p = spawn(process.argv[0], args, {
     stdio: ['inherit', 'inherit', 'inherit', 'ipc']
   })
   p.on('message', data => {
     console.log('[RECEIVED]', data)
     switch (data) {
-      case 'reset':
+      case 'restart':
         p.kill()
         start.apply(this, arguments)
         break
@@ -23,13 +23,13 @@ var isRunning = false
       case 'stop':
         p.kill();
         process.exit(1);
-        break
+      break
     }
   })
   p.on('exit', code => {
     isRunning = false
     if (code == 0) return
-    console.error('Exited with code:', code)
+    console.error('exited anubis-bot :', code)
     fs.unwatchFile(args[0])
     start(file)
   })

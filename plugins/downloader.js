@@ -4,7 +4,7 @@ const moment = require('moment-timezone');
 const { yta, ytv, ytIdRegex } = require('../library/y2mate')
 let youtube = require("youtube-search-api")
 
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
     switch(command){
         case 'instagram':
         case 'ig':
@@ -46,7 +46,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                             if (json.media[i].type == "mp4") {
                             anubis.sendMessage(
                                 m.chat,
-                                { video: { url: json.media[i].url }, caption: teks },
+                                { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.media[i].type == "jpg") {
@@ -73,7 +73,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                                 if (json.media[i].type == "mp4") {
                                 anubis.sendMessage(
                                     m.chat,
-                                    { video: { url: json.media[i].url }, caption: teks },
+                                    { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {
@@ -102,7 +102,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                             if (json.anubis.type == "mp4") {
                             anubis.sendMessage(
                                 m.chat,
-                                { video: { url: json.anubis.url }, caption: teks },
+                                { video: { url: json.anubis.url }, jpegThumbnail: json.media[i].thumb, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.anubis.type == "jpg") {
@@ -138,7 +138,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                                 if (json.media[i].type == "mp4") {
                                 anubis.sendMessage(
                                     m.chat,
-                                    { video: { url: json.media[i].url }, caption: teks },
+                                    { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {
@@ -172,18 +172,10 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 pesen += `\n*Likes* : ${hago.likes}`;
                 if (hago.text) pesen += `\n*Caption* : ${hago.text}`;
                 if (hago.media[0].type == "mp4") {
-                    anubis.sendMessage(
-                        m.chat,
-                        { video: { url: hago.media[0].url }, caption: pesen },
-                        { quoted: m }
-                    );
+                    anubis.sendVideo(m.chat, hago.media[0].url, pesen, m)
                 } else if (hago.media[0].type == "jpg") {
                     for (let i = 0; i < hago.media[0].url.length; i++) {
-                        anubis.sendMessage(
-                            m.chat,
-                            { image: { url: hago.media[0].url[i] }, caption: pesen },
-                            { quoted: m }
-                        );
+                        anubis.sendImage(m.chat, hago.media[0].url[i], pesen, m)
                     }
                 } else {
                     m.reply("url tidak mengandung media ngab!");
@@ -204,11 +196,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                         if (!tt.status) return m.reply('Command error ngab!\nLapor ke Owner!')
                         if (typeof tt.nowm !== 'string') return m.reply("Video tidak di temukan, coba cek urlnya\natau akun private!");
                         let teks = `「 TIKTOK DOWNLOADER 」\n\n*Username*: ${tt.name}\n*Caption*: ${tt.cap}`;
-                        anubis.sendMessage(
-                        m.chat,
-                        { video: { url: tt.nowm }, caption: teks },
-                            { quoted: m }
-                        );
+                        anubis.sendVideo(m.chat, tt.nowm, teks, m)
                     } else {
                         m.reply("URl  tidak valid, coba cek urlnya bwang!!!");
                     }
@@ -366,6 +354,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                     if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
                     anubis.sendMessage(m.chat,{
                         video: { url: media.dl_link },
+                        jpegThumbnail: media.thumb,
                         mimetype: "video/mp4",
                         fileName: `${media.title}.mp4`,
                         caption: `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}`
@@ -405,14 +394,14 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                         description:
                             `${xres.title}` +
                             `\n\n*Channel Name*: ${xres.chname}`,
-                        rowId: `${usedPrefix}ytdla ${xres.url}`,
+                        rowId: `${usedPrefix}yta ${xres.url}`,
                         },
                         {
                         title: "MP4",
                         description:
                             `${xres.title}` +
                             `\n\n*Channel Name*: ${xres.chname}`,
-                        rowId: `${usedPrefix}ytdlv ${xres.url}`,
+                        rowId: `${usedPrefix}ytv ${xres.url}`,
                         },
                     ],
                     title: i + 1,

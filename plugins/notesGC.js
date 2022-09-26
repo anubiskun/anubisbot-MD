@@ -1,10 +1,11 @@
 const { getContentType } = require("@adiwajshing/baileys");
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix, isAnubis }) => {
+
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, isAnubis }) => {
     switch(command){
         case 'get':
             {
                 if (!text) return m.reply(`Example: ${usedPrefix + command} note name`)
-                let msgs = global.db.data.database[m.chat]
+                let msgs = anubis.db.data.database[m.chat]
                 if (!(text.toLowerCase() in msgs)) return m.reply(`lawak bener lu ngab! '${text}' gak ada ngab!`)
                 if (msgs[text.toLowerCase()].lock && !isAnubis) return m.reply('ga liat itu di lock!')
                 anubis.copyNForward(m.chat, msgs[text.toLowerCase()].pesan, true);
@@ -13,7 +14,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix, i
         case 'notes':
         case 'note':
             {
-                let seplit = Object.entries(global.db.data.database[m.chat]).map(([nama, isi]) => {
+                let seplit = Object.entries(anubis.db.data.database[m.chat]).map(([nama, isi]) => {
                     return { nama, ...isi };
                 })
                 let teks = "───〔 NOTE LIST 〕───\n";

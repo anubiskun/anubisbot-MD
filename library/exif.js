@@ -4,6 +4,7 @@ const Crypto = require("crypto")
 const webp = require("node-webpmux")
 const path = require("path");
 const { imageToWebp, videoToWebp, webpTopng, WebpToWebp } = require('./converter');
+const { webp2mp4File } = require('./upload');
 
 async function writeExifImg (media, metadata) {
     let wMedia = await imageToWebp(media)
@@ -49,6 +50,7 @@ async function writeExifVid (media, metadata) {
 
 async function writeExif (file, metadata) {
     let media = await WebpToWebp(file)
+    const tmpFileIn = path.join(__root, `/temp/${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
     const tmpFileOut = path.join(__root, `/temp/${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
     
     if (metadata.packname || metadata.author) {
@@ -64,6 +66,7 @@ async function writeExif (file, metadata) {
             let media = videoToWebp(file)
             await img.load(media)
         }
+        // fs.unlinkSync(tmpFileIn)
         img.exif = exif
         await img.save(tmpFileOut)
         return tmpFileOut

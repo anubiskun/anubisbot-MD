@@ -1,10 +1,30 @@
+const fs = require('fs')
 const axios = require('axios')
+const google = require('googlethis')
+const remobg = require("remove.bg");
 const isUrl = require('is-url')
 const util = require('util')
 const os = require('os')
+const {UploadFileUgu, tmpfiles, telegraphUp} = require('../library/upload');
 const speed = require("performance-now");
-const { runtime, formatp, shortlink } = require('../library/lib')
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+const { runtime, formatp, shortlink, getRandom, byteToSize } = require('../library/lib')
+const { toAudio, toPTT} = require('../library/converter')
+const FileType = require('file-type')
+
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
+    const mquo = m.quoted || m;
+    const quoted = mquo.mtype == "buttonsMessage"
+        ? mquo[Object.keys(mquo)[1]]
+        : mquo.mtype == "templateMessage"
+        ? mquo.hydratedTemplate[Object.keys(mquo.hydratedTemplate)[1]]
+        : mquo.mtype == "product"
+        ? mquo[Object.keys(mquo)[0]]
+        : m.quoted
+        ? m.quoted
+        : m;
+    const mime = (quoted.msg || quoted).mimetype || "";
+    const qmsg = quoted.msg || quoted;
+    const isMedia = /image|video|sticker|audio/.test(mime);
     switch(command){
         case 'cekexif':
             {
@@ -25,15 +45,36 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
         case 'fetch':
             {
                 if (!isUrl(text)) return m.reply('wajib url direct ngab!')
+                const url = new URL(text)
                 m.reply(mess.wait)
                 try {
-                    let res = await axios.get(text)
-                    // return console.log(res)
-                    if (res.headers['content-length'] > 100 * 1024 * 1024 * 1024) {
+                    const res = await axios({url: url.href, method: "GET", responseType: "arraybuffer"})
+                    if (res.statusText !== 'OK') return m.reply('wajib url direct ngab!')
+                    if (res.headers['content-length'] > 100000000) {
                         delete res
-                        throw `Content-Length: ${res.headers['content-length']}`
+                        throw `File size terlalu besar ngab!: ${byteToSize(res.headers['content-length'])}`
                     }
-                    if (!/text|json/.test(res.headers['content-type'])) return anubis.sendMedia(m.chat, text, 'file', 'by anubis-bot', m)
+                    if (!/text|json/.test(res.headers['content-type'])) {
+                        const type = await FileType.fromBuffer(res.data)
+                        const ext = (res.headers['content-type'] == 'application/vnd.android.package-archive') ? '.apk' : '.' + type.ext
+                        const fileName = getRandom(ext)
+                        const caption = `*${fileName}*\nSize: *${byteToSize(res.headers['content-length'])}*`
+                        if (/gif/.test(res.headers['content-type'])) {
+                            return anubis.sendMessage(m.chat, { video: res.data, fileName, caption, gifPlayback: true }, { quoted: m })
+                          }
+                          if (/application/.test(res.headers['content-type'])) {
+                            return anubis.sendMessage(m.chat, { document: res.data, mimetype: res.headers['content-type'], fileName, caption }, { quoted: m })
+                          }
+                          if (/image/.test(res.headers['content-type'])) {
+                            return anubis.sendMessage(m.chat, { image: res.data, fileName, caption }, { quoted: m })
+                          }
+                          if (/video/.test(res.headers['content-type'])) {
+                            return anubis.sendMessage(m.chat, { video: res.data, fileName, caption, mimetype: 'video/mp4' }, { quoted: m })
+                          }
+                          if (/audio/.test(res.headers['content-type'])) {
+                            return anubis.sendMessage(m.chat, { audio: res.data, fileName, caption, mimetype: 'audio/mpeg' }, { quoted: m })
+                          }
+                    }
                     let txt = res.data
                     try {
                         txt = util.format(JSON.parse(txt+''))
@@ -161,11 +202,183 @@ ${cpus
         case 'shortlink':
             {
                 if (!isUrl(text)) return m.reply(`*Example* : ${usedPrefix + command} https://google.com`)
+                if (/tinyurl.com/.test(text)) return m.reply('gila gila lu ngab! link nya dah pendek!!!\nLu mau gimana lagi si?!')
                 m.reply(await shortlink(text))
             }
         break;
+        case 'google':
+            {
+                if (!text) throw `Example : ${usedPrefix + command} apakah bumi itu bulat?`
+                m.reply(mess.wait)
+                const options = {
+                    page: 0, 
+                    safe: false,
+                    additional_params: { 
+                      hl: 'en' 
+                    }
+                }
+                try {
+                    const {results} = await google.search(text, options)
+                    let teks = `Google Search From : ${text}\n\n`
+                    for (let g of results) {
+                        teks += `⭔ *Title* : ${g.title}\n`
+                        teks += `⭔ *Description* : ${g.description}\n`
+                        teks += `⭔ *Link* : ${g.url}\n\n────────────────────────\n\n`
+                    }
+                    anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
+                } catch (e) {
+                    return m.reply(`command *${command}* lagi error ngab!`)
+                }
+            }
+        break;
+        case 'gimage':
+            {
+                if (!text) throw `Example : ${usedPrefix + command} gojo satoru`
+                m.reply(mess.wait)
+                try {
+                    const n = await google.image(text, { safe: false })
+                    images = n[Math.floor(Math.random() * n.length)]
+                    let buttons = [
+                        {
+                            buttonId: `${usedPrefix + command} ${text}`,
+                            buttonText: { displayText: "Next Image" },
+                            type: 1,
+                        },
+                    ];
+                    let buttonMessage = {
+                        image: { url: images.url },
+                        caption: `*-------「 GIMAGE SEARCH 」-------*
+                        🤠 *Query* : ${text}
+                        🔗 *Media Url* : ${await shortlink(images.url)}
+                        ⬛ *Size* : ${images.width}x${images.height}`,
+                        footer: anuFooter,
+                        buttons: buttons,
+                        headerType: 4,
+                    };
+                    anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                } catch (e) {
+                    return m.reply(`command *${command}* lagi error ngab!`)
+                }
+            }
+        break;
+        case 'gimgrev':
+            {
+                let qstring
+                if (!/image/.test(mime) && !isUrl(text)) return m.reply(`Reply gambar yang mau di cari di google ngab!`)
+                if (isUrl(text)) qstring = text
+                if (/image/.test(mime)) {
+                    let media = await anubis.downloadAndSaveMediaMessage(qmsg, 'anu');
+                    let {url} = await UploadFileUgu(media)
+                    await fs.unlinkSync(media);
+                    qstring = url
+                }
+                m.reply(mess.wait)
+                try {
+                    const {results} = await google.search(qstring, { ris: true });
+                    let teks = `Result from Google search by Image :\n\n`
+                    if (!results) return m.reply('Gambar Tidak di temukan kecocokan ngab!') 
+                    for (let g of results) {
+                        teks += `⭔ *Title* : ${g.title}\n`
+                        teks += `⭔ *Description* : ${g.description}\n`
+                        teks += `⭔ *Link* : ${g.url}\n\n────────────────────────\n\n`
+                    }
+                    anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
+                } catch (e) {
+                    return m.reply(`command *${command}* lagi error ngab!`)
+                }
+            }
+        break;
+        case 'rmbg':
+        case 'removebg':
+            {
+                if (!/image/.test(mime))return m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
+                if (/webp/.test(mime)) m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
+                try {
+                    let apinobg = apirnobg[Math.floor(Math.random() * apirnobg.length)]
+                    let hmm = (await "./temp/remobg-") + getRandom("")
+                    let localFile = await anubis.downloadAndSaveMediaMessage(qmsg, hmm);
+                    let outputFile = (await "./temp/hremo-") + getRandom(".png");
+                    m.reply(mess.wait)
+                    remobg
+                    .removeBackgroundFromImageFile({
+                        path: localFile,
+                        apiKey: apinobg,
+                        size: "regular",
+                        type: "auto",
+                        scale: "100%",
+                        outputFile,
+                    })
+                    .then(async (result) => {
+                        anubis.sendMessage(
+                            m.chat,
+                            { image: fs.readFileSync(outputFile), caption: mess.success },
+                            { quoted: m }
+                            );
+                            await fs.unlinkSync(localFile);
+                            await fs.unlinkSync(outputFile);
+                        });
+                    } catch (err) {
+                        m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
+                    }
+            }
+        break;
+        case 'tomp3':
+            {
+              if (!/video/.test(mime) && !/audio/.test(mime)) return m.reply(`Kirim/Reply Video/Audio Yang Ingin Dijadikan MP3 Dengan Caption ${usedPrefix + command}`)
+              try {
+                m.reply(mess.wait);
+                let media = await anubis.downloadMediaMessage(qmsg);
+                let audio = await toAudio(media, "mp4");
+                anubis.sendMessage(
+                  m.chat,
+                  { audio: audio, mimetype: "audio/mpeg" },
+                  { quoted: m }
+                );
+              } catch (err) {
+                  m.reply('error ngab! cba wa ownernya!')
+                  console.log(err)
+              }
+            }
+        break;
+        case 'tourl':
+        {
+            if (!isMedia) return m.reply(`Reply media dengan caption *${usedPrefix + command}*`)
+            try {
+                let media = await anubis.downloadAndSaveMediaMessage(qmsg, 'anubiskun');
+                if (/image/.test(mime)) {
+                    let anu = await telegraphUp(media);
+                    m.reply(util.format(anu));
+                } else if (!/image/.test(mime)) {
+                    let anu = await tmpfiles(media);
+                    m.reply(util.format(anu));
+                }
+                await fs.unlinkSync(media);
+            } catch (err) {
+                m.reply('error ngab! cba wa ownernya!')
+                console.log(err)
+            }
+        }
+        break;
+        case 'tovn':
+        {
+            if (!/video/.test(mime) && !/audio/.test(mime)) return m.reply(`Reply Video/Audio Yang Ingin Dijadikan VN Dengan Caption ${usedPrefix + command}`)
+            try {
+            m.reply(mess.wait);
+            let media = await anubis.downloadMediaMessage(qmsg);
+            let audio = await toPTT(media, "mp4");
+            anubis.sendMessage(
+            m.chat,
+            { audio: audio, mimetype: "audio/mpeg", ptt: true },
+            { quoted: m }
+            );
+            } catch (err) {
+                m.reply('error ngab! cba wa ownernya!')
+                console.log(err)
+            }
+        }
+        break;
     }
 }
-anuplug.help = ['cekexif','changelogs','ping','readmore','owner','shortlink']
+anuplug.help = ['cekexif','changelogs','ping','readmore','owner','shortlink','google','gimage','gimgrev','removebg','tomp3','tourl','tovn']
 anuplug.tags = ['tools']
-anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa|shortlink)$/i
+anuplug.command = /^(cekexif|changelogs?|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa|shortlink|google|gimage|gimgrev|rmbg|removebg|to(mp3|url|vn))$/i

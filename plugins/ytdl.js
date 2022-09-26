@@ -1,7 +1,7 @@
-const { y2mate, y2mateConvert, shortlink } = require("../library/lib");
+const { y2mate, y2mateConvert, shortlink } = require("../library/lib")
 const isUrl = require("is-url")
 
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
   if (!text) return m.reply(`Example : ${usedPrefix + command} https://youtube.com/watch?v=PtFMh6Tccag`)
   switch(command){
     case 'ytdl':

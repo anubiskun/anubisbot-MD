@@ -1,4 +1,4 @@
-// module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+// module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
 //     console.log(command)
 //     console.log(text)
 //     console.log(args)

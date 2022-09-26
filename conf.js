@@ -1,13 +1,16 @@
 const fs = require('fs')
 const path = require('path')
+const yargs = require('yargs/yargs')
+const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 
-global.botpublic = true
-global.sesName = 'session.json' //session name
+global.botpublic = opts['test'] ? false : true // Bot Status
+global.sesName = opts['test'] ? 'anubisTest' : 'anubisAuth' // Session Folder
 global.mongoUser = '' //mongo uri
 global.ownerNum = ['6289653909054'] // owner number
 global.fla = 'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=sketch-name&doScale=true&scaleWidth=800&scaleHeight=500&fontsize=100&fillTextType=1&fillTextPattern=Warning!&fillColor1Color=%23f2aa4c&fillColor2Color=%23f2aa4c&fillColor3Color=%23f2aa4c&fillColor4Color=%23f2aa4c&fillColor5Color=%23f2aa4c&fillColor6Color=%23f2aa4c&fillColor7Color=%23f2aa4c&fillColor8Color=%23f2aa4c&fillColor9Color=%23f2aa4c&fillColor10Color=%23f2aa4c&fillOutlineColor=%23f2aa4c&fillOutline2Color=%23f2aa4c&backgroundColor=%23101820&text='
 global.thumb = fs.readFileSync('./library/anubis.jpg')
-global.__root = path.join(__dirname)
+global.__root = path.join(__dirname, '/')
+global.__temp = path.join(__dirname, '/temp/')
 global.msg = {
     err: "error ngab! coba hubungi owner",
     nUrl: "bad URL",
@@ -27,7 +30,7 @@ global.anuCookie = {
     joox: '', // joox cookies
     soundcloud: 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX', //soundcloud client_id
 }
-global.pingWeb = 'anuwapay.herokuapp.com'
+global.pingWeb = 'anuwapay.herokuapp.com' 
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author
@@ -39,6 +42,7 @@ global.apirnobg = [
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
 global.changelogs = [
+    '[ V 2.0.0-core-2.0 ]\n- re-coded core v2.0 (testing)\n- move to MultiFileAuthState\n- Fix Waiting Database Connected\n- Fix Waiting Pending Messages\n- Fix Duplicated Messages send\n- Fix Thumbnail not display\n- Bug Fix',
     '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group\n- Marge any command\n- Fixing sticker command to improve performance\n- Fixing Tiktok command\n- Fix ytdl v2\n- Added shortlink command',
     '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group\n- Added Joox Search and DL command\n- Added SoundCloud Search and DL command\n- Bug Fix',
     '[ V 1.6.4 ]\n- Fix any command error',

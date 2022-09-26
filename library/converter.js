@@ -4,11 +4,10 @@ const path = require('path')
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const { spawn } = require('child_process')
 const isUrl = require('is-url')
-const {tmpfiles} = require('./upload')
 
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   return new Promise(async (resolve, reject) => {
-    try {
+    // try {
       var file
       if (isUrl(buffer)) {
         const a = await axios.get(buffer, { responseType: 'arraybuffer' })
@@ -36,9 +35,9 @@ function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
             reject(e)
           }
         })
-    } catch (e) {
-      reject(e)
-    }
+    // } catch (e) {
+    //   reject(e)
+    // }
   })
 }
 

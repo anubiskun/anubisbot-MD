@@ -1,6 +1,6 @@
 {
   "name": "anubisbot-md",
-  "version": "1.6.6",
+  "version": "2.0.0-core-2.0",
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node index.js --test"
   },
   "repository": {
     "type": "git",
@@ -22,7 +22,9 @@
     "whatsapp",
     "payment",
     "api",
-    "bot"
+    "bot",
+    "nodejs",
+    "baileys"
   ],
   "author": "anubiskun",
   "license": "ISC",
@@ -31,7 +33,7 @@
   },
   "homepage": "https://github.com/anubiskun/anubisbot-MD",
   "dependencies": {
-    "@adiwajshing/baileys": "^4.4.0",
+    "@adiwajshing/baileys": "github:adiwajshing/baileys",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hapi/boom": "^10.0.0",
@@ -49,6 +51,7 @@
     "is-url": "^1.2.4",
     "jimp": "^0.16.1",
     "jsdom": "^20.0.0",
+    "link-preview-js": "^2.1.19",
     "lodash": "^4.17.21",
     "lowdb": "^2.1.0",
     "moment-timezone": "^0.5.37",

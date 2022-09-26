@@ -1,12 +1,649 @@
 let fs = require('fs')
-const { proto, delay, getContentType } = require('@adiwajshing/baileys')
+const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, useSingleFileAuthState, makeInMemoryStore, getContentType, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason, default: makeWASocket, generateThumbnail,} = require('@adiwajshing/baileys')
+const Path = require('path')
+const _ = require('lodash')
 const axios = require('axios').default
+const { parsePhoneNumber } = require('awesome-phonenumber')
 const moment = require('moment-timezone')
 const { sizeFormatter } = require('human-readable')
 const cheerio = require('cheerio')
 const isUrl = require('is-url')
 const {startFollowing} = require('follow-redirect-url')
 const BodyForm = require('form-data')
+const FileType = require('file-type')
+const { writeExifVid, writeExif } = require('./exif')
+const { imageToWebp, videoToWebp } = require('./converter')
+const pino = require('pino').default
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
+const jimp = require('jimp')
+
+/**
+ * 
+ * @param {WAConnection} conn 
+ * @returns 
+ */
+const anubisFunc = (conn) => {
+  return {
+    ...conn,
+
+    /**
+     * 
+     * @param {*} jid 
+     * @returns 
+     */
+    decodeJid(jid) {
+
+      if (!jid) return jid
+      if (/:\d+@/gi.test(jid)) {
+        let decode = jidDecode(jid) || {}
+        return decode.user && decode.server && decode.user + '@' + decode.server || jid
+      } else return jid
+    },
+
+    getName(jid, withoutContact = false) {
+      let id = this.decodeJid(jid)
+      withoutContact = this.withoutContact || withoutContact
+      let v
+      if (id.endsWith("@g.us")) return new Promise(async (resolve) => {
+        v = store.contacts[id] || {}
+        if (!(v.name || v.subject)) v = await this.groupMetadata(id) || {}
+        resolve(v.name || v.subject || parsePhoneNumber('+' + id.replace(this.anubiskun, '')).getNumber('international'))
+      })
+      else v = id === '0'+this.anubiskun ? {
+        id,
+        name: 'WhatsApp'
+      } : id === this.decodeJid(this.user.id) ? this.user : (store.contacts[id] || {})
+      return (withoutContact ? '' : v.name) || v.subject || v.verifiedName || parsePhoneNumber('+' + jid.replace(this.anubiskun, '')).getNumber('international')
+    },
+    /**
+    * 
+    * @param {string} jid 
+    * @param {array} contact ex: '62,62,...' or ['62','62',...]
+    * @param {m} quoted 
+    * @param {{}} opts 
+    */
+    async sendContact(jid, contact, quoted = '', opts = {}) {
+      let list = []
+      contact = (typeof contact == 'string') ? contact.split(',') : contact
+      for (let i of contact) {
+        i = /@/.test(i) ? i.split('@')[0] : i
+        list.push({
+          displayName: await this.getName(i + this.anubiskun),
+          vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await this.getName(i + this.anubiskun)}\nFN:${await this.getName(i + this.anubiskun)}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:anubiskun.xyz@gmail.com\nitem2.X-ABLabel:Email\nitem3.URL:https://instagram.com/anubiskun.xyz\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`
+        })
+      }
+      this.sendMessage(jid, { contacts: { displayName: `${list.length} Contact`, contacts: list }, ...opts }, { quoted })
+    },
+
+    /** Resize Image
+     *
+     * @param {Buffer} Buffer (Only Image)
+     * @param {Numeric} Width
+     * @param {Numeric} Height
+     */
+    async reSize(image, width, height) {
+      var oyy = await jimp.read(image);
+      return await oyy.resize(width, height).getBufferAsync(jimp.MIME_JPEG)
+    },
+
+    /**
+  *
+  * @param {*} jid
+  * @param {*} url
+  * @param {*} caption
+  * @param {*} quoted
+  * @param {*} options
+  */
+    async sendFileUrl(jid, url, caption, quoted, options = {}) {
+      let mime = '';
+      let res = await axios.get(url)
+      mime = res.headers['content-type']
+      if (mime.split("/")[1] === "gif") {
+        return this.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options }, { quoted: quoted, ...options })
+      }
+      let type = mime.split("/")[0] + "Message"
+      if (mime === "application") {
+        return this.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options }, { quoted: quoted, ...options })
+      }
+      if (mime.split("/")[0] === "image") {
+        return this.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options }, { quoted: quoted, ...options })
+      }
+      if (mime.split("/")[0] === "video") {
+        return this.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options }, { quoted: quoted, ...options })
+      }
+      if (mime.split("/")[0] === "audio") {
+        return this.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options }, { quoted: quoted, ...options })
+      }
+    },
+
+    /** Send Payment Message 
+    *
+    * @param {*} jid
+    * @param {*} sender
+    * @param {*} text
+    * @param {Numeric} value
+    */
+    sendPaymentMsg(jid, sender, text = '', value) {
+      const payment = generateWAMessageFromContent(jid, {
+        "requestPaymentMessage": {
+          "currencyCodeIso4217": "IDR",
+          "amount1000": value,
+          "requestFrom": sender,
+          "noteMessage": {
+            "extendedTextMessage": {
+              "text": text
+            }
+          },
+          "expiryTimestamp": "1660787819",
+          "amount": {
+            "value": value,
+            "currencyCode": "IDR"
+          }
+        }
+      }, { userJid: jid })
+
+      this.relayMessage(jid, payment.message, { messageId: payment.key.id })
+    },
+
+    /** Send Poll Message 
+     *
+     * @param {*} jid
+     * @param {*} name
+     * @param [*] options
+     */
+    sendPoll(jid, name = '', options = []) {
+      const poll = generateWAMessageFromContent(jid, proto.Message.fromObject({
+        "pollCreationMessage": {
+          "name": name,
+          "options": options,
+          "selectableOptionsCount": options.length
+        }
+      }), { userJid: jid })
+      this.relayMessage(jid, poll.message, { messageId: poll.key.id })
+    },
+
+    /** Send Simple Poll Message 
+     *
+     * @param {*} jid
+     * @param {*} name
+     */
+    sendSimplePoll(jid, name = '') {
+      const simplePoll = generateWAMessageFromContent(jid, proto.Message.fromObject({
+        "pollCreationMessage": {
+          "name": name,
+          "options": [
+            { "optionName": "Yes" },
+            { "optionName": "No" }
+          ],
+          "selectableOptionsCount": 2
+        }
+      }), { userJid: jid })
+      this.relayMessage(jid, simplePoll.message, { messageId: simplePoll.key.id })
+    },
+
+    /** Send Order Message 
+      *
+      * @param {*} jid
+      * @param {*} text
+      * @param {Numeric} orid
+      * @param {Buffer} img
+      * @param {Numeric} itcount
+      * @param {*} title
+      * @param {*} sellers
+      * @param {*} tokens
+      * @param {Numeric} amount
+      */
+    sendOrder(jid, text = '', orid = '', img, itcount = '', title = '', sellers, tokens = '', ammount) {
+      const order = generateWAMessageFromContent(jid, proto.Message.fromObject({
+        "orderMessage": {
+          "orderId": orid,
+          "thumbnail": img,
+          "itemCount": itcount,
+          "status": "INQUIRY",
+          "surface": "CATALOG",
+          "orderTitle": title,
+          "message": text,
+          "sellerJid": sellers,
+          "token": tokens,
+          "totalAmount1000": ammount,
+          "totalCurrencyCode": "IDR",
+        }
+      }), { userJid: jid })
+      this.relayMessage(jid, order.message, { messageId: order.key.id })
+    },
+
+    /** Send List Messaage
+     *
+     *@param {*} jid
+    *@param {*} text
+    *@param {*} footer
+    *@param {*} title
+    *@param {*} butText
+    *@param [*] sections
+    *@param {*} quoted
+    */
+    sendListMsg(jid, text = '', footer = '', title = '', butText = '', sects = [], quoted) {
+      let sections = sects
+      var listMes = {
+        text: text,
+        footer: anuFooter,
+        title: title,
+        buttonText: butText,
+        sections
+      }
+      this.sendMessage(jid, listMes, { quoted: quoted })
+    },
+    
+    async genThumb(file) {
+      let buffer = Buffer.isBuffer(file) ? file : /^data:.*?\/.*?;base64,/i.test(file) ? Buffer.from(file.split`,`[1], 'base64') : /^https?:\/\//.test(file) ? await (await getBuffer(file)) : fs.existsSync(file) ? fs.readFileSync(file) : Buffer.alloc(0)
+      let type = await FileType.fromBuffer(buffer)
+      let FileName = Path.join(__temp, getRandom(`.${type.ext}`))
+      await fs.writeFileSync(FileName, buffer)
+      return await generateThumbnail(FileName, type.mime)
+    }
+    ,
+
+    /**
+     *
+     * @param {*} jid
+     * @param {*} title
+     * @param {*} text
+     * @param {*} sections
+     * @param {*} quoted
+     * @param {*} options
+     * @returns
+     */
+    sendList(jid, title, text, buttonText, sections, options = {}) {
+      let listMessage = {
+        text,
+        footer: anuFooter,
+        title,
+        buttonText,
+        sections,
+      };
+
+      this.sendMessage(jid, listMessage, { ...options });
+    },
+
+    /** Send Button 5 Message
+     * 
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} footer
+     * @param {*} button
+     * @returns 
+     */
+    send5ButMsg(jid, text = '', footer = '', but = [], options = {}) {
+      let templateButtons = but
+      var templateMessage = {
+        text: text,
+        footer: anuFooter,
+        templateButtons: templateButtons
+      }
+      this.sendMessage(jid, templateMessage, { ...options })
+    },
+
+    /** Send Button 5 Image
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} footer
+     * @param {*} image
+     * @param [*] button
+     * @param {*} options
+     * @returns
+     */
+    send5ButImg(jid, text = '', img, buttons = [], quoted, options = {}) {
+      this.sendMessage(jid, { image: img, caption: text, footer: anuFooter, buttons }, { quoted, ...options })
+    },
+
+    /** Send Button 5 Location
+    *
+    * @param {*} jid
+    * @param {*} text
+    * @param {*} footer
+    * @param {*} location
+    * @param [*] button
+    * @param {*} options
+    */
+    async send5ButLoc(jid, text = '', footer = '', lok, but = [], options = {}) {
+      let bb = await this.reSize(lok, 300, 150)
+      this.sendMessage(jid, { location: { jpegThumbnail: bb }, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
+    },
+
+    /** Send Button 5 Video
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} footer
+     * @param {*} Video
+     * @param [*] button
+     * @param {*} options
+     * @returns
+     */
+    async send5ButVid(jid, text = '', footer = '', vid, but = [], buff, options = {}) {
+      let lol = await this.reSize(buf, 300, 150)
+      this.sendMessage(jid, { video: vid, jpegThumbnail: lol, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
+    },
+
+    /** Send Button 5 Gif
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} footer
+     * @param {*} Gif
+     * @param [*] button
+     * @param {*} options
+     * @returns
+     */
+    async send5ButGif(jid, text = '', footer = '', gif, but = [], buff, options = {}) {
+      let ahh = await this.reSize(buf, 300, 150)
+      let a = [1, 2]
+      let b = a[Math.floor(Math.random() * a.length)]
+      this.sendMessage(jid, { video: gif, gifPlayback: true, gifAttribution: b, caption: text, footer: anuFooter, jpegThumbnail: ahh, templateButtons: but }, { ...options })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} buttons 
+     * @param {*} caption 
+     * @param {*} footer 
+     * @param {*} quoted 
+     * @param {*} options 
+     */
+    sendButtonText(jid, buttons = [], text, quoted = '', options = {}) {
+      let buttonMessage = {
+        text,
+        footer: anuFooter,
+        buttons,
+        headerType: 2,
+        ...options
+      }
+      this.sendMessage(jid, buttonMessage, { quoted, ...options })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} text 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    sendText(jid, text, quoted = '', options) {
+      this.sendMessage(jid, { text: text, ...options }, { quoted, ...options })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} caption 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendImage(jid, path, caption = '', quoted = '', options) {
+      let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
+      return await this.sendMessage(jid, { image: buffer, caption: caption, ...options }, { quoted })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} caption 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendVideo(jid, path, caption = '', quoted = '', gif = false, options) {
+      let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
+      return await this.sendMessage(jid, { video: buffer, caption: caption, gifPlayback: gif, ...options }, { quoted })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} quoted 
+     * @param {*} mime 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendAudio(jid, path, quoted = '', ptt = false, options) {
+      let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
+      return await this.sendMessage(jid, { audio: buffer, ptt: ptt, ...options }, { quoted })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} text 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    sendTextWithMentions(jid, text, quoted, options = {}) {
+      this.sendMessage(jid, { text: text, mentions: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + this.anubiskun), ...options }, { quoted })
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendAsSticker(jid, path, quoted, options = {}) {
+      try {
+        let buff = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
+        let buffer
+        if (options && (options.packname || options.author)) {
+          buffer = await writeExif(buff, options)
+        } else {
+          buffer = await imageToWebp(buff)
+        }
+        await this.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+        return buffer
+      } catch (err) {
+        console.log(err)
+      }
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendVideoAsSticker(jid, path, quoted, options = {}) {
+      let buff = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
+      let buffer
+      if (options && (options.packname || options.author)) {
+        buffer = await writeExifVid(buff, options)
+      } else {
+        buffer = await videoToWebp(buff)
+      }
+
+      await this.sendMessage(jid, { sticker: { url: buffer }, ...options }, { quoted })
+      return buffer
+    },
+
+    /**
+     * 
+     * @param {*} message 
+     * @param {*} filename 
+     * @param {*} attachExtension 
+     * @returns 
+     */
+    async downloadAndSaveMediaMessage(message, filename = getRandom(), attachExtension = true) {
+      let quoted = message.msg ? message.msg : message
+      let mime = (message.msg || message).mimetype || ''
+      let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
+      const stream = await downloadContentFromMessage({ mediaKey: quoted.mediaKey, directPath: quoted.directPath }, messageType)
+      let buffer = Buffer.from([])
+      for await (const chunk of stream) {
+        buffer = Buffer.concat([buffer, chunk])
+      }
+      let type = await FileType.fromBuffer(buffer)
+      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
+      // save to file
+      await fs.writeFileSync(trueFileName, buffer)
+      return trueFileName
+    },
+
+    async downloadMediaMessage(message) {
+      let mime = (message.msg || message).mimetype || ''
+      let messageType = message.mtype ? message.mtype.replace(/Message/gi, '') : mime.split('/')[0]
+      const stream = await downloadContentFromMessage(message, messageType)
+      let buffer = Buffer.from([])
+      for await (const chunk of stream) {
+        buffer = Buffer.concat([buffer, chunk])
+      }
+      return buffer
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} path 
+     * @param {*} filename
+     * @param {*} caption
+     * @param {*} quoted 
+     * @param {*} options 
+     * @returns 
+     */
+    async sendMedia(jid, path, fileName = '', caption = '', quoted = '', options = {}) {
+      let types = await this.getFile(path, true)
+      let { mime, ext, res, data, filename } = types
+      if (res && res.status !== 200) {
+        try { throw { json: JSON.parse(file.toString()) } }
+        catch (e) { if (e.json) throw e.json }
+      }
+      let type = '', mimetype = mime, pathFile = filename
+      if (options.asDocument) type = 'document'
+      if (options.asSticker || /webp/.test(mime)) {
+        let { writeExif } = require('./lib/exif')
+        let media = { mimetype: mime, data }
+        pathFile = await writeExif(media, { packname: options.packname ? options.packname : global.packname, author: options.author ? options.author : global.author, categories: options.categories ? options.categories : [] })
+        await fs.promises.unlink(filename)
+        type = 'sticker'
+        mimetype = 'image/webp'
+      }
+      else if (/image/.test(mime)) type = 'image'
+      else if (/video/.test(mime)) type = 'video'
+      else if (/audio/.test(mime)) type = 'audio'
+      else type = 'document'
+      await this.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
+      return fs.promises.unlink(pathFile)
+    },
+
+    /**
+     * 
+     * @param {*} jid 
+     * @param {*} message 
+     * @param {*} forceForward 
+     * @param {*} options 
+     * @returns 
+     */
+    async copyNForward(jid, message, forceForward = false, options = {}) {
+      let vtype
+      if (options.readViewOnce) {
+        message.message = message.message && message.message.ephemeralMessage && message.message.ephemeralMessage.message ? message.message.ephemeralMessage.message : (message.message || undefined)
+        vtype = Object.keys(message.message.viewOnceMessage.message)[0]
+        delete (message.message && message.message.ignore ? message.message.ignore : (message.message || undefined))
+        delete message.message.viewOnceMessage.message[vtype].viewOnce
+        message.message = {
+          ...message.message.viewOnceMessage.message
+        }
+      }
+
+      let mtype = Object.keys(message.message)[0]
+      let content = await generateForwardMessageContent(message, forceForward)
+      let ctype = Object.keys(content)[0]
+      let context = {}
+      if (mtype != "conversation") context = message.message[mtype].contextInfo
+      content[ctype].contextInfo = {
+        ...context,
+        ...content[ctype].contextInfo
+      }
+      const waMessage = await generateWAMessageFromContent(jid, content, options ? {
+        ...content[ctype],
+        ...options,
+        ...(options.contextInfo ? {
+          contextInfo: {
+            ...content[ctype].contextInfo,
+            ...options.contextInfo
+          }
+        } : {})
+      } : {})
+      await this.relayMessage(jid, waMessage.message, { messageId: waMessage.key.id })
+      return waMessage
+    },
+
+    cMod(jid, copy, text = '', sender = this.user.id, options = {}) {
+      //let copy = message.toJSON()
+      let mtype = Object.keys(copy.message)[0]
+      let isEphemeral = mtype === 'ephemeralMessage'
+      if (isEphemeral) {
+        mtype = Object.keys(copy.message.ephemeralMessage.message)[0]
+      }
+      let msg = isEphemeral ? copy.message.ephemeralMessage.message : copy.message
+      let content = msg[mtype]
+      if (typeof content === 'string') msg[mtype] = text || content
+      else if (content.caption) content.caption = text || content.caption
+      else if (content.text) content.text = text || content.text
+      if (typeof content !== 'string') msg[mtype] = {
+        ...content,
+        ...options
+      }
+      if (copy.key.participant) sender = copy.key.participant = sender || copy.key.participant
+      else if (copy.key.participant) sender = copy.key.participant = sender || copy.key.participant
+      if (copy.key.remoteJid.includes(this.anubiskun)) sender = sender || copy.key.remoteJid
+      else if (copy.key.remoteJid.includes('@broadcast')) sender = sender || copy.key.remoteJid
+      copy.key.remoteJid = jid
+      copy.key.fromMe = sender === this.user.id
+
+      return proto.WebMessageInfo.fromObject(copy)
+    },
+
+
+    /**
+     * 
+     * @param {*} path 
+     * @returns 
+     */
+    async getFile(PATH, save) {
+      let res
+      let data = Buffer.isBuffer(PATH) ? PATH : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? await (res = await getBuffer(PATH)) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
+      //if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
+      let type = await FileType.fromBuffer(data) || {
+        mime: 'application/octet-stream',
+        ext: 'bin'
+      }
+      filename = Path.join(__dirname, './temp/' + new Date * 1 + '.' + type.ext)
+      if (data && save) fs.promises.writeFile(filename, data)
+      return {
+        res,
+        filename,
+        size: await getSizeMedia(data),
+        ...type,
+        data
+      }
+    },
+
+    serializeM(m) {
+      smsg(anubis, m, store)
+    },
+
+  }
+}
+
 
 /**
  * 
@@ -134,111 +771,110 @@ const formatp = sizeFormatter({
             }
         })
     }
-    
-        /**
-     * Serialize Message
-     * @param {WAConnection} conn 
-     * @param {Object} m 
-     * @param {store} store 
-     */
-      const smsg = (conn, m, store) => {
-        if (!m) return m
-        let M = proto.WebMessageInfo
-        if (m.key) {
-            m.id = m.key.id
-            m.isBaileys = m.id.startsWith('BAE5') && m.id.length === 16
-            m.chat = m.key.remoteJid
-            m.fromMe = m.key.fromMe
-            m.isGroup = m.chat.endsWith('@g.us')
-            m.sender = conn.decodeJid(m.fromMe && conn.user.id || m.participant || m.key.participant || m.chat || '')
-            if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || ''
-        }
-        if (m.message) {
-            m.mtype = getContentType(m.message)
-            m.msg = (m.mtype == 'viewOnceMessage' ? m.message[m.mtype].message[getContentType(m.message[m.mtype].message)] : m.message[m.mtype])
-            m.body = m.message.conversation || m.msg.caption || m.msg.text || (m.mtype == 'listResponseMessage') && m.msg.singleSelectReply.selectedRowId || (m.mtype == 'buttonsResponseMessage') && m.msg.selectedButtonId || (m.mtype == 'viewOnceMessage') && m.msg.caption || m.text
-            let quoted = m.quoted = m.msg.contextInfo ? m.msg.contextInfo.quotedMessage : null
-            m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
-            if (m.quoted) {
-                let type = Object.keys(m.quoted)[0]
-          m.quoted = m.quoted[type]
-                if (['productMessage'].includes(type)) {
-            type = Object.keys(m.quoted)[0]
-            m.quoted = m.quoted[type]
-          }
-                if (typeof m.quoted === 'string') m.quoted = {
-            text: m.quoted
-          }
-                m.quoted.mtype = type
-                m.quoted.id = m.msg.contextInfo.stanzaId
-          m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
-                m.quoted.isBaileys = m.quoted.id ? m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16 : false
-          m.quoted.sender = conn.decodeJid(m.msg.contextInfo.participant)
-          m.quoted.fromMe = m.quoted.sender === conn.decodeJid(conn.user.id)
-                m.quoted.text = m.quoted.text || m.quoted.caption || m.quoted.conversation || m.quoted.contentText || m.quoted.selectedDisplayText || m.quoted.title || ''
-          m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
-                m.getQuotedObj = m.getQuotedMessage = async () => {
-          if (!m.quoted.id) return false
-          let q = await store.loadMessage(m.chat, m.quoted.id, conn)
-          return exports.smsg(conn, q, store)
-                }
-                let vM = m.quoted.fakeObj = M.fromObject({
-                    key: {
-                        remoteJid: m.quoted.chat,
-                        fromMe: m.quoted.fromMe,
-                        id: m.quoted.id
-                    },
-                    message: quoted,
-                    ...(m.isGroup ? { participant: m.quoted.sender } : {})
-                })
 
-                /**
-                 * 
-                 * @returns 
-                 */
-                m.quoted.delete = () => conn.sendMessage(m.quoted.chat, { delete: vM.key })
-
-        /**
-        * 
-        * @param {*} jid 
-        * @param {*} forceForward 
-        * @param {*} options 
-        * @returns 
-        */
-                m.quoted.copyNForward = (jid, forceForward = false, options = {}) => conn.copyNForward(jid, vM, forceForward, options)
-
-                /**
-                  *
-                  * @returns
-                */
-                m.quoted.download = () => conn.downloadMediaMessage(m.quoted)
-            }
-        }
-        if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg)
-        m.text = m.msg.text || m.msg.caption || m.message.conversation || m.msg.contentText || m.msg.selectedDisplayText || m.msg.title || ''
-        /**
-      * Reply to this message
-      * @param {String|Object} text 
-      * @param {String|false} chatId 
-      * @param {Object} options 
-      */
-        m.reply = (text, chatId = m.chat, options = {}) => Buffer.isBuffer(text) ? conn.sendMedia(chatId, text, 'file', '', m, { ...options }) : conn.sendText(chatId, text, m, { ...options })
-        /**
-      * Copy this message
-      */
-      m.copy = () => exports.smsg(conn, M.fromObject(M.toObject(m)))
+/**
+ * 
+ * @param {*} pesanUpdate 
+ * @returns 
+ */
+const smsg = (conn, m, store) => {
+  if (!m) return m
+  let M = proto.WebMessageInfo
+  if (m.key) {
+    m.id = m.key.id
+    m.isBaileys = m.id.startsWith('BAE5') && m.id.length === 16
+    m.chat = m.key.remoteJid
+    m.fromMe = m.key.fromMe
+    m.isGroup = m.chat.endsWith('@g.us')
+    m.sender = conn.decodeJid(m.fromMe && conn.user.id || m.participant || m.key.participant || m.chat || '')
+    if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || ''
+  }
+  if (m.message) {
+    m.mtype = getContentType(m.message)
+    m.msg = (m.mtype == 'viewOnceMessage' ? m.message[m.mtype].message[getContentType(m.message[m.mtype].message)] : m.message[m.mtype])
+    m.body = m.message.conversation || m.msg.caption || m.msg.text || (m.mtype == 'listResponseMessage') && m.msg.singleSelectReply.selectedRowId || (m.mtype == 'buttonsResponseMessage') && m.msg.selectedButtonId || (m.mtype == 'viewOnceMessage') && m.msg.caption || m.text
+    let quoted = m.quoted = m.msg.contextInfo ? m.msg.contextInfo.quotedMessage : null
+    m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
+    if (m.quoted) {
+      let type = Object.keys(m.quoted)[0]
+      m.quoted = m.quoted[type]
+      if (['productMessage'].includes(type)) {
+        type = Object.keys(m.quoted)[0]
+        m.quoted = m.quoted[type]
+      }
+      if (typeof m.quoted === 'string') m.quoted = {
+        text: m.quoted
+      }
+      m.quoted.mtype = type
+      m.quoted.id = m.msg.contextInfo.stanzaId
+      m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
+      m.quoted.isBaileys = m.quoted.id ? m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16 : false
+      m.quoted.sender = conn.decodeJid(m.msg.contextInfo.participant)
+      m.quoted.fromMe = m.quoted.sender === conn.decodeJid(conn.user.id)
+      m.quoted.text = m.quoted.text || m.quoted.caption || m.quoted.conversation || m.quoted.contentText || m.quoted.selectedDisplayText || m.quoted.title || ''
+      m.quoted.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
+      m.getQuotedObj = m.getQuotedMessage = async () => {
+        if (!m.quoted.id) return false
+        let q = await store.loadMessage(m.chat, m.quoted.id, conn)
+        return smsg(conn, q, store)
+      }
+      let vM = m.quoted.fakeObj = M.fromObject({
+        key: {
+          remoteJid: m.quoted.chat,
+          fromMe: m.quoted.fromMe,
+          id: m.quoted.id
+        },
+        message: quoted,
+        ...(m.isGroup ? { participant: m.quoted.sender } : {})
+      })
 
       /**
        * 
-       * @param {*} jid 
-       * @param {*} forceForward 
-       * @param {*} options 
        * @returns 
        */
-      m.copyNForward = (jid = m.chat, forceForward = false, options = {}) => conn.copyNForward(jid, m, forceForward, options)
+      m.quoted.delete = () => conn.sendMessage(m.quoted.chat, { delete: vM.key })
 
-        return m
+      /**
+     * 
+     * @param {*} jid 
+     * @param {*} forceForward 
+     * @param {*} options 
+     * @returns 
+      */
+      m.quoted.copyNForward = (jid, forceForward = false, options = {}) => conn.copyNForward(jid, vM, forceForward, options)
+
+      /**
+        *
+        * @returns
+      */
+      m.quoted.download = () => conn.downloadMediaMessage(m.quoted)
     }
+  }
+  if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg)
+  m.text = m.msg.text || m.msg.caption || m.message.conversation || m.msg.contentText || m.msg.selectedDisplayText || m.msg.title || ''
+  /**
+* Reply to this message
+* @param {String|Object} text 
+* @param {String|false} chatId 
+* @param {Object} options 
+*/
+  m.reply = (text, chatId = m.chat, options = {}) => Buffer.isBuffer(text) ? conn.sendMedia(chatId, text, 'file', '', m, { ...options }) : conn.sendText(chatId, text, m, { ...options })
+  /**
+* Copy this message
+*/
+  m.copy = () => exports.smsg(conn, M.fromObject(M.toObject(m)))
+
+  /**
+   * 
+   * @param {*} jid 
+   * @param {*} forceForward 
+   * @param {*} options 
+   * @returns 
+   */
+  m.copyNForward = (jid = m.chat, forceForward = false, options = {}) => conn.copyNForward(jid, m, forceForward, options)
+
+  return m
+}
 
     /**
      * 
@@ -354,11 +990,11 @@ const formatp = sizeFormatter({
 
     /**
      * 
-     * @param {string} ext extension like `jpg/mp4/png`
+     * @param {string} ext extension like `.jpg/.mp4/.png`
      * @returns 
      */
     const getRandom = (ext = '') => {
-        return `${Math.floor(Math.random() * 10000)}${ext}`
+        return `anubis-BOT_${Math.floor(Math.random() * 10000)}${ext}`
     } 
 
     /**
@@ -366,11 +1002,7 @@ const formatp = sizeFormatter({
      * @param {number} ms 
      * @returns 
      */
-     function sleep(ms) {
-      return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-      });
-    }
+     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
   /**
    * 
@@ -406,6 +1038,7 @@ const formatp = sizeFormatter({
                     let jj = j.carousel_media[i];
                     if (jj.video_versions) {
                       media.push({
+                        thumb: jj.image_versions2.candidates[0].url,
                         url: jj.video_versions[0].url,
                         type: "mp4",
                       });
@@ -418,6 +1051,7 @@ const formatp = sizeFormatter({
                   }
                 } else if (j.video_versions) {
                   media.push({
+                    thumb: jj.image_versions2.candidates[0].url,
                     url: j.video_versions[0].url,
                     type: "mp4",
                   });
@@ -877,6 +1511,7 @@ function y2mate(url){
     let {likes, dislikes, rating, viewCount} = await ytDislike(ytId[1])
     url = "https://youtu.be/" + ytId[1];
     let {data} = await post(`https://www.y2mate.com/mates/en154/analyze/ajax`, {url,q_auto: 0,ajax: 1,});
+    if (typeof data.result == 'undefined') await y2mate(url)
     let $ = cheerio.load(data.result)
     let video = []
     let audio = []
@@ -948,11 +1583,87 @@ function y2mateConvert(id, ytid, type, quality){
           "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
         },
         data: new URLSearchParams(Object.entries(formdata)),
-      }).then(({data}) => {
+      }).then(async({data}) => {
+        if (typeof data.result == 'undefined') {
+          let a = y2mateConvert(id, ytid, type, quality) 
+          return resolve({a});
+        }
         const $ = cheerio.load(data.result)
         const url = $('div > a').attr('href')
         resolve({url})
       })
+  })
+}
+
+function ytdlr3(url) {
+  return new Promise(async(resolve, reject) => {
+    axios.get('https://a2converter.com/youtube-downloader/').then(({data}) => {
+      const $ = cheerio.load(data)
+      const token = $('#token').attr('value')
+      const form = new BodyForm()
+      form.append('url', url)
+      form.append('token', token)
+      return axios({
+          url: "https://a2converter.com/wp-json/aio-dl/video-data/",
+          headers: {
+              "accept": "*/*",
+              "accept-language": "en-US,en;q=0.9,id;q=0.8",
+              "content-type": "application/x-www-form-urlencoded",
+              "sec-ch-ua": "\"Google Chrome\";v=\"105\", \"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"105\"",
+              "sec-ch-ua-mobile": "?0",
+              "sec-ch-ua-platform": "\"Windows\"",
+              "sec-fetch-dest": "empty",
+              "sec-fetch-mode": "cors",
+              "sec-fetch-site": "same-origin",
+              "cookie": "pll_language=en",
+              "Referer": "https://a2converter.com/youtube-downloader/",
+              "Referrer-Policy": "no-referrer-when-downgrade"
+          },
+          data: form,
+          method: "POST"
+      })
+    }).then(({data}) => {
+      let audio = []
+      let video = []
+      for (let i = 0; i < data.medias.length; i++) {
+          let media = data.medias[i]
+          if (media.audioAvailable) {
+              if (media.videoAvailable){
+                  video.push({
+                      title: data.title,
+                      duration: data.duration,
+                      thumb: data.thumbnail,
+                      url: media.url,
+                      quality: media.quality,
+                      extension: media.extension,
+                      size: media.size,
+                      formattedSize: media.formattedSize,
+                  })
+              } else {
+                if (media.extension == 'mp3') {
+                  audio.push({
+                    title: data.title,
+                    duration: data.duration,
+                    thumb: data.thumbnail,
+                    url: media.url,
+                    quality: media.quality,
+                    extension: media.extension,
+                    size: media.size,
+                    formattedSize: media.formattedSize,
+                  })
+                }
+              }
+          }
+      }
+      resolve({
+          status: true,
+          title: data.title,
+          duration: data.duration,
+          thumb: data.thumbnail,
+          video,
+          audio,
+      })
+    })
   })
 }
 
@@ -1089,12 +1800,12 @@ function jooxLyric(id) {
       'X-Forwarded-For': '13.227.231.38:443',
   }
   return new Promise(async(resolve) => {
-      const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&stage=`, {headers})
+      const res = await axios.get(`https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=${anuCookie.soundcloud}&stage=`, {headers})
       
       if (typeof res.data.collection !== 'object') return resolve({status: false})
       for (let i = 0; i < 5; i++) {
           let json = res.data.collection[i]
-          const getLagu = await axios.get(json.media.transcodings[1].url+'?client_id=iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX&track_authorization='+json.track_authorization, {headers})
+          const getLagu = await axios.get(`${json.media.transcodings[1].url}?client_id=${anuCookie.soundcloud}&track_authorization=${json.track_authorization}`, {headers})
           
           hasil.push({
               artwork_url: json.artwork_url,
@@ -1129,7 +1840,10 @@ async function shortlink(url) {
 
 }
 
+
 module.exports = {
+  anubisFunc,
+  store,
   getBuffer,
   fetchJson,
   getSizeMedia,
@@ -1158,6 +1872,7 @@ module.exports = {
   ytdlr,
   y2mate,
   y2mateConvert,
+  ytdlr3,
   jooxSearch,
   jooxDownloader,
   jooxLyric,

@@ -1,4 +1,8 @@
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+let cp = require('child_process')
+let { promisify } = require('util')
+let exec = promisify(cp.exec).bind(cp)
+
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
     switch(command){
         case 'addnote':
         case 'an':
@@ -12,7 +16,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 } else {
                     lock = true
                 }
-                let msgs = global.db.data.database[m.chat]
+                let msgs = anubis.db.data.database[m.chat]
                 let pesan = JSON.stringify(m.quoted.fakeObj)
                 pesan = JSON.parse(pesan)
                 if (nama.toLowerCase() in msgs) return m.reply(`nama '${nama}' sudah ada ngab!`)
@@ -27,7 +31,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
         case 'dn':
             {
                 if (!text) return m.reply(`Example: ${usedPrefix + command} note name`)
-                let msgs = global.db.data.database[m.chat]
+                let msgs = anubis.db.data.database[m.chat]
                 if (!(text.toLowerCase() in msgs)) return m.reply('Gaada ngab!')
                 delete msgs[text.toLowerCase()];
                 m.reply('berhasil ngab!')
@@ -40,7 +44,7 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
                 const [nama, ganti] = text.split('|')
                 if (!nama) return m.reply('lu mau ganti nama note yang mana ngab!')
                 if (!ganti) return m.reply('mau di ganti nama apa ngab! masukin dong!')
-                let msgs = global.db.data.database[m.chat]
+                let msgs = anubis.db.data.database[m.chat]
                 if (!(nama.toLowerCase() in msgs)) return m.reply('Gaada ngab!')
                 msgs[ganti.toLowerCase()] = msgs[nama.toLowerCase()]
                 delete msgs[nama.toLowerCase()];
@@ -79,13 +83,31 @@ module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix })
         break;
         case 'restart':
             {
-                let a = await m.reply('Bot sedang di restart tunggu beberapa saat ngab!')
-                if (a.status = 1) process.send('reset')
+                const a = await anubis.sendMessage(m.chat, {text: 'Bot sedang di restart tunggu beberapa saat ngab!'}, {quoted: m})
+                if (a.status) {
+                    process.send('reset')
+                }
+            }
+        break;
+        case '$':
+            {
+                if (!text) return
+                if (!anubis.user.id) return
+                let o
+                try {
+                  o = await exec(text)
+                } catch (e) {
+                  o = e
+                } finally {
+                  let { stdout, stderr } = o
+                  if (stdout.trim()) m.reply(stdout)
+                  if (stderr.trim()) m.reply(stderr)
+                }
             }
         break;
     }
 }
-anuplug.help = ['addnote','delnote','rennote','public','setexif','restart']
+anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','exec']
 anuplug.tags = ['owner']
-anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart)/i
+anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart|[$])$/i
 anuplug.isAnubis = true

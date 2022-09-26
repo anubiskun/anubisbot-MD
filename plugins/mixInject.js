@@ -1,6 +1,6 @@
-const { subFinder } = require("../library/lib")
+const { subFinder, anubis } = require("../library/lib")
 
-module.exports = anuplug = async(m, { anubis, text, command, args, usedPrefix }) => {
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
     if (!text) return m.reply(`*Example* : ${usedPrefix + command} google.com`)
     if (!/\./.test(text)) return m.reply(`*Example* : ${usedPrefix + command} google.com`)
     if (/https?/.test(text)) text = text.replace(/https?\:\/\//, '')
