@@ -46,7 +46,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             if (json.media[i].type == "mp4") {
                             anubis.sendMessage(
                                 m.chat,
-                                { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
+                                { video: { url: json.media[i].url }, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.media[i].type == "jpg") {
@@ -73,7 +73,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                                 if (json.media[i].type == "mp4") {
                                 anubis.sendMessage(
                                     m.chat,
-                                    { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
+                                    { video: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {
@@ -102,7 +102,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             if (json.anubis.type == "mp4") {
                             anubis.sendMessage(
                                 m.chat,
-                                { video: { url: json.anubis.url }, jpegThumbnail: json.media[i].thumb, caption: teks },
+                                { video: { url: json.anubis.url }, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.anubis.type == "jpg") {
@@ -138,7 +138,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                                 if (json.media[i].type == "mp4") {
                                 anubis.sendMessage(
                                     m.chat,
-                                    { video: { url: json.media[i].url }, jpegThumbnail: json.media[i].thumb, caption: teks },
+                                    { video: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {

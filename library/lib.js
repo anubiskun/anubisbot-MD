@@ -750,20 +750,20 @@ const formatp = sizeFormatter({
 
     /**
      * 
-     * @param {string} path 
+     * @param {string} media 
      * @returns 
      */
-    const getSizeMedia = async(path) => {
+    const getSizeMedia = async(media) => {
         return new Promise((resolve, reject) => {
-            if (/http/.test(path)) {
-                axios({url: path, method: 'GET'})
+            if (/http/.test(media)) {
+                axios({url: media, method: 'GET'})
                 .then((res) => {
                     let length = parseInt(res.headers['content-length'])
                     let size = byteToSize(length, 3)
                     if (!isNaN(length)) resolve(size)
                 })
-            } else if (Buffer.isBuffer(path)) {
-                let length = Buffer.byteLength(path)
+            } else if (Buffer.isBuffer(media)) {
+                let length = Buffer.byteLength(media)
                 let size = byteToSize(length, 3)
                 if (!isNaN(length)) resolve(size)
             } else {
@@ -1032,13 +1032,11 @@ const smsg = (conn, m, store) => {
               .then(({ data }) => {
                
                 let j = data.items[0];
-    
                 if (j.carousel_media) {
                   for (var i = 0; i < j.carousel_media.length; i++) {
                     let jj = j.carousel_media[i];
                     if (jj.video_versions) {
                       media.push({
-                        thumb: jj.image_versions2.candidates[0].url,
                         url: jj.video_versions[0].url,
                         type: "mp4",
                       });
@@ -1051,7 +1049,6 @@ const smsg = (conn, m, store) => {
                   }
                 } else if (j.video_versions) {
                   media.push({
-                    thumb: jj.image_versions2.candidates[0].url,
                     url: j.video_versions[0].url,
                     type: "mp4",
                   });
