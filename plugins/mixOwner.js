@@ -85,7 +85,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
             {
                 const a = await anubis.sendMessage(m.chat, {text: 'Bot sedang di restart tunggu beberapa saat ngab!'}, {quoted: m})
                 if (a.status) {
-                    process.send('reset')
+                    process.send('restart')
                 }
             }
         break;
