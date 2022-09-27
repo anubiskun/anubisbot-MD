@@ -5,7 +5,7 @@ const remobg = require("remove.bg");
 const isUrl = require('is-url')
 const util = require('util')
 const os = require('os')
-const {UploadFileUgu, tmpfiles, telegraphUp} = require('../library/upload');
+const {tmpfiles, telegraphUp} = require('../library/upload');
 const speed = require("performance-now");
 const { runtime, formatp, shortlink, getRandom, byteToSize } = require('../library/lib')
 const { toAudio, toPTT} = require('../library/converter')
@@ -237,6 +237,7 @@ ${cpus
                 m.reply(mess.wait)
                 try {
                     const n = await google.image(text, { safe: false })
+                    if (typeof n[0] == 'undefined') return m.reply('Gambar Tidak di temukan ngab!') 
                     images = n[Math.floor(Math.random() * n.length)]
                     let buttons = [
                         {
@@ -248,9 +249,9 @@ ${cpus
                     let buttonMessage = {
                         image: { url: images.url },
                         caption: `*-------「 GIMAGE SEARCH 」-------*
-                        🤠 *Query* : ${text}
-                        🔗 *Media Url* : ${await shortlink(images.url)}
-                        ⬛ *Size* : ${images.width}x${images.height}`,
+🤠 *Query* : ${text}
+🔗 *Media Url* : ${await shortlink(images.url)}
+⬛ *Size* : ${images.width}x${images.height}`,
                         footer: anuFooter,
                         buttons: buttons,
                         headerType: 4,
@@ -268,7 +269,7 @@ ${cpus
                 if (isUrl(text)) qstring = text
                 if (/image/.test(mime)) {
                     let media = await anubis.downloadAndSaveMediaMessage(qmsg, 'anu');
-                    let {url} = await UploadFileUgu(media)
+                    let url = await tmpfiles(media)
                     await fs.unlinkSync(media);
                     qstring = url
                 }
@@ -276,7 +277,7 @@ ${cpus
                 try {
                     const {results} = await google.search(qstring, { ris: true });
                     let teks = `Result from Google search by Image :\n\n`
-                    if (!results) return m.reply('Gambar Tidak di temukan kecocokan ngab!') 
+                    if (typeof results[0] == 'undefined') return m.reply('Gambar Tidak di temukan kecocokan ngab!') 
                     for (let g of results) {
                         teks += `⭔ *Title* : ${g.title}\n`
                         teks += `⭔ *Description* : ${g.description}\n`
