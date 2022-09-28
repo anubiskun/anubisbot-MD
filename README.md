@@ -88,6 +88,12 @@ npm install
 npm start
 ```
 
+## Run Testing
+
+```bash
+npm test
+```
+
 #
 # API USAGE
 ## Send Message
