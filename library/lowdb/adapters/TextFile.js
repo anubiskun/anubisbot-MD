@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Writer } = require('steno');
+const { Writer } = require('@redchili/steno');
 class TextFile {
     constructor(filename) {
         this.filename = filename;

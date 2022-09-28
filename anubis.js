@@ -10,14 +10,10 @@ const syntaxerror = require('syntax-error')
 const pino = require('pino').default
 const { Low, LowSync, JSONFileSync }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-const codespace = require('./library/codespace')
 const database = new Low(opts['test'] ? new JSONFileSync(`database.json`) : new mongoDB(mongoUser))
 // const database = new LowSync(new mongoDB('mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority')) 
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
-let cp = require('child_process')
-let { promisify } = require('util')
-let exec = promisify(cp.exec).bind(cp)
 
 async function loadDatabase() {
     await database.read()
@@ -149,8 +145,6 @@ setTimeout(async () => {
     console.log('DATABASE LOADED!')
     setInterval(async () => {
         await database.write()
-        console.log(await codespace())
-        await exec('ls')
     }, 30 * 1000)
     reloadConnector()
 }, 1000)
