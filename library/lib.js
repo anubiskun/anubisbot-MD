@@ -1,9 +1,5 @@
 let fs = require('fs')
-<<<<<<< HEAD
-const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, makeInMemoryStore, getContentType, generateThumbnail,} = require('@adiwajshing/baileys')
-=======
-const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, getContentType, generateThumbnail} = require('@adiwajshing/baileys')
->>>>>>> 6401bda (fix)
+const { default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, getContentType } = require('@adiwajshing/baileys')
 const Path = require('path')
 const axios = require('axios').default
 const { parsePhoneNumber } = require('awesome-phonenumber')
@@ -15,12 +11,7 @@ const {startFollowing} = require('follow-redirect-url')
 const BodyForm = require('form-data')
 const FileType = require('file-type')
 const { writeExifVid, writeExif } = require('./exif')
-<<<<<<< HEAD
-const { imageToWebp, videoToWebp } = require('./converter')
-=======
 const { imageToWebp, videoToWebp, ffmpeg } = require('./converter')
->>>>>>> 6401bda (fix)
-const jimp = require('jimp')
 
 /**
  * 

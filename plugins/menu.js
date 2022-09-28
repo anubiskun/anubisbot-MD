@@ -72,7 +72,7 @@ ${'```%npmdesc```'}
             rows: rows
           }
         ]
-        return anubis.sendList(m.chat, 'MENU', `${ucapan()} ${name}`, 'MENU', secs, {quoted: m})
+        return anubis.sendList(m.chat, 'MENU', `${ucapan()} ${name}`, 'MENU', secs, m)
       }
 
       let groups = {}

@@ -1,10 +1,18 @@
 const fs = require('fs')
 const axios = require('axios')
-const path = require('path')
+const Path = require('path')
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 const { spawn } = require('child_process')
 const isUrl = require('is-url')
 
+/**
+ * 
+ * @param {Buffer} buffer Buffer
+ * @param {command} args 
+ * @param {String} ext ex: jpg/mp4/mp3/...
+ * @param {String} ext2 ex: jpg/png/mp4/...
+ * @returns Buffer
+ */
 function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
   return new Promise(async (resolve, reject) => {
     // try {
@@ -15,7 +23,7 @@ function ffmpeg(buffer, args = [], ext = '', ext2 = '') {
       } else {
         file = buffer
       }
-      let tmp = path.join(__dirname, '../temp', + new Date + '.' + ext)
+      let tmp = Path.join(__temp, + new Date + '.' + ext)
       let out = tmp + '.' + ext2
       await fs.promises.writeFile(tmp, file)
       spawn(ffmpegPath, [

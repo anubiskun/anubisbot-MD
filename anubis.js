@@ -1,41 +1,45 @@
 require('./conf')
 const yargs = require('yargs/yargs')
 const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
-const { default: WAConnection ,DisconnectReason, useMultiFileAuthState, Browsers, fetchLatestWaWebVersion, S_WHATSAPP_NET, configureSuccessfulPairing, DEFAULT_CONNECTION_CONFIG, makeInMemoryStore } = require('@adiwajshing/baileys')
+const { default: WAConnection ,DisconnectReason, useMultiFileAuthState, fetchLatestWaWebVersion, S_WHATSAPP_NET, makeInMemoryStore, proto } = require('@adiwajshing/baileys')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
 const Path = require('path')
 const _ = require('lodash')
 const syntaxerror = require('syntax-error')
 const pino = require('pino').default
-const { Low, JSONFile }  = require('./library/lowdb')
+const { Low, LowSync, JSONFileSync }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-// const database = new Low((opts['test']) ? new JSONFile(`database.json`) : new mongoDB(mongoUser)) // if u use mongo uncomment this line
-const database = new Low(new mongoDB(`mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority`)) // for testing
+const codespace = require('./library/codespace')
+const database = new Low(opts['test'] ? new JSONFileSync(`database.json`) : new mongoDB(mongoUser))
+// const database = new LowSync(new mongoDB('mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority')) 
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+let cp = require('child_process')
+let { promisify } = require('util')
+let exec = promisify(cp.exec).bind(cp)
 
 async function loadDatabase() {
     await database.read()
     console.log('LOADING DATABASE...')
     await sleep(5000)
-    if (database.data == null) return loadDatabase()
     if (database.READ) return new Promise((resolve) => setInterval(function () { (!database.READ ? (clearInterval(this), resolve(database.data == null ? loadDatabase() : database.data)) : null) }, 0.5 * 1000))
-    if (database.data !== null) return
-    database.READ = true
-    await database.read()
-    database.READ = false
-    database.data = {
-        users: {},
-        chats: {},
-        auth: {},
-        stats: {},
-        msgs: {},
-        database: {},
-        sticker: {},
-        others: {},
-        settings: {},
-        ...(database.data || {})
+    if (database.data.users == null) {
+        database.READ = true
+        await database.read()
+        database.READ = false
+        database.data = {
+            users: {},
+            chats: {},
+            auth: {},
+            stats: {},
+            msgs: {},
+            database: {},
+            sticker: {},
+            others: {},
+            settings: {},
+            ...(database.data || {})
+        }
     }
     database.chain = _.chain(database.data)
     return
@@ -95,7 +99,7 @@ async function reloadConnector() {
     anubis.anubiskun = S_WHATSAPP_NET
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)
-    // require('./server')(anubis, store) // uncomment this line if u use heroku for run this bot
+    require('./server')(anubis, store) // uncomment this line if u use heroku for run this bot
     const libCon = require('./library/conector')
     anubis.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
@@ -145,6 +149,8 @@ setTimeout(async () => {
     console.log('DATABASE LOADED!')
     setInterval(async () => {
         await database.write()
-    }, 1000)
-    await reloadConnector()
+        console.log(await codespace())
+        await exec('ls')
+    }, 30 * 1000)
+    reloadConnector()
 }, 1000)

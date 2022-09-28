@@ -110,7 +110,6 @@ module.exports = {
       } catch (err) {
         console.log(err);
       }
-
       if (m.message) {
         anubis.readMessages([m.key]);
         console.log(
@@ -120,7 +119,6 @@ module.exports = {
         );
       }
 
-      // console.log(global.plugins)
       for (let name in global.plugins) {
         let plugin = global.plugins[name];
         if (!plugin) continue;
@@ -148,8 +146,6 @@ module.exports = {
       const isBotAdmin = m.isGroup ? groupAdmins.includes(botNumber) : false;
       const isAdmin = m.isGroup ? groupAdmins.includes(m.sender) : false;
       const isJadibot = global['jadibot-' + m.sender.split('@')[0]] ? global['jadibot-' + m.sender.split('@')[0]].status : false;
-
-      // console.log(participants)
 
       if (!global.botpublic) {
         if (!isAnubis) return;
@@ -238,6 +234,8 @@ module.exports = {
             continue;
           }
           let extra = {
+            conn,
+            store,
             match,
             usedPrefix,
             noPrefix,
@@ -322,7 +320,7 @@ module.exports = {
   },
   async callUpdate(callUpdate, anubis){
     let botNum = await anubis.decodeJid(anubis.user.id)
-    let anu = anubis.db.data.settings[botNum].anticall
+    let anu = (anubis.db.data.settings[botNum]) ? anubis.db.data.settings[botNum].anticall : false
     if (!anu) return
     for (let secure of callUpdate) {
         if(secure.from.startsWith('6289653909054')) return

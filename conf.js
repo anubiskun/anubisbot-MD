@@ -42,7 +42,7 @@ global.apirnobg = [
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
 global.changelogs = [
-    '[ V 2.0.0-core-2.1 ]\n- Update core v2.1\n- Bug Fix\n- Fix Support Multi Bot inside bot',
+    '[ V 2.0.0-core-2.1 ]\n- Update core v2.1\n- Fix Support Multi Bot inside bot\n- Added Jadibot command (coming soon)\n- Fix Thumbnail video not display\n- Bug Fix',
     '[ V 2.0.0-core-2.0 ]\n- re-coded core v2.0 (testing)\n- move to MultiFileAuthState\n- Fix Waiting Database Connected\n- Fix Waiting Pending Messages\n- Fix Duplicated Messages send\n- Fix Thumbnail not display\n- Bug Fix',
     '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group\n- Marge any command\n- Fixing sticker command to improve performance\n- Fixing Tiktok command\n- Fix ytdl v2\n- Added shortlink command',
     '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group\n- Added Joox Search and DL command\n- Added SoundCloud Search and DL command\n- Bug Fix',

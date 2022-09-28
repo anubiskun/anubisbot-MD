@@ -38,12 +38,12 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
             }
           ]
           if (command == 'ytdla'){
-            return anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP3 ]\n*Recommend pilih yang 128k*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp3, {quoted: m})
+            return anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP3 ]\n*Recommend pilih yang 128k*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp3, m)
           } else if (command == 'ytdlv'){
-            return anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP4 ]\n*Recommend pilih yang 360p*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp4, {quoted: m})
+            return anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP4 ]\n*Recommend pilih yang 360p*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp4, m)
           } else if (command == 'ytdl') {
-            anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP3 ]\n*Recommend pilih yang 128k*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp3, {quoted: m})
-            anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP4 ]\n*Recommend pilih yang 360p*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp4, {quoted: m})
+            anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP3 ]\n*Recommend pilih yang 128k*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp3, m)
+            anubis.sendList(m.chat, 'MENU', `[ YOUTUBE DL MP4 ]\n*Recommend pilih yang 360p*\n\nTitle: ${ytdl.title}\nDurasi: ${ytdl.duration}`, 'MENU', secsmp4, m)
             return
           } else {
             return m.reply('mau ngapain ngab!?')

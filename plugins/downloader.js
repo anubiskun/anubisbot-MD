@@ -44,17 +44,13 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             teks += `\n*Caption*: ${json.post.caption}`;
                         for (let i = 0; i < json.media.length; i++) {
                             if (json.media[i].type == "mp4") {
-                            anubis.sendMessage(
+                            await anubis.sendMessage(
                                 m.chat,
                                 { video: { url: json.media[i].url }, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.media[i].type == "jpg") {
-                            anubis.sendMessage(
-                                m.chat,
-                                { image: { url: json.media[i].url }, caption: teks },
-                                { quoted: m }
-                            );
+                                anubis.sendImage(m.chat, json.media[i].url, teks, m)
                             } else {
                             m.reply("command error, mohon lapor ke owner! ");
                             }
@@ -71,13 +67,13 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             }
                             for (let i = 0; i < json.media.length; i++) {
                                 if (json.media[i].type == "mp4") {
-                                anubis.sendMessage(
+                                await anubis.sendMessage(
                                     m.chat,
                                     { video: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {
-                                anubis.sendMessage(
+                                await anubis.sendMessage(
                                     m.chat,
                                     { image: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
@@ -100,13 +96,13 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                                 teks += `\n*Caption*: ${json.anubis.caption}`;
                             }
                             if (json.anubis.type == "mp4") {
-                            anubis.sendMessage(
+                            await anubis.sendMessage(
                                 m.chat,
                                 { video: { url: json.anubis.url }, caption: teks },
                                 { quoted: m }
                             );
                             } else if (json.anubis.type == "jpg") {
-                            anubis.sendMessage(
+                            await anubis.sendMessage(
                                 m.chat,
                                 { image: { url: json.anubis.url }, caption: teks },
                                 { quoted: m }
@@ -136,13 +132,13 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             }
                             for (let i = 0; i < json.media.length; i++) {
                                 if (json.media[i].type == "mp4") {
-                                anubis.sendMessage(
+                                await anubis.sendMessage(
                                     m.chat,
                                     { video: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
                                 );
                                 } else if (json.media[i].type == "jpg") {
-                                anubis.sendMessage(
+                                await anubis.sendMessage(
                                     m.chat,
                                     { image: { url: json.media[i].url }, caption: teks },
                                     { quoted: m }
@@ -215,7 +211,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     if (!json.status) return m.reply(global.msg.err)
                     let media = json.anubis
                     anubis.sendImage(m.chat, media.imgSrc,`Title : ${media.msong}\nSinger : ${media.msinger}\nDurasi : ${media.duration}\nFile Size : ${media.size}\nPublic Time : ${media.public_time}\nExt : MP3\nResolusi : 128kbps`,m);
-                    anubis.sendMessage(m.chat,{audio: { url: media.mp3Url },mimetype: "audio/mpeg",fileName: `${media.msong}.mp3`},{ quoted: m });
+                    await anubis.sendMessage(m.chat,{audio: { url: media.mp3Url },mimetype: "audio/mpeg",fileName: `${media.msong}.mp3`},{ quoted: m });
                 } catch (err) {
                     console.log(err)
                     m.reply(global.msg.err)
@@ -242,7 +238,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             rows: rows
                         }
                     ]
-                    anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, {quoted: m})
+                    anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, m)
                 } catch (err) {
                     console.log(err)
                     m.reply(global.msg.err)
@@ -269,7 +265,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                             rows: rows
                         }
                     ]
-                    anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, {quoted: m})
+                    anubis.sendList(m.chat, "*JOOX SEARCH*", pesane, 'RESULT', secs, m)
                 } catch (err) {
                     console.log(err)
                     m.reply(global.msg.err)
@@ -299,7 +295,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                         buttons: buttons,
                         headerType: 4,
                     };
-                    anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                    await anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
                     
                 } catch (e) {
                     anu = await pinterest(text);
@@ -320,7 +316,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                         buttons: buttons,
                         headerType: 4,
                     };
-                    anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+                    await anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
                     
                 }
             }
@@ -335,10 +331,10 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     let media = await yta(text, quality)
                     if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
                     anubis.sendImage(m.chat,media.thumb,`🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}`,m);
-                    anubis.sendMessage(m.chat,{audio: { url: media.dl_link },mimetype: "audio/mpeg",fileName: `${media.title}.mp3`},{ quoted: m });
+                    await anubis.sendMessage(m.chat,{audio: { url: media.dl_link },mimetype: "audio/mpeg",fileName: `${media.title}.mp3`},{ quoted: m });
                 } catch (e) {
                     let buttons = [{ buttonId: `${usedPrefix}ytdla ${text}`, buttonText: { displayText: "YT Downloader" }, type: 1 }];
-                    anubis.sendButtonText(jid, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
+                    anubis.sendButtonText(m.chat, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
                 }
             }
         break;
@@ -354,7 +350,6 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
                     anubis.sendMessage(m.chat,{
                         video: { url: media.dl_link },
-                        jpegThumbnail: media.thumb,
                         mimetype: "video/mp4",
                         fileName: `${media.title}.mp4`,
                         caption: `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}`
@@ -362,7 +357,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     )
                 } catch (e) {
                     let buttons = [{ buttonId: `${usedPrefix}ytdlv ${text}`, buttonText: { displayText: "YT Downloader" }, type: 1 }];
-                    anubis.sendButtonText(jid, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
+                    anubis.sendButtonText(m.chat, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
                 }
             }
         break;
@@ -407,7 +402,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     title: i + 1,
                     });
                 });
-                anubis.sendList(m.chat, "*YOUTUBE SEARCH*", pesane, 'RESULT', secs, {quoted: m});
+                anubis.sendList(m.chat, "*YOUTUBE SEARCH*", pesane, 'RESULT', secs, m);
             }
         break;
     }

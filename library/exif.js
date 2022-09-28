@@ -8,8 +8,8 @@ const { webp2mp4File } = require('./upload');
 
 async function writeExifImg (media, metadata) {
     let wMedia = await imageToWebp(media)
-    const tmpFileIn = path.join(tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
-    const tmpFileOut = path.join(tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileIn = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileOut = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
     fs.writeFileSync(tmpFileIn, wMedia)
 
     if (metadata.packname || metadata.author) {
@@ -29,8 +29,8 @@ async function writeExifImg (media, metadata) {
 
 async function writeExifVid (media, metadata) {
     let wMedia = await videoToWebp(media)
-    const tmpFileIn = path.join(tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
-    const tmpFileOut = path.join(tmpdir(), `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileIn = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileOut = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
     fs.writeFileSync(tmpFileIn, wMedia)
 
     if (metadata.packname || metadata.author) {
@@ -50,8 +50,8 @@ async function writeExifVid (media, metadata) {
 
 async function writeExif (file, metadata) {
     let media = await WebpToWebp(file)
-    const tmpFileIn = path.join(__root, `/temp/${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
-    const tmpFileOut = path.join(__root, `/temp/${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileIn = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
+    const tmpFileOut = path.join(__temp, `${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
     
     if (metadata.packname || metadata.author) {
         const img = new webp.Image()
