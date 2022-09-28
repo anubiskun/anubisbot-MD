@@ -1,7 +1,6 @@
 let fs = require('fs')
-const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, useSingleFileAuthState, makeInMemoryStore, getContentType, useMultiFileAuthState, fetchLatestBaileysVersion, DisconnectReason, default: makeWASocket, generateThumbnail,} = require('@adiwajshing/baileys')
+const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, makeInMemoryStore, getContentType, generateThumbnail,} = require('@adiwajshing/baileys')
 const Path = require('path')
-const _ = require('lodash')
 const axios = require('axios').default
 const { parsePhoneNumber } = require('awesome-phonenumber')
 const moment = require('moment-timezone')
@@ -13,8 +12,6 @@ const BodyForm = require('form-data')
 const FileType = require('file-type')
 const { writeExifVid, writeExif } = require('./exif')
 const { imageToWebp, videoToWebp } = require('./converter')
-const pino = require('pino').default
-const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const jimp = require('jimp')
 
 /**
@@ -22,7 +19,7 @@ const jimp = require('jimp')
  * @param {WAConnection} conn 
  * @returns 
  */
-const anubisFunc = (conn) => {
+const anubisFunc = (conn, store) => {
   return {
     ...conn,
 
@@ -1840,7 +1837,6 @@ async function shortlink(url) {
 
 module.exports = {
   anubisFunc,
-  store,
   getBuffer,
   fetchJson,
   getSizeMedia,
