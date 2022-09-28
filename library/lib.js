@@ -1,5 +1,9 @@
 let fs = require('fs')
+<<<<<<< HEAD
 const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, makeInMemoryStore, getContentType, generateThumbnail,} = require('@adiwajshing/baileys')
+=======
+const {default: WAConnection, proto,jidDecode,downloadContentFromMessage,generateWAMessageFromContent,generateForwardMessageContent, getContentType, generateThumbnail} = require('@adiwajshing/baileys')
+>>>>>>> 6401bda (fix)
 const Path = require('path')
 const axios = require('axios').default
 const { parsePhoneNumber } = require('awesome-phonenumber')
@@ -11,7 +15,11 @@ const {startFollowing} = require('follow-redirect-url')
 const BodyForm = require('form-data')
 const FileType = require('file-type')
 const { writeExifVid, writeExif } = require('./exif')
+<<<<<<< HEAD
 const { imageToWebp, videoToWebp } = require('./converter')
+=======
+const { imageToWebp, videoToWebp, ffmpeg } = require('./converter')
+>>>>>>> 6401bda (fix)
 const jimp = require('jimp')
 
 /**
@@ -69,18 +77,7 @@ const anubisFunc = (conn, store) => {
           vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await this.getName(i + this.anubiskun)}\nFN:${await this.getName(i + this.anubiskun)}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:anubiskun.xyz@gmail.com\nitem2.X-ABLabel:Email\nitem3.URL:https://instagram.com/anubiskun.xyz\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`
         })
       }
-      this.sendMessage(jid, { contacts: { displayName: `${list.length} Contact`, contacts: list }, ...opts }, { quoted })
-    },
-
-    /** Resize Image
-     *
-     * @param {Buffer} Buffer (Only Image)
-     * @param {Numeric} Width
-     * @param {Numeric} Height
-     */
-    async reSize(image, width, height) {
-      var oyy = await jimp.read(image);
-      return await oyy.resize(width, height).getBufferAsync(jimp.MIME_JPEG)
+      return await this.sendMessage(jid, { contacts: { displayName: `${list.length} Contact`, contacts: list }, ...opts }, { quoted })
     },
 
     /**
@@ -96,20 +93,20 @@ const anubisFunc = (conn, store) => {
       let res = await axios.get(url)
       mime = res.headers['content-type']
       if (mime.split("/")[1] === "gif") {
-        return this.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options }, { quoted: quoted, ...options })
+        return await this.sendMessage(jid, { video: await getBuffer(url), caption: caption, gifPlayback: true, ...options }, { quoted: quoted, ...options })
       }
       let type = mime.split("/")[0] + "Message"
       if (mime === "application") {
-        return this.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options }, { quoted: quoted, ...options })
+        return await this.sendMessage(jid, { document: await getBuffer(url), mimetype: 'application/pdf', caption: caption, ...options }, { quoted: quoted, ...options })
       }
       if (mime.split("/")[0] === "image") {
-        return this.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options }, { quoted: quoted, ...options })
+        return await this.sendMessage(jid, { image: await getBuffer(url), caption: caption, ...options }, { quoted: quoted, ...options })
       }
       if (mime.split("/")[0] === "video") {
-        return this.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options }, { quoted: quoted, ...options })
+        return await this.sendMessage(jid, { video: await getBuffer(url), caption: caption, mimetype: 'video/mp4', ...options }, { quoted: quoted, ...options })
       }
       if (mime.split("/")[0] === "audio") {
-        return this.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options }, { quoted: quoted, ...options })
+        return await this.sendMessage(jid, { audio: await getBuffer(url), caption: caption, mimetype: 'audio/mpeg', ...options }, { quoted: quoted, ...options })
       }
     },
 
@@ -139,7 +136,7 @@ const anubisFunc = (conn, store) => {
         }
       }, { userJid: jid })
 
-      this.relayMessage(jid, payment.message, { messageId: payment.key.id })
+      return this.relayMessage(jid, payment.message, { messageId: payment.key.id })
     },
 
     /** Send Poll Message 
@@ -156,7 +153,7 @@ const anubisFunc = (conn, store) => {
           "selectableOptionsCount": options.length
         }
       }), { userJid: jid })
-      this.relayMessage(jid, poll.message, { messageId: poll.key.id })
+      return this.relayMessage(jid, poll.message, { messageId: poll.key.id })
     },
 
     /** Send Simple Poll Message 
@@ -175,7 +172,7 @@ const anubisFunc = (conn, store) => {
           "selectableOptionsCount": 2
         }
       }), { userJid: jid })
-      this.relayMessage(jid, simplePoll.message, { messageId: simplePoll.key.id })
+      return this.relayMessage(jid, simplePoll.message, { messageId: simplePoll.key.id })
     },
 
     /** Send Order Message 
@@ -206,39 +203,35 @@ const anubisFunc = (conn, store) => {
           "totalCurrencyCode": "IDR",
         }
       }), { userJid: jid })
-      this.relayMessage(jid, order.message, { messageId: order.key.id })
-    },
-
-    /** Send List Messaage
-     *
-     *@param {*} jid
-    *@param {*} text
-    *@param {*} footer
-    *@param {*} title
-    *@param {*} butText
-    *@param [*] sections
-    *@param {*} quoted
-    */
-    sendListMsg(jid, text = '', footer = '', title = '', butText = '', sects = [], quoted) {
-      let sections = sects
-      var listMes = {
-        text: text,
-        footer: anuFooter,
-        title: title,
-        buttonText: butText,
-        sections
-      }
-      this.sendMessage(jid, listMes, { quoted: quoted })
+      return this.relayMessage(jid, order.message, { messageId: order.key.id })
     },
     
+    /**
+     * 
+     * @param {Buffer} file Buffer or Path or URL
+     * @returns 
+     */
     async genThumb(file) {
       let buffer = Buffer.isBuffer(file) ? file : /^data:.*?\/.*?;base64,/i.test(file) ? Buffer.from(file.split`,`[1], 'base64') : /^https?:\/\//.test(file) ? await (await getBuffer(file)) : fs.existsSync(file) ? fs.readFileSync(file) : Buffer.alloc(0)
+      if (!Buffer.isBuffer(buffer)) throw new TypeError('Result is not a buffer')
       let type = await FileType.fromBuffer(buffer)
-      let FileName = Path.join(__temp, getRandom(`.${type.ext}`))
-      await fs.writeFileSync(FileName, buffer)
-      return await generateThumbnail(FileName, type.mime)
-    }
-    ,
+      let mime
+      if (/(image|video)/.test(type.mime)) {
+        let mim = type.mime.split('/')[0]
+        buffer = (mim == 'video') ? await ffmpeg(buffer,[
+          '-ss', '00:00:10',
+          '-vf', 'scale=32:-1',
+          '-vframes', '1',
+          '-f', 'image2',
+        ], mime, 'jpg') : buffer
+      } else {
+        return {status: false}
+      }
+      return {
+        thumbnail: buffer,
+        status: true
+      }
+    },
 
     /**
      *
@@ -250,7 +243,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    sendList(jid, title, text, buttonText, sections, options = {}) {
+    async sendList(jid, title, text, buttonText, sections, quoted = '', options = {}) {
       let listMessage = {
         text,
         footer: anuFooter,
@@ -259,7 +252,7 @@ const anubisFunc = (conn, store) => {
         sections,
       };
 
-      this.sendMessage(jid, listMessage, { ...options });
+      return await this.sendMessage(jid, listMessage, { quoted, ...options });
     },
 
     /** Send Button 5 Message
@@ -270,14 +263,13 @@ const anubisFunc = (conn, store) => {
      * @param {*} button
      * @returns 
      */
-    send5ButMsg(jid, text = '', footer = '', but = [], options = {}) {
-      let templateButtons = but
-      var templateMessage = {
+     async sendButtonMsg(jid, text = '', buttons = [], quoted = '', options = {}) {
+      let buttonMessage = {
         text: text,
         footer: anuFooter,
-        templateButtons: templateButtons
+        buttons
       }
-      this.sendMessage(jid, templateMessage, { ...options })
+      return await this.sendMessage(jid, buttonMessage, { quoted, ...options })
     },
 
     /** Send Button 5 Image
@@ -290,8 +282,8 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    send5ButImg(jid, text = '', img, buttons = [], quoted, options = {}) {
-      this.sendMessage(jid, { image: img, caption: text, footer: anuFooter, buttons }, { quoted, ...options })
+     async sendButtonImg(jid, text = '', img, buttons = [], quoted = '', options = {}) {
+      return await this.sendMessage(jid, { image: img, caption: text, footer: anuFooter, buttons }, { quoted, ...options })
     },
 
     /** Send Button 5 Location
@@ -303,9 +295,10 @@ const anubisFunc = (conn, store) => {
     * @param [*] button
     * @param {*} options
     */
-    async send5ButLoc(jid, text = '', footer = '', lok, but = [], options = {}) {
-      let bb = await this.reSize(lok, 300, 150)
-      this.sendMessage(jid, { location: { jpegThumbnail: bb }, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
+    async sendButtonLoc(jid, text = '', footer = '', lok, but = [], quoted = '', options = {}) {
+      let bb = await this.genThumb(lok)
+      let jpegThumbnail = (bb.status) ? bb.thumbnail : '' 
+      return await this.sendMessage(jid, { location: { jpegThumbnail }, caption: text, footer: anuFooter, templateButtons: but }, { quoted, ...options })
     },
 
     /** Send Button 5 Video
@@ -318,9 +311,10 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async send5ButVid(jid, text = '', footer = '', vid, but = [], buff, options = {}) {
-      let lol = await this.reSize(buf, 300, 150)
-      this.sendMessage(jid, { video: vid, jpegThumbnail: lol, caption: text, footer: anuFooter, templateButtons: but }, { ...options })
+    async sendButtonVid(jid, text = '', footer = '', vid, but = [], quoted = '', options = {}) {
+      let bb = await this.genThumb(vid)
+      let jpegThumbnail = (bb.status) ? bb.thumbnail : '' 
+      return await this.sendMessage(jid, { video: vid, caption: text, jpegThumbnail, footer: anuFooter, templateButtons: but }, { quoted, ...options })
     },
 
     /** Send Button 5 Gif
@@ -333,11 +327,12 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async send5ButGif(jid, text = '', footer = '', gif, but = [], buff, options = {}) {
-      let ahh = await this.reSize(buf, 300, 150)
+    async sendButtonGif(jid, text = '', footer = '', gif, but = [], quoted = '', options = {}) {
+      let bb = await this.genThumb(gif)
+      let jpegThumbnail = (bb.status) ? bb.thumbnail : '' 
       let a = [1, 2]
       let b = a[Math.floor(Math.random() * a.length)]
-      this.sendMessage(jid, { video: gif, gifPlayback: true, gifAttribution: b, caption: text, footer: anuFooter, jpegThumbnail: ahh, templateButtons: but }, { ...options })
+      return await this.sendMessage(jid, { video: gif, gifPlayback: true, gifAttribution: b, caption: text, footer: anuFooter, jpegThumbnail, templateButtons: but }, { quoted, ...options })
     },
 
     /**
@@ -349,7 +344,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} quoted 
      * @param {*} options 
      */
-    sendButtonText(jid, buttons = [], text, quoted = '', options = {}) {
+    async sendButtonText(jid, buttons = [], text, quoted = '', options = {}) {
       let buttonMessage = {
         text,
         footer: anuFooter,
@@ -357,7 +352,7 @@ const anubisFunc = (conn, store) => {
         headerType: 2,
         ...options
       }
-      this.sendMessage(jid, buttonMessage, { quoted, ...options })
+      return await this.sendMessage(jid, buttonMessage, { quoted, ...options })
     },
 
     /**
@@ -368,8 +363,8 @@ const anubisFunc = (conn, store) => {
      * @param {*} options 
      * @returns 
      */
-    sendText(jid, text, quoted = '', options) {
-      this.sendMessage(jid, { text: text, ...options }, { quoted, ...options })
+    async sendText(jid, text, quoted = '', options) {
+      return await this.sendMessage(jid, { text: text, ...options }, { quoted, ...options })
     },
 
     /**
@@ -397,7 +392,9 @@ const anubisFunc = (conn, store) => {
      */
     async sendVideo(jid, path, caption = '', quoted = '', gif = false, options) {
       let buffer = Buffer.isBuffer(path) ? path : /^data:.*?\/.*?;base64,/i.test(path) ? Buffer.from(path.split`,`[1], 'base64') : /^https?:\/\//.test(path) ? await (await getBuffer(path)) : fs.existsSync(path) ? fs.readFileSync(path) : Buffer.alloc(0)
-      return await this.sendMessage(jid, { video: buffer, caption: caption, gifPlayback: gif, ...options }, { quoted })
+      let bb = await this.genThumb(buffer)
+      let jpegThumbnail = (bb.status) ? bb.thumbnail : '' 
+      return await this.sendMessage(jid, { video: buffer, caption: caption, jpegThumbnail, gifPlayback: gif, ...options }, { quoted })
     },
 
     /**
@@ -422,8 +419,8 @@ const anubisFunc = (conn, store) => {
      * @param {*} options 
      * @returns 
      */
-    sendTextWithMentions(jid, text, quoted, options = {}) {
-      this.sendMessage(jid, { text: text, mentions: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + this.anubiskun), ...options }, { quoted })
+    async sendTextWithMentions(jid, text, quoted, options = {}) {
+      return await this.sendMessage(jid, { text: text, mentions: [...text.matchAll(/@(\d{0,16})/g)].map(v => v[1] + this.anubiskun), ...options }, { quoted })
     },
 
     /**
@@ -488,7 +485,7 @@ const anubisFunc = (conn, store) => {
         buffer = Buffer.concat([buffer, chunk])
       }
       let type = await FileType.fromBuffer(buffer)
-      trueFileName = attachExtension ? (filename + '.' + type.ext) : filename
+      trueFileName = attachExtension ? (Path.join(__temp, filename + '.' + type.ext)) : filename
       // save to file
       await fs.writeFileSync(trueFileName, buffer)
       return trueFileName
@@ -536,8 +533,11 @@ const anubisFunc = (conn, store) => {
       else if (/video/.test(mime)) type = 'video'
       else if (/audio/.test(mime)) type = 'audio'
       else type = 'document'
-      await this.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
-      return fs.promises.unlink(pathFile)
+      let a = await this.sendMessage(jid, { [type]: { url: pathFile }, caption, mimetype, fileName, ...options }, { quoted, ...options })
+      return {
+        ...a,
+        pathFile: fs.promises.unlink(pathFile)
+      }
     },
 
     /**
@@ -618,12 +618,12 @@ const anubisFunc = (conn, store) => {
     async getFile(PATH, save) {
       let res
       let data = Buffer.isBuffer(PATH) ? PATH : /^data:.*?\/.*?;base64,/i.test(PATH) ? Buffer.from(PATH.split`,`[1], 'base64') : /^https?:\/\//.test(PATH) ? await (res = await getBuffer(PATH)) : fs.existsSync(PATH) ? (filename = PATH, fs.readFileSync(PATH)) : typeof PATH === 'string' ? PATH : Buffer.alloc(0)
-      //if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
+      if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
       let type = await FileType.fromBuffer(data) || {
         mime: 'application/octet-stream',
         ext: 'bin'
       }
-      filename = Path.join(__dirname, './temp/' + new Date * 1 + '.' + type.ext)
+      filename = Path.join(__root + new Date * 1 + '.' + type.ext)
       if (data && save) fs.promises.writeFile(filename, data)
       return {
         res,
@@ -1265,6 +1265,49 @@ const smsg = (conn, m, store) => {
 
       /**
        * 
+       * @param {uri} Url 
+       * @returns 
+       */
+      async function tiktok2 (Url) {
+        return new Promise (async (resolve, reject) => {
+          let uri = await urlDirect2(Url)
+          await axios.request({
+            url: "https://ttdownloader.com/",
+            method: "GET",
+            headers: {
+              "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,/;q=0.8,application/signed-exchange;v=b3;q=0.9",
+              "accept-language": "en-US,en;q=0.9,id;q=0.8",
+              "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
+              "cookie": "_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934"
+            }
+          }).then(respon => {
+            const $ = cheerio.load(respon.data)
+            const token = $('#token').attr('value')
+            axios({
+              url: "https://ttdownloader.com/search/",
+              method: "POST",
+              data: new URLSearchParams(Object.entries({url: uri, format: "", token: token})),
+              headers: {
+                "accept": "/",
+                "accept-language": "en-US,en;q=0.9,id;q=0.8",
+                "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
+                "cookie": "_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934"
+              }
+            }).then(res => {
+              const ch = cheerio.load(res.data)
+              resolve({
+                videoUrl: ch('#results-list > div:nth-child(3)').find('div.download > a').attr('href'),
+                nowatermark: ch('#results-list > div:nth-child(2)').find('div.download > a').attr('href'),
+                music: ch('#results-list > div:nth-child(4)').find('div.download > a').attr('href')
+              })
+            }).catch(reject)
+          }).catch(reject)
+        })
+      }
+
+      /**
+       * 
        * @param {string} querry 
        * @returns 
        */
@@ -1856,6 +1899,7 @@ module.exports = {
   iggetid,
   igstory,
   tiktok,
+  tiktok2,
   urlDirect,
   urlDirect2,
   pinterest,
