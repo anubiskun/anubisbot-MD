@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const anubisPingger = require('sitepinger')
 
-function server(anubis){
+function server(anubis, store){
     const app = express();
     const host = '0.0.0.0'
     const port = process.env.PORT || 3000;
@@ -12,7 +12,7 @@ function server(anubis){
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(express.static('views'));
     
-    const web = require("./router/api")(anubis)
+    const web = require("./router/api")(anubis, store)
     app.use("/", web);
     
     anubisPingger(global.pingWeb)

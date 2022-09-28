@@ -4,8 +4,8 @@ const path = require('path')
 const isUrl = require('is-url')
 const {anubisFunc} = require('../library/lib')
 
-function rout(conn) {
-    const anubis = anubisFunc(conn)
+function rout(conn, store) {
+    const anubis = anubisFunc(conn, store)
 
     const mediaDownloader = async(uri) => {
         const down = await axios.get(uri, { responseType: 'arraybuffer' })
@@ -57,7 +57,6 @@ function rout(conn) {
         
         let text = req.body.text || req.query.text || ''
         let media = req.body.media
-        // return console.log(req.body)
         let number = req.params.number + anubis.anubiskun
         if (number.startsWith('+')) return res.send({status: false, msg: 'error'})
         if (number.startsWith('0')) return res.send({status: false, msg: 'error'})

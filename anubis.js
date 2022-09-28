@@ -1,7 +1,7 @@
 require('./conf')
 const yargs = require('yargs/yargs')
 const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
-const { default: WAConnection ,DisconnectReason, useMultiFileAuthState, Browsers, fetchLatestWaWebVersion, S_WHATSAPP_NET } = require('@adiwajshing/baileys')
+const { default: WAConnection ,DisconnectReason, useMultiFileAuthState, Browsers, fetchLatestWaWebVersion, S_WHATSAPP_NET, configureSuccessfulPairing, DEFAULT_CONNECTION_CONFIG, makeInMemoryStore } = require('@adiwajshing/baileys')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
 const Path = require('path')
@@ -10,10 +10,9 @@ const syntaxerror = require('syntax-error')
 const pino = require('pino').default
 const { Low, JSONFile }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-// const database = new Low((opts['test']) ? new JSONFile(`database.json`) : new mongoDB(mongoUser)) // if u use mongo unscomment this
+// const database = new Low((opts['test']) ? new JSONFile(`database.json`) : new mongoDB(mongoUser)) // if u use mongo uncomment this line
 const database = new Low(new mongoDB(`mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority`)) // for testing
-
-
+const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 async function loadDatabase() {
@@ -81,21 +80,22 @@ global.reload = (_event, filename) => {
 async function reloadConnector() {
     const {version, error} = await fetchLatestWaWebVersion()
     const {state, saveCreds} = await useMultiFileAuthState(global.sesName)
-    let { store, anubisFunc } = require('./library/lib')
+    let { anubisFunc, smsg } = require('./library/lib')
     const anubis = WAConnection({
         version: (error) ? [ 2, 2234, 13 ] : version,
         logger: pino({ level: 'silent' }),
         printQRInTerminal: true,
         auth: state,
-        browser: Browsers.macOS(global.author),
+        browser: [global.author,'Safari','5.1.7'],
         generateHighQualityLinkPreview: true,
+        syncFullHistory: true,
         connectTimeoutMs: 1000,
-      })
+    })
     anubis.db = database
     anubis.anubiskun = S_WHATSAPP_NET
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)
-    require('./server')(anubis) // uncomment this line if u use heroku for run this bot
+    // require('./server')(anubis, store) // uncomment this line if u use heroku for run this bot
     const libCon = require('./library/conector')
     anubis.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
@@ -108,7 +108,8 @@ async function reloadConnector() {
             else if (reason === DisconnectReason.connectionReplaced) { console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First"); anubis.logout(); }
             else if (reason === DisconnectReason.loggedOut) { console.log(`Device Logged Out, Please Scan Again And Run.`); anubis.logout(); }
             else if (reason === DisconnectReason.restartRequired) { console.log("Restart Required, Restarting..."); reloadConnector(); }
-            else if (reason === DisconnectReason.timedOut) { console.log("Connection TimedOut, Reconnecting..."); anubis.logout(); }
+            else if (reason === DisconnectReason.timedOut) { console.log("Connection TimedOut, Reconnecting..."); reloadConnector(); }
+            else if (reason === DisconnectReason.multideviceMismatch) { console.log("Multi device mismatch, please scan again"); anubis.logout(); }
             else anubis.end(`Unknown DisconnectReason: ${reason}|${connection}`)
         }
         if (update.isOnline) console.log('BOT RUNNING!')
@@ -118,12 +119,24 @@ async function reloadConnector() {
             })
         }
     })
-    anubis.ev.on('messages.upsert', (chatupdate) => libCon.anuConector(chatupdate, anubis))
-    anubis.ev.on('call', async(call) => libCon.callUpdate(call, anubisFunc(anubis)))
-    anubis.ev.on('contacts.update', (contactUpdate) => libCon.contactUpdate(contactUpdate, anubisFunc(anubis)))
+    anubis.ev.on('messages.upsert', (chatupdate) => {
+        for (let i = 0; i < chatupdate.messages.length; i++) {
+            const conn = anubisFunc(anubis, store)
+            const anu = chatupdate.messages[i];
+            if (!anu.message) return;
+            anu.message = Object.keys(anu.message)[0] === "ephemeralMessage" ? anu.message.ephemeralMessage.message : anu.message;
+            if (anu.key && anu.key.remoteJid === "status@broadcast") return;
+            if (anu.key.id.startsWith("BAE5") && anu.key.id.length === 16) return;
+            const m = smsg(conn, anu, store);
+            if (global['jadibot-' + m.chat.split('@')[0]]) return
+            libCon.anuConector(chatupdate, anubis, m, store)
+        }
+    })
+    anubis.ev.on('call', async(call) => {libCon.callUpdate(call, anubisFunc(anubis, store))})
+    anubis.ev.on('contacts.update', (contactUpdate) => {libCon.contactUpdate(contactUpdate, anubisFunc(anubis, store), store)})
     store.bind(anubis.ev)
     anubis.ev.on('creds.update', saveCreds)
-    return
+    return true
 }
 
 
@@ -133,5 +146,5 @@ setTimeout(async () => {
     setInterval(async () => {
         await database.write()
     }, 1000)
-    reloadConnector()
+    await reloadConnector()
 }, 1000)

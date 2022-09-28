@@ -1,6 +1,7 @@
 {
   "name": "anubisbot-md",
-  "version": "2.0.0-core-2.0",
+  "version": "2.0.0-core-2.1",
+  "versionCode": 2002022092821,
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
