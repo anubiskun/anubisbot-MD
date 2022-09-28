@@ -99,7 +99,7 @@ async function reloadConnector() {
     anubis.anubiskun = S_WHATSAPP_NET
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)
-    require('./server')(anubis, store) // uncomment this line if u use heroku for run this bot
+    // require('./server')(anubis, store) // uncomment this line if u use heroku for run this bot
     const libCon = require('./library/conector')
     anubis.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update

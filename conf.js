@@ -30,7 +30,7 @@ global.anuCookie = {
     joox: '', // joox cookies
     soundcloud: 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX', //soundcloud client_id
 }
-global.pingWeb = 'anubiskun-anubisbot-md-p7pw4w6vg6wc774q-3000.githubpreview.dev' 
+global.pingWeb = '' 
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author
