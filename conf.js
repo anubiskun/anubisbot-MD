@@ -5,7 +5,7 @@ const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
 
 global.botpublic = opts['test'] ? false : true // Bot Status
 global.sesName = opts['test'] ? 'anubisTest' : 'anubisAuth' // Session Folder
-global.mongoUser = '' //mongo uri
+global.mongoUser = 'mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority' //mongo uri
 global.ownerNum = ['6289653909054'] // owner number
 global.fla = 'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=sketch-name&doScale=true&scaleWidth=800&scaleHeight=500&fontsize=100&fillTextType=1&fillTextPattern=Warning!&fillColor1Color=%23f2aa4c&fillColor2Color=%23f2aa4c&fillColor3Color=%23f2aa4c&fillColor4Color=%23f2aa4c&fillColor5Color=%23f2aa4c&fillColor6Color=%23f2aa4c&fillColor7Color=%23f2aa4c&fillColor8Color=%23f2aa4c&fillColor9Color=%23f2aa4c&fillColor10Color=%23f2aa4c&fillOutlineColor=%23f2aa4c&fillOutline2Color=%23f2aa4c&backgroundColor=%23101820&text='
 global.thumb = fs.readFileSync('./library/anubis.jpg')
@@ -42,6 +42,7 @@ global.apirnobg = [
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
 global.changelogs = [
+    '[ V 2.0.0-core-2.2 ]\n- Update core v2.2\n- Move package steno to @redchili/steno\n- New save Authentication state to database cloud\n- Added singleFileAuthState\n- Fix error waiting messages\n- Fix waiting messages\n- Fix Many bugs',
     '[ V 2.0.0-core-2.1 ]\n- Update core v2.1\n- Fix Support Multi Bot inside bot\n- Added Jadibot command (coming soon)\n- Fix Thumbnail video not display\n- Bug Fix',
     '[ V 2.0.0-core-2.0 ]\n- re-coded core v2.0 (testing)\n- move to MultiFileAuthState\n- Fix Waiting Database Connected\n- Fix Waiting Pending Messages\n- Fix Duplicated Messages send\n- Fix Thumbnail not display\n- Bug Fix',
     '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group\n- Marge any command\n- Fixing sticker command to improve performance\n- Fixing Tiktok command\n- Fix ytdl v2\n- Added shortlink command',

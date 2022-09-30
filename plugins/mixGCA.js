@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const {sleep} = require('../library/lib')
 
 module.exports = anuplug = async(m, anubis, { participants, text, command, args, usedPrefix }) => {
@@ -28,7 +35,6 @@ module.exports = anuplug = async(m, anubis, { participants, text, command, args,
                         : text.replace(/[^0-9]/g, "");
                 let users = user.split("@")[0]
                 let response = await anubis.groupParticipantsUpdate(m.chat, [users + anubis.anubiskun], "remove")
-                // return console.log(response)
                 if (response[0].status == 200) return m.reply('Berhasil mengeluarkan')
                 else return m.reply('Gagal mengeluarkan ngab!\nNomer tidak ada di group!')
             }
@@ -39,9 +45,9 @@ module.exports = anuplug = async(m, anubis, { participants, text, command, args,
                 if (!m.quoted) return m.reply('reply pesan yang mau di delete')
                 let a = await anubis.sendMessage(m.chat, {
                     delete: {
-                      remoteJid: m.chat,
-                      id: m.quoted.id,
-                      participant: m.quoted.sender,
+                        remoteJid: m.chat,
+                        id: m.quoted.id,
+                        participant: m.quoted.sender,
                     },
                 })
                 if (a.status == 1) return m.reply('shaaap! ngab!')
@@ -98,3 +104,4 @@ anuplug.command = /^(add|kick|del(ete)?|(del)?vote)$/i
 anuplug.group = true
 anuplug.botAdmin = true
 anuplug.admin = true
+ 

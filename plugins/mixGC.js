@@ -1,4 +1,11 @@
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, participants }) => {
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
+ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, participants }) => {
     let vote = anubis.db.data.others.vote;
     switch(command){
         case 'tagall':

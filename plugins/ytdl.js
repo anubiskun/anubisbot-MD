@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const { y2mate, y2mateConvert, shortlink } = require("../library/lib")
 const isUrl = require("is-url")
 

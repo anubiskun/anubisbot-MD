@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 let fs = require('fs')
 let path = require('path')
 let moment = require('moment-timezone')
@@ -24,7 +31,7 @@ ${'```%npmdesc```'}
   let anuplug = async (m, anubis, {  usedPrefix, args, command }) => {
     let tags
     let teks = `${args[0]}`.toLowerCase()
-    let arrayMenu = ['all', 'sticker', 'inject', 'downloader', 'group', 'tools', 'main', 'owner' ]
+    let arrayMenu = ['all', 'sticker', 'inject', 'downloader', 'group', 'tools', 'main', 'owner', 'anubis' ]
     if (!arrayMenu.includes(teks)) teks = 'null'
     if (teks == 'all') tags = {
       'sticker': 'Sticker',
@@ -42,6 +49,7 @@ ${'```%npmdesc```'}
     if (teks == 'owner') tags = { 'owner': 'Owner' }
     if (teks == 'downloader') tags = { 'downloader': 'Downloader' }
     if (teks == 'group') tags = { 'group': 'Group' }
+    if (teks == 'anubis') tags = { 'anubis': 'Anubis Menu' }
     
     try {
       let package = JSON.parse(await fs.promises.readFile(path.join(__dirname, '../package.json')).catch(_ => '{}'))

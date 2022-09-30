@@ -1,4 +1,11 @@
-const { subFinder, anubis } = require("../library/lib")
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
+const { subFinder } = require("../library/lib")
 
 module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
     if (!text) return m.reply(`*Example* : ${usedPrefix + command} google.com`)
@@ -26,3 +33,4 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
 anuplug.help = ['subfinder']
 anuplug.tags = ['inject']
 anuplug.command = /^(subfind|subfinder|sf)$/i
+ 

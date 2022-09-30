@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const moment = require('moment-timezone')
 
 const all = async(m, anubis) => {

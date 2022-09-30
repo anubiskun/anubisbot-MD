@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const fs = require("fs");
 let { spawn } = require('child_process')
 let Path = require('path')

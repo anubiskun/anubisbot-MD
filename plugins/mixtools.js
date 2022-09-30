@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const fs = require('fs')
 const axios = require('axios')
 const google = require('googlethis')
@@ -5,7 +12,7 @@ const remobg = require("remove.bg");
 const isUrl = require('is-url')
 const util = require('util')
 const os = require('os')
-const {UploadFileUgu, tmpfiles, telegraphUp} = require('../library/upload');
+const { tmpfiles, telegraphUp} = require('../library/upload');
 const speed = require("performance-now");
 const { performance } = require("perf_hooks");
 const { runtime, formatp, shortlink, getRandom, byteToSize } = require('../library/lib')
@@ -62,19 +69,19 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                         const caption = `*${fileName}*\nSize: *${byteToSize(res.headers['content-length'])}*`
                         if (/gif/.test(res.headers['content-type'])) {
                             return anubis.sendMessage(m.chat, { video: res.data, fileName, caption, gifPlayback: true }, { quoted: m })
-                          }
-                          if (/application/.test(res.headers['content-type'])) {
+                        }
+                        if (/application/.test(res.headers['content-type'])) {
                             return anubis.sendMessage(m.chat, { document: res.data, mimetype: res.headers['content-type'], fileName, caption }, { quoted: m })
-                          }
-                          if (/image/.test(res.headers['content-type'])) {
+                        }
+                        if (/image/.test(res.headers['content-type'])) {
                             return anubis.sendMessage(m.chat, { image: res.data, fileName, caption }, { quoted: m })
-                          }
-                          if (/video/.test(res.headers['content-type'])) {
+                        }
+                        if (/video/.test(res.headers['content-type'])) {
                             return anubis.sendMessage(m.chat, { video: res.data, fileName, caption, mimetype: 'video/mp4' }, { quoted: m })
-                          }
-                          if (/audio/.test(res.headers['content-type'])) {
+                        }
+                        if (/audio/.test(res.headers['content-type'])) {
                             return anubis.sendMessage(m.chat, { audio: res.data, fileName, caption, mimetype: 'audio/mpeg' }, { quoted: m })
-                          }
+                        }
                     }
                     let txt = res.data
                     try {
@@ -95,14 +102,14 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
             {
                 const used = process.memoryUsage();
                 const cpus = os.cpus().map((cpu) => {
-                  cpu.total = Object.keys(cpu.times).reduce(
+                cpu.total = Object.keys(cpu.times).reduce(
                     (last, type) => last + cpu.times[type],
                     0
-                  );
-                  return cpu;
+                );
+                return cpu;
                 });
                 const cpu = cpus.reduce(
-                  (last, cpu, _, { length }) => {
+                (last, cpu, _, { length }) => {
                     last.total += cpu.total;
                     last.speed += cpu.speed / length;
                     last.times.user += cpu.times.user;
@@ -111,18 +118,18 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     last.times.idle += cpu.times.idle;
                     last.times.irq += cpu.times.irq;
                     return last;
-                  },
-                  {
+                },
+                {
                     speed: 0,
                     total: 0,
                     times: {
-                      user: 0,
-                      nice: 0,
-                      sys: 0,
-                      idle: 0,
-                      irq: 0,
+                    user: 0,
+                    nice: 0,
+                    sys: 0,
+                    idle: 0,
+                    irq: 0,
                     },
-                  }
+                }
                 );
                 let timestamp = speed();
                 let latensi = speed() - timestamp;
@@ -215,7 +222,7 @@ ${cpus
                     page: 0, 
                     safe: false,
                     additional_params: { 
-                      hl: 'en' 
+                        hl: 'en' 
                     }
                 }
                 try {
@@ -325,20 +332,20 @@ ${cpus
         break;
         case 'tomp3':
             {
-              if (!/video/.test(mime) && !/audio/.test(mime)) return m.reply(`Kirim/Reply Video/Audio Yang Ingin Dijadikan MP3 Dengan Caption ${usedPrefix + command}`)
-              try {
-                m.reply(mess.wait);
-                let media = await anubis.downloadMediaMessage(qmsg);
-                let audio = await toAudio(media, "mp4");
-                anubis.sendMessage(
-                  m.chat,
-                  { audio: audio, mimetype: "audio/mpeg" },
-                  { quoted: m }
-                );
-              } catch (err) {
-                  m.reply('error ngab! cba wa ownernya!')
-                  console.log(err)
-              }
+                if (!/video/.test(mime) && !/audio/.test(mime)) return m.reply(`Kirim/Reply Video/Audio Yang Ingin Dijadikan MP3 Dengan Caption ${usedPrefix + command}`)
+                try {
+                    m.reply(mess.wait);
+                    let media = await anubis.downloadMediaMessage(qmsg);
+                    let audio = await toAudio(media, "mp4");
+                    anubis.sendMessage(
+                    m.chat,
+                    { audio: audio, mimetype: "audio/mpeg" },
+                    { quoted: m }
+                    );
+                } catch (err) {
+                    m.reply('error ngab! cba wa ownernya!')
+                    console.log(err)
+                }
             }
         break;
         case 'tourl':

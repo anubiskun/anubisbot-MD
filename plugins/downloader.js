@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 const isUrl = require('is-url');
 const {iggetid, igjson, urlDirect2, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud, pinterest, shortlink} = require('../library/lib')
 const moment = require('moment-timezone');
@@ -348,8 +355,9 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     let media = await ytv(text, quality)
                     
                     if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
-                    anubis.sendMessage(m.chat,{
+                    await anubis.sendMessage(m.chat,{
                         video: { url: media.dl_link },
+                        jpegThumbnail: await anubis.genThumb(media.thumb).thumbnail,
                         mimetype: "video/mp4",
                         fileName: `${media.title}.mp4`,
                         caption: `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}`
@@ -416,9 +424,9 @@ function ses(secs) {
     let hours = Math.floor(sec_num / 3600);
     let minutes = Math.floor(sec_num / 60) % 60;
     let seconds = sec_num % 60;
-  
+
     return [hours, minutes, seconds]
-      .map((v) => (v < 10 ? "0" + v : v))
-      .filter((v, i) => v !== "00" || i > 0)
-      .join(":");
-  }
+    .map((v) => (v < 10 ? "0" + v : v))
+    .filter((v, i) => v !== "00" || i > 0)
+    .join(":");
+}

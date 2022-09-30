@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 let cp = require('child_process')
 let { promisify } = require('util')
 let exec = promisify(cp.exec).bind(cp)
@@ -95,19 +102,19 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                 if (!anubis.user.id) return
                 let o
                 try {
-                  o = await exec(text)
+                o = await exec(text)
                 } catch (e) {
-                  o = e
+                o = e
                 } finally {
-                  let { stdout, stderr } = o
-                  if (stdout.trim()) m.reply(stdout)
-                  if (stderr.trim()) m.reply(stderr)
+                let { stdout, stderr } = o
+                if (stdout.trim()) m.reply(stdout)
+                if (stderr.trim()) m.reply(stderr)
                 }
             }
         break;
     }
 }
-anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','exec']
+anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','$']
 anuplug.tags = ['owner']
 anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart|[$])$/i
 anuplug.isAnubis = true

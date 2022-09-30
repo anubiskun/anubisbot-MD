@@ -1,7 +1,7 @@
 {
   "name": "anubisbot-md",
-  "version": "2.0.0-core-2.1",
-  "versionCode": 2002022092821,
+  "version": "2.0.0-core-2.2",
+  "versionCode": 2002022093022,
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -12,7 +12,7 @@
     "temp": "temp"
   },
   "scripts": {
-    "start": "node index.js",
+    "start": "node index.js --server",
     "test": "node index.js --test"
   },
   "repository": {

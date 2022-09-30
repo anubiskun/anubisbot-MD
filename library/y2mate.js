@@ -1,3 +1,10 @@
+/**
+ * anubisbot-MD  https://github.com/anubiskun/anubisbot-MD
+ * 
+ * Copyright (c) 2022 anubiskun
+ * https://github.com/anubiskun
+ */
+
 let axios = require('axios')
 let { JSDOM } = require("jsdom");
 let {ytDislike} = require('./lib')
@@ -18,14 +25,14 @@ function post(url, formdata) {
 const ytIdRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/;
 
 /**
- * Download YouTube Video via y2mate
- * @param {String} url YouTube Video URL
- * @param {String} quality (avaiable: `144p`, `240p`, `360p`, `480p`, `720p`, `1080p`, `1440p`, `2160p`)
- * @param {String} type (avaiable: `mp3`, `mp4`)
- * @param {String} bitrate (avaiable for video: `144`, `240`, `360`, `480`, `720`, `1080`, `1440`, `2160`)
- * (avaiable for audio: `128`)
- * @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
- */
+* Download YouTube Video via y2mate
+* @param {String} url YouTube Video URL
+* @param {String} quality (avaiable: `144p`, `240p`, `360p`, `480p`, `720p`, `1080p`, `1440p`, `2160p`)
+* @param {String} type (avaiable: `mp3`, `mp4`)
+* @param {String} bitrate (avaiable for video: `144`, `240`, `360`, `480`, `720`, `1080`, `1440`, `2160`)
+* (avaiable for audio: `128`)
+* @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
+*/
 async function yt(url, quality, type, bitrate, server = "en68") {
   let ytId = ytIdRegex.exec(url);
   let {likes, dislikes, rating, viewCount} = await ytDislike(ytId[1])
@@ -94,10 +101,10 @@ module.exports = {
   yt,
   ytIdRegex,
   /**
-   * Download YouTube Video as Audio via y2mate
-   * @param {String} url YouTube Video URL
-   * @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
-   */
+  * Download YouTube Video as Audio via y2mate
+  * @param {String} url YouTube Video URL
+  * @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
+  */
   yta(url, resol = "128kbps", server = "en154") {
     return yt(
       url,
@@ -108,10 +115,10 @@ module.exports = {
     );
   },
   /**
-   * Download YouTube Video as Video via y2mate
-   * @param {String} url YouTube Video URL
-   * @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
-   */
+  * Download YouTube Video as Video via y2mate
+  * @param {String} url YouTube Video URL
+  * @param {String} server (avaiable: `id4`, `en60`, `en61`, `en68`)
+  */
   ytv(url, resol = "360p", server = "en154") {
     return yt(
       url,
