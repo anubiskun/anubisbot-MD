@@ -122,7 +122,7 @@ async function reloadConnector() {
         }
         if (update.receivedPendingNotifications) {
             global.ownerNum.forEach((Owner) => {
-                console.log('\nLatest Changelogs Update :\n' + changelogs[0])
+                console.log(`\nLatest Changelogs Update :\n${require(__root + 'package.json').changeLogs[0]}`)
                 anubis.sendMessage(Owner + anubis.anubiskun, { text: 'Bot jalan ngab!' })
             })
         }

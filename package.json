@@ -71,7 +71,7 @@
     "yargs": "^17.5.1",
     "youtube-search-api": "^1.1.0"
   },
-  "changelogs": [
+  "changeLogs": [
     "[ V 2.0.0-core-2.2 ]\n- Update core v2.2\n- Move package steno to @redchili/steno\n- New save Authentication state to database cloud\n- Added singleFileAuthState\n- Fix error waiting messages\n- Fix Many bugs",
     "[ V 2.0.0-core-2.1 ]\n- Update core v2.1\n- Fix Support Multi Bot inside bot\n- Added Jadibot command (coming soon)\n- Fix Thumbnail video not display\n- Bug Fix",
     "[ V 2.0.0-core-2.0 ]\n- re-coded core v2.0 (testing)\n- move to MultiFileAuthState\n- Fix Waiting Database Connected\n- Fix Waiting Pending Messages\n- Fix Duplicated Messages send\n- Fix Thumbnail not display\n- Bug Fix",
