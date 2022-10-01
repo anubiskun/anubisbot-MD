@@ -41,21 +41,3 @@ global.apirnobg = [
     "CwTa6J7FhrH32JfxULgAexHc",
     "Swpj4r78BBg6WU6SEHHJ1qLg",
 ]
-global.changelogs = [
-    '[ V 2.0.0-core-2.2 ]\n- Update core v2.2\n- Move package steno to @redchili/steno\n- New save Authentication state to database cloud\n- Added singleFileAuthState\n- Fix error waiting messages\n- Fix waiting messages\n- Fix Many bugs',
-    '[ V 2.0.0-core-2.1 ]\n- Update core v2.1\n- Fix Support Multi Bot inside bot\n- Added Jadibot command (coming soon)\n- Fix Thumbnail video not display\n- Bug Fix',
-    '[ V 2.0.0-core-2.0 ]\n- re-coded core v2.0 (testing)\n- move to MultiFileAuthState\n- Fix Waiting Database Connected\n- Fix Waiting Pending Messages\n- Fix Duplicated Messages send\n- Fix Thumbnail not display\n- Bug Fix',
-    '[ V 1.6.6 ]\n- Added add & kick command in group\n- Added vote command in group\n- Marge any command\n- Fixing sticker command to improve performance\n- Fixing Tiktok command\n- Fix ytdl v2\n- Added shortlink command',
-    '[ V 1.6.5 ]\n- Added notes for group\n- Added tagall and hidetag for group\n- Added Joox Search and DL command\n- Added SoundCloud Search and DL command\n- Bug Fix',
-    '[ V 1.6.4 ]\n- Fix any command error',
-    '[ V 1.6.3 ]\n- Support Download highlights url Instagram',
-    '[ V 1.6.2 ]\n- Fix YT Downloader and Added new YT Downloader v2\n- Added any command support',
-    '[ V 1.6.1 ]\n- Bug Fix Menu can`t display in any whatsapp version',
-    '[ V 1.6.0 ]\n- Bug Fix\n- Benerin command google & gimage\n- Added command gimgrev -> for search similar image use reply image',
-    '[ V 1.5.0 ]\n- Bug Fix\n- Many added commands',
-    '[ V 1.4.0 ]\n- Bug Fix\n- Added FistChat\n- Added Public change',
-    '[ V 1.3.0 ]\n- Release Whatsapp anubis-bot beta',
-    '[ V 1.2.0 ]\n- Bug Fix\n- Added api',
-    '[ V 1.1.0 ]\n- Bug Fix',
-    '[ V 1.0.0 ]\n- Uploaded',
-]

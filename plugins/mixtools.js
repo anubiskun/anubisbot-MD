@@ -45,7 +45,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
             {
                 let cap = ''
                 for (let i = 0; i < 5; i++){
-                cap += changelogs[i] + '\n─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n'
+                    cap += require(__root + 'package.json').changeLogs[i] + '\n─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n'
                 }
                 m.reply(cap)
             }
