@@ -131,9 +131,10 @@ ${'```%npmdesc```'}
         { buttonId: `${usedPrefix}changelog`, buttonText: { displayText: "Change Logs" }, type: 1 },
       ];
       let buttonMessage = {
-        image: global.thumb,
-        caption: pesen.trim(),
-        footer: anuFooter,
+        video: global.thumb,
+        gifPlayback: true,
+        caption: pesen.trim
+        footer: global.anuFooter,
         buttons: buttons,
       };
       anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
