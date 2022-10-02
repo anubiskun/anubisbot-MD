@@ -17,8 +17,7 @@ const syntaxerror = require('syntax-error')
 const pino = require('pino').default
 const { Low, JSONFile }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-// const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
-const database = new Low(new mongoDB('mongodb+srv://test:test@test.3nn4k04.mongodb.net/?retryWrites=true&w=majority'))
+const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
