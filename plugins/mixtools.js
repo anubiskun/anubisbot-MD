@@ -299,13 +299,11 @@ ${cpus
         case 'rmbg':
         case 'removebg':
             {
-                if (!/image/.test(mime))return m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
-                if (/webp/.test(mime)) m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
+                if (/!(webp|image)/.test(mime)) m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
                 try {
                     let apinobg = apirnobg[Math.floor(Math.random() * apirnobg.length)]
-                    let hmm = (await "./temp/remobg-") + getRandom("")
-                    let localFile = await anubis.downloadAndSaveMediaMessage(qmsg, hmm);
-                    let outputFile = (await "./temp/hremo-") + getRandom(".png");
+                    let localFile = await anubis.downloadAndSaveMediaMessage(qmsg);
+                    let outputFile = __temp + getRandom(".png");
                     m.reply(mess.wait)
                     remobg
                     .removeBackgroundFromImageFile({
@@ -316,18 +314,19 @@ ${cpus
                         scale: "100%",
                         outputFile,
                     })
-                    .then(async (result) => {
+                    .then(async() => {
                         anubis.sendMessage(
                             m.chat,
                             { image: fs.readFileSync(outputFile), caption: mess.success },
                             { quoted: m }
-                            );
-                            await fs.unlinkSync(localFile);
-                            await fs.unlinkSync(outputFile);
-                        });
-                    } catch (err) {
-                        m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
-                    }
+                        );
+                        fs.unlinkSync(localFile);
+                        fs.unlinkSync(outputFile);
+                    });
+                } catch (err) {
+                    console.log(err)
+                    m.reply(`command error ngab!`)
+                }
             }
         break;
         case 'tomp3':
