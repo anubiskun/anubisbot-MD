@@ -17,7 +17,8 @@ const syntaxerror = require('syntax-error')
 const pino = require('pino').default
 const { Low, JSONFile }  = require('./library/lowdb')
 const mongoDB = require('./library/mongoDB')
-const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
+// const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
+const database = new Low(new mongoDB('mongodb+srv://test:test@test.3nn4k04.mongodb.net/?retryWrites=true&w=majority'))
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -86,9 +87,9 @@ global.reload = (_event, filename) => {
 async function reloadConnector() {
     let { anubisFunc, smsg, jsonFileAuth } = require('./library/lib')
     const {version, error} = await fetchLatestWaWebVersion()
-    const {state, anuCreds} = await jsonFileAuth(database.data.auth, sesName) // uncomment this line if you want to use database cloud
-    // const {state, anuCreds} = await jsonFileAuth(sesName + '.json') // uncomment this line if you want to use database local
-    // const {state, saveCreds: anuCreds} = await useMultiFileAuthState(sesName) // uncomment this line if you want to use multi file auth state
+    const {state, anuCreds} = await jsonFileAuth(database.data.auth, global.sesName) // uncomment this line if you want to use database cloud
+    // const {state, anuCreds} = await jsonFileAuth(global.sesName + '.json') // uncomment this line if you want to use database local
+    // const {state, saveCreds: anuCreds} = await useMultiFileAuthState(global.sesName) // uncomment this line if you want to use multi file auth state
     await database.write()
     const anubis = WAConnection({
         version: (error) ? [ 2, 2234, 13 ] : version,
@@ -105,7 +106,7 @@ async function reloadConnector() {
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)
     const libCon = require('./library/conector')
-    anubis.ev.on('connection.update', (update) => {
+    anubis.ev.on('connection.update', async(update) => {
         const { connection, lastDisconnect } = update
         if (connection === 'connecting') console.log('sabar ngab lagi nyoba menghubungkan!')
         if (connection === 'close') {
@@ -121,9 +122,11 @@ async function reloadConnector() {
             else anubis.end(`Unknown DisconnectReason: ${reason}|${connection}`)
         }
         if (update.receivedPendingNotifications) {
+            const {isLatest, version, changeLogs} = await anubisFunc(anubis).anuUpdate()
             global.ownerNum.forEach((Owner) => {
                 console.log(`\n\nChangelogs :\n${require(__root + 'package.json').changeLogs[0]}\n\n`)
                 anubis.sendMessage(Owner + anubis.anubiskun, { text: 'Bot jalan ngab!' })
+                if (isLatest) anubis.sendMessage(Owner + anubis.anubiskun, { text: `New Update [ *anubisbot-MD* *v${version}* ]\n\n${changeLogs[0]}` })
             })
         }
         if (update.isOnline) console.log('BOT RUNNING!')

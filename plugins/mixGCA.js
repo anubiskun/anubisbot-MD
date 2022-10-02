@@ -104,4 +104,3 @@ anuplug.command = /^(add|kick|del(ete)?|(del)?vote)$/i
 anuplug.group = true
 anuplug.botAdmin = true
 anuplug.admin = true
- 

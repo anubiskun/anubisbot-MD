@@ -11,7 +11,7 @@
         case 'tagall':
             {
                 let teks = `        [ TAGALL ] 
-            Pesan : ${text ? text : 'kosong'}\n\n`
+Pesan : ${text ? text : 'kosong'}\n\n`
                          for (let mem of participants) {
                            teks += `> @${mem.id.split("@")[0]}\n`;
                          }
