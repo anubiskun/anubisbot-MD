@@ -647,7 +647,7 @@ const anubisFunc = (conn, store) => {
         version: cekV.version,
         versionCode: cekV.versionCode,
         changeLogs: cekV.changeLogs,
-        isLatest: (cekV.versionCode >= require(__root + 'package.json').versionCode) ? true : false
+        isLatest: (cekV.versionCode > require(__root + 'package.json').versionCode) ? true : false
       }
     },
 
