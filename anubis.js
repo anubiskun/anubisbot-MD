@@ -17,7 +17,7 @@
  const pino = require('pino').default
  const { Low, JSONFile }  = require('./library/lowdb')
  const mongoDB = require('./library/mongoDB')
- const database = new Low(opts['test'] ? new mongoDB('mongodb+srv://test:test@test.ua72rxd.mongodb.net/?retryWrites=true&w=majority') : new mongoDB(mongoUser))
+ const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
  const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
  
