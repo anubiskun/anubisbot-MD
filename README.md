@@ -26,9 +26,13 @@
   </p>
 </p> 
 
+
 # anubisbot-MD
 
-Anubis Bot
+## SUPPORT ME BY DONATE
+```
+OVO,DANA => 089653909054
+```
 
 [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/anubiskun/anubisbot)
 
@@ -40,13 +44,10 @@ Anubis Bot
 ## FOR LINUX / UBUNTU USER
 
 ```bash
-apt update && apt upgrade -y
+apt update && apt upgrade
 ```
 ```bash
-apt install git curl -y
-```
-```bash
-curl -sL https://deb.nodesource.com/setup_18.x | bash - && sudo apt install nodejs -y
+apt install git nodejs -y
 ```
 ```bash
 git clone https://github.com/anubiskun/anubisbot-MD
@@ -56,11 +57,6 @@ cd anubisbot-MD
 ```
 ```bash
 npm install
-```
-
-## 1script run
-```bash
-apt update && apt upgrade -y && apt install git curl -y && curl -sL https://deb.nodesource.com/setup_18.x | bash - && sudo apt install nodejs -y && git clone https://github.com/anubiskun/anubisbot-MD && cd anubisbot-MD && npm install && npm start
 ```
 
 #
@@ -87,12 +83,22 @@ npm install
 ```bash
 npm start
 ```
-
-## Run Testing
-
 ```bash
 npm test
 ```
+
+# Arguments
+## `--name <session name>`
+Use another session with another name, default is anubisAuth
+
+## `--server`
+Used for heroku or scan through website
+
+## `--db <json-server-url>`
+Use another db url
+
+## `--test`
+for testing 
 
 #
 # API USAGE
@@ -141,6 +147,7 @@ Content-Type: application/json
 ```
 #
 
+<p align="center">
 <table style="border: 1px solid black;">
   <tr>
     <th style="border: 1px solid black;"><img src="https://github.com/anubiskun.png?size=200" alt="anubiskun"></th>
@@ -152,6 +159,7 @@ Content-Type: application/json
     <th style="border: 1px solid black;">Author / Creator</th>
   </tr>
 </table>
+</p>
 <br />
 
 
