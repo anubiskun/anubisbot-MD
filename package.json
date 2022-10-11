@@ -1,7 +1,7 @@
 {
   "name": "anubisbot-md",
-  "version": "2.1.2-core-2.4",
-  "versionCode": 2122022100624,
+  "version": "2.1.3-core-2.4",
+  "versionCode": 2132022101224,
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -77,6 +77,7 @@
     "youtube-search-api": "^1.1.0"
   },
   "changeLogs": [
+    "[ V 2.1.3-core-2.4 ]\n- Added Group Update (https://github.com/irham01)",
     "[ V 2.1.2-core-2.4 ]\n- Update core v2.4\n- System Send Notif if Error\n- Error Catch\n- Fix SoundCloud search\n- Fix Tiktok Downloader\n- Fix Google Search\n- Added Welcomer in group\n- Added Anti link",
     "[ V 2.1.0-core-2.3 ]\n- Update core v2.3\n- Added Command Corections\n- Added notification updates\n- Fix command removebg",
     "[ V 2.0.0-core-2.2 ]\n- Update core v2.2\n- Move package steno to @redchili/steno\n- New save Authentication state to database cloud\n- Added singleFileAuthState\n- Fix error waiting messages\n- Fix Many bugs",
