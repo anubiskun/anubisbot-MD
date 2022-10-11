@@ -436,6 +436,47 @@ module.exports = {
         console.err(err);
       }
     },
+    async gcUpdate(gcUp, anubis) {
+      try {
+        for(let noir of gcUp) {
+          let pGroup;
+          try {
+            pGroup = await anubis.profilePictureUrl(noir.id, "image");
+          } catch (e) {
+            pGroup = "https://tinyurl.com/yx93l6dan";
+          }
+  
+          if (noir.announce == true) {
+            anubis.sendMessage(gcUpdate.id, {
+              image: { url: pGroup },
+              caption: `「 Group Settings Change 」\n\nGroup telah ditutup oleh admin, Sekarang hanya admin yang dapat mengirim pesan !`,
+            });
+          } else if (noir.announce == false) {
+            anubis.sendMessage(gcUpdate.id, {
+              image: { url: pGroup },
+              caption: `「 Group Settings Change 」\n\nGroup telah dibuka oleh admin, Sekarang peserta dapat mengirim pesan !`,
+            });
+          } else if (noir.restrict == true) {
+            anubis.sendMessage(gcUpdate.id, {
+              image: { url: pGroup },
+              caption: `「 Group Settings Change 」\n\nInfo group telah dibatasi, Sekarang hanya admin yang dapat mengedit info group !`,
+            });
+          } else if (noir.restrict == false) {
+            anubis.sendMessage(gcUpdate.id, {
+              image: { url: pGroup },
+              caption: `「 Group Settings Change 」\n\nInfo group telah dibuka, Sekarang peserta dapat mengedit info group !`,
+            });
+          } else {
+            anubis.sendMessage(gcUpdate.id, {
+              image: { url: pGroup },
+              caption: `「 Group Settings Change 」\n\nGroup Subject telah diganti menjadi *${noir.subject}*`,
+            });
+          }
+        }
+      } catch (err) {
+        console.err(err);
+      }
+    },
   };
 
   global.dfail = (type, m, anubis) => {

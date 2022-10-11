@@ -144,6 +144,7 @@
          }
      })
      anubis.ev.on('group-participants.update', (gcUpdate) => {libCon.gcParticipantUpdate(gcUpdate, anubisFunc(anubis, store))})
+     anubis.ev.on('groups.update', (gcUp) => {libCon.gcUpdate(gcUp, anubisFunc(anubis, store))})
      anubis.ev.on('call', async(call) => {libCon.callUpdate(call, anubisFunc(anubis, store))})
      anubis.ev.on('contacts.update', (contactUpdate) => {libCon.contactUpdate(contactUpdate, anubisFunc(anubis, store), store)})
      store.bind(anubis.ev)
