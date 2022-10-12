@@ -144,7 +144,7 @@
          break;
      }
  }
- anuplug.help = ['add', 'kick', 'delete','vote','delvote']
+ anuplug.help = ['add','kick','promote','demote','setname','setdesk','setppgroup','delete','vote','delvote']
  anuplug.tags = ['group']
  anuplug.command = /^(add|kick|(pro|de)mote|set(desk(ripsi)?|name|pp(gc|group|grup))|del(ete|vote)?)$/i
  anuplug.group = true
