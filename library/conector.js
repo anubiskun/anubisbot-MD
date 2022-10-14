@@ -77,6 +77,7 @@ module.exports = {
           if (!("name" in user)) user.name = anubis.getName(m.sender);
           if (!("isBanned" in user)) user.isBanned = false;
           if (!("isPremium" in user)) user.isPremium = false;
+          if (!isNum(user.limit)) user.limit = 100;
           if (!("isMute" in user)) user.isMute = false;
           if (!isNum(user.pc)) user.pc = -1;
           if (!isNum(user.cCorect)) user.cCorect = -1;
@@ -166,6 +167,8 @@ module.exports = {
         const groupAdmins = m.isGroup ? getGroupAdmins(participants) : "";
         const isBotAdmin = m.isGroup ? groupAdmins.includes(botNumber) : false;
         const isAdmin = m.isGroup ? groupAdmins.includes(m.sender) : false;
+        m.isPremium = anubis.db.data.users[m.sender].isPremium
+        m.limit = (m.isPremium) ? 1 : anubis.db.data.users[m.sender].limit
         global.ownerNum.forEach((Owner) => {
           if (new Date() - anubis.db.data.users[m.sender].cUpdate < 3600000)
             return; // count 1 hour
@@ -270,6 +273,18 @@ module.exports = {
               continue;
             } else if (plugin.admin && !isAdmin && !isAnubis) {
               fail("admin", m, anubis);
+              continue;
+            }
+            if (plugin.isPremium && !isAnubis) { // for use limit ,Recommended!, separate commands in each file
+              anubis.db.data.users[m.sender].limit = (m.limit === 0) ? m.limit : (m.limit - 1)
+              if (m.limit < 1) {
+                anubis.sendContact(m.chat, global.ownerNum, m);
+                fail("isPremium", m, anubis);
+                continue;
+              }
+            }
+            if (plugin.premium && !isAnubis){ // premium only
+              fail("Premium", m, anubis)
               continue;
             }
             let extra = {
@@ -482,6 +497,8 @@ module.exports = {
   global.dfail = (type, m, anubis) => {
     let msg = {
       isAnubis: "Cuma buat Owner Anubis ngab! lu siapa???!!",
+      isPremium: "Limit habis!,\nBeli limit kelipatan 200/10k! ke owner",
+      Premium: "Cuma buat member premium ngab!, yo beli title Premium ke owner",
       group: "Cuma bisa di Group ngab ga bisa di sini",
       private: "Cuma bisa di Private Chat ngab ga bisa di sini!",
       admin: "Cuma buat admin ngab! lu siapa???!!",

@@ -408,6 +408,8 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
 anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch','pinterest','ytmp3','ytmp4','ytsearch']
 anuplug.tags = ['downloader']
 anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs|pinterest|yta|ytmp3|ytv|ytmp4|yts|ytsearch)$/i
+anuplug.isPremium = true    // using limit if limit 0 not run
+// anuplug.premium = true   // premium only
 
 function ses(secs) {
     let sec_num = parseInt(secs, 10);
