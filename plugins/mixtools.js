@@ -10,11 +10,8 @@ const axios = require('axios').default
 const remobg = require("remove.bg");
 const isUrl = require('is-url')
 const util = require('util')
-const os = require('os')
 const { tmpfiles, telegraphUp} = require('../library/upload');
-const speed = require("performance-now");
-const { performance } = require("perf_hooks");
-const { runtime, formatp, shortlink, getRandom, byteToSize } = require('../library/lib')
+const { shortlink, getRandom, byteToSize, fetchJson, isNum } = require('../library/lib')
 const { toAudio, toPTT} = require('../library/converter')
 const FileType = require('file-type');
 const ggleit = 'google-it';
@@ -35,21 +32,6 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
     const qmsg = quoted.msg || quoted;
     const isMedia = /image|video|sticker|audio/.test(mime);
     switch(command){
-        case 'cekexif':
-            {
-                m.reply(`🌀> Packname : ${global.packname}\n🌀> Author : ${global.author}`);
-            }
-        break;
-        case 'cl':
-        case 'changelogs':
-            {
-                let cap = ''
-                for (let i = 0; i < 5; i++){
-                cap += require(__root + 'package.json').changeLogs[i] + '\n─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─\n'
-                }
-                m.reply(cap)
-            }
-        break;
         case 'fetch':
             {
                 if (!isUrl(text)) return m.reply('wajib url direct ngab!')
@@ -60,7 +42,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                     if (res.statusText !== 'OK') return m.reply('wajib url direct ngab!')
                     if (res.headers['content-length'] > 100000000) {
                         delete res
-                        throw `File size terlalu besar ngab!: ${byteToSize(res.headers['content-length'])}`
+                        return m.reply(`File size terlalu besar ngab!: ${byteToSize(res.headers['content-length'])}`)
                     }
                     if (!/text|json/.test(res.headers['content-type'])) {
                         const type = await FileType.fromBuffer(res.data)
@@ -93,111 +75,6 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                 }
             }
         break;
-        case 'p':
-        case 'ping':
-            {
-                const used = process.memoryUsage();
-                const cpus = os.cpus().map((cpu) => {
-                cpu.total = Object.keys(cpu.times).reduce(
-                    (last, type) => last + cpu.times[type],
-                    0
-                );
-                return cpu;
-                });
-                const cpu = cpus.reduce(
-                (last, cpu, _, { length }) => {
-                    last.total += cpu.total;
-                    last.speed += cpu.speed / length;
-                    last.times.user += cpu.times.user;
-                    last.times.nice += cpu.times.nice;
-                    last.times.sys += cpu.times.sys;
-                    last.times.idle += cpu.times.idle;
-                    last.times.irq += cpu.times.irq;
-                    return last;
-                },
-                {
-                    speed: 0,
-                    total: 0,
-                    times: {
-                    user: 0,
-                    nice: 0,
-                    sys: 0,
-                    idle: 0,
-                    irq: 0,
-                    },
-                }
-                );
-                let timestamp = speed();
-                let latensi = speed() - timestamp;
-                neww = performance.now();
-                oldd = performance.now();
-respon = `
-Kecepatan Respon ${latensi.toFixed(4)} _Second_ \n ${
-        oldd - neww
-    } _miliseconds_\n\nRuntime : ${runtime(process.uptime())}
-
-💻 Info Server
-RAM: ${formatp(os.totalmem() - os.freemem())} / ${formatp(os.totalmem())}
-
-_NodeJS Memory Usaage_
-${Object.keys(used).map((key, _, arr) =>
-`${key.padEnd(Math.max(...arr.map((v) => v.length)), " ")}: ${formatp(
-    used[key]
-)}`
-)
-.join("\n")}
-
-${
-cpus[0]
-? `_Total CPU Usage_
-${cpus[0].model.trim()} (${cpu.speed} MHZ)\n${Object.keys(cpu.times)
-    .map((type) =>
-        `- *${(type + "*").padEnd(6)}: ${(
-        (100 * cpu.times[type]) /
-        cpu.total
-        ).toFixed(2)}%`
-    )
-    .join("\n")}
-_CPU Core(s) Usage (${cpus.length} Core CPU)_
-${cpus
-.map((cpu, i) =>
-`${i + 1}. ${cpu.model.trim()} (${cpu.speed} MHZ)\n${Object.keys(
-    cpu.times
-)
-    .map((type) =>
-        `- *${(type + "*").padEnd(6)}: ${(
-        (100 * cpu.times[type]) /
-        cpu.total
-        ).toFixed(2)}%`
-    )
-    .join("\n")}`
-)
-.join("\n\n")}`
-: ""
-}
-`.trim();
-                m.reply(respon);
-            }
-        break;
-        case 'rm':
-        case 'readmore':
-            {
-                const more = String.fromCharCode(8206)
-                const readMore = more.repeat(4001)
-                if (!text) return m.reply(`Example: ${usedPrefix + command} depan|belakang\n${usedPrefix + command} tau gasi! su|ka-ku ke kamu tu besar banget\nHasil : tau gasi! su${readMore}ka-ku ke kamu tu besar banget`)
-                let [ d, b ] = text.split('|')
-                if (!d) d = ''
-                if (!b) b = ''
-                m.reply(d + readMore + b)
-            }
-        break;
-        case 'owner':
-        case 'admin':
-        case 'sewa':
-            {
-                anubis.sendContact(m.chat, global.ownerNum, m);
-            }
-        break;
         case 'shortlink':
             {
                 if (!isUrl(text)) return m.reply(`*Example* : ${usedPrefix + command} https://google.com`)
@@ -222,78 +99,18 @@ ${cpus
                         teks += `⭔ *Description* : ${g.snippet}\n`
                         teks += `⭔ *Link* : ${g.link}\n\n────────────────────────\n\n`
                     }
-                anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
+                    anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
                 } catch (err) {
                     console.err(err)
                     return m.reply(`command *${command}* lagi error ngab!`)
                 }
             }
         break;
-        case 'gimage':
-            {
-            return m.reply(`command *${command}* lagi error ngab!`)
-//                  if (!text) throw `Example : ${usedPrefix + command} gojo satoru`
-//                  m.reply(mess.wait)
-//                  try {
-//                      const n = await google.image(text, { safe: false }).catch(err => {})
-//                      images = n[Math.floor(Math.random() * n.length)]
-//                      let buttons = [
-//                          {
-//                              buttonId: `${usedPrefix + command} ${text}`,
-//                              buttonText: { displayText: "Next Image" },
-//                              type: 1,
-//                          },
-//                      ];
-//                      let buttonMessage = {
-//                          image: { url: images.url },
-//                          caption: `*-------「 GIMAGE SEARCH 」-------*
-//  🤠 *Query* : ${text}
-//  🔗 *Media Url* : ${await shortlink(images.url)}
-//  ⬛ *Size* : ${images.width}x${images.height}`,
-//                          footer: anuFooter,
-//                          buttons: buttons,
-//                          headerType: 4,
-//                      };
-//                      anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
-//                  } catch (err) {
-//                      console.err(err)
-//                      return m.reply(`command *${command}* lagi error ngab!`)
-//                  }
-            }
-        break;
-        case 'gimgrev':
-            {
-                return m.reply(`command *${command}* lagi error ngab!`)
-            //  if (!/image/.test(mime) && !isUrl(text)) return m.reply(`Reply gambar yang mau di cari di google ngab!`)
-            //  let qstring = ''
-            //  if (isUrl(text)) qstring = text
-            //  if (/image/.test(mime)) {
-            //      let media = await anubis.downloadAndSaveMediaMessage(qmsg);
-            //      let {url} = await UploadFileUgu(media)
-            //      await fs.unlinkSync(media);
-            //      qstring = url
-            //  }
-            //  m.reply(mess.wait)
-            //  try {
-            //      const {results} = await google.search(qstring, { ris: true });
-            //      let teks = `Result from Google search by Image :\n\n`
-            //      if (!results) return m.reply('Gambar Tidak di temukan kecocokan ngab!') 
-            //      for (let g of results) {
-            //          teks += `⭔ *Title* : ${g.title}\n`
-            //          teks += `⭔ *Description* : ${g.description}\n`
-            //          teks += `⭔ *Link* : ${g.url}\n\n────────────────────────\n\n`
-            //      }
-            //      anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
-            //  } catch (err) {
-            //      console.err(err)
-            //      return m.reply(`command *${command}* lagi error ngab!`)
-            //  }
-            }
-        break;
         case 'rmbg':
         case 'removebg':
             {
-                if (/!(webp|image)/.test(mime)) m.reply(`Kirim/Reply Image/video Dengan Caption ${usedPrefix + command}`)
+                if (!/(image)/.test(mime)) m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
+                if (/(webp)/.test(mime)) m.reply(`Kirim/Reply Image Dengan Caption ${usedPrefix + command}`)
                 try {
                     let apinobg = apirnobg[Math.floor(Math.random() * apirnobg.length)]
                     let localFile = await anubis.downloadAndSaveMediaMessage(qmsg);
@@ -302,20 +119,20 @@ ${cpus
                     remobg.removeBackgroundFromImageFile({
                         path: localFile,
                         apiKey: apinobg,
-                        size: "regular",
+                        size: "full",
                         type: "auto",
                         scale: "100%",
                         outputFile,
                     }).then(async() => {
-                        if (text = 's') {
+                        if (text === 's') {
                             const a = await anubis.sendAsSticker(m.chat, outputFile, m, {packname: global.packname, author: global.author})
-                            await fs.unlinkSync(a);
+                            fs.unlinkSync(a);
                         } else {
                             anubis.sendMessage(m.chat,{ image: fs.readFileSync(outputFile), caption: mess.success },{ quoted: m });
                         }
-                        await fs.unlinkSync(localFile);
-                        await fs.unlinkSync(outputFile);
-                    });
+                        fs.unlinkSync(localFile);
+                        fs.unlinkSync(outputFile);
+                    }).catch(console.err)
                 } catch (err) {
                     console.err(err)
                     m.reply(`command error ngab!`)
@@ -377,8 +194,34 @@ ${cpus
             }
         }
         break;
+        case 'emix2': {
+            if (!text) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍`)
+            if (/\|/.test(text)) {
+                args = []
+                args.push(text.split('|')[0],text.split('|')[1])
+            }
+            let [emo1, emo2] = args
+            if (!emo1) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍`)
+            if (!emo2) emo2 = emo1
+            const anu = await fetchJson(`https://tenor.googleapis.com/v2/featured?key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=${encodeURIComponent(emo1)}_${encodeURIComponent(emo2)}`)
+            anubis.sendImage(m.chat, anu.results[0].url, await shortlink(anu.results[0].url), m)
+        }
+        break;
+        case 'ttp': {
+            if (!text) return m.reply(`Example: ${usedPrefix + command} 1/2/3/4/5/6 anubiskun`);
+            let [ttp, teks] = args
+            if (!isNum(Number(ttp))) return m.reply(`Example: ${usedPrefix + command} 1/2/3/4/5/6 anubiskun`);
+            if (ttp === '1') {
+                ttp = command
+            } else {
+                ttp = command + ttp
+            }
+            await anubis.sendImage(m.chat, `https://api.lolhuman.xyz/api/${ttp}?apikey=${lolkey}&text=${encodeURIComponent(teks)}`,'', m)
+        }
+        break;
     }
 }
-anuplug.help = ['cekexif','changelogs','ping','readmore','owner','shortlink','google','gimage (error)','gimgrev (error)','removebg','tomp3','tourl','tovn']
+anuplug.help = ['fetch','shortlink','google','removebg','tomp3','tourl','tovn','emix2','ttp']
 anuplug.tags = ['tools']
-anuplug.command = /^(cekexif|changelogs|cl|fetch|p(ing)?|rm|readmore|owner|admin|sewa|shortlink|google|gimage|gimgrev|rmbg|removebg|to(mp3|url|vn))$/i
+anuplug.command = /^(fetch|shortlink|google|rmbg|removebg|to(mp3|url|vn)|emix2|ttp)$/i
+anuplug.isPremium = true

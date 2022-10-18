@@ -145,10 +145,8 @@
       file = buffer
     }
     return ffmpeg(file, [
-      "-vcodec",
-      "libwebp",
-      "-vf",
-      "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse"
+      "-vcodec", "libwebp",
+      "-vf", "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse"
     ], 'jpg', 'webp')
   }
   
@@ -161,14 +159,15 @@
     }
     return ffmpeg(file, [
       "-vcodec", "libwebp",
-      "-vf", "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+      "-vf", "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=30, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
       "-lossless", "1",
       "-compression_level", "6",
       "-loop", "0",
+      "-ss", "00:00:00",
+      "-t", "00:00:10",
       "-preset", "default",
       "-an",
-      "-vsync",
-      "0"
+      "-vsync", "0"
     ], 'webp', 'webp')
   }
   
@@ -180,21 +179,14 @@
       file = buffer
     }
     return ffmpeg(file, [
-      "-vcodec",
-      "libwebp",
-      "-vf",
-      "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=15, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
-      "-loop",
-      "0",
-      "-ss",
-      "00:00:00",
-      "-t",
-      "00:00:10",
-      "-preset",
-      "default",
+      "-vcodec", "libwebp",
+      "-vf", "scale='min(320,iw)':min'(320,ih)':force_original_aspect_ratio=decrease,fps=30, pad=320:320:-1:-1:color=white@0.0, split [a][b]; [a] palettegen=reserve_transparent=on:transparency_color=ffffff [p]; [b][p] paletteuse",
+      "-loop", "0",
+      "-ss", "00:00:00",
+      "-t", "00:00:10",
+      "-preset", "default",
       "-an",
-      "-vsync",
-      "0"
+      "-vsync", "0"
     ], 'mp4', 'webp')
   }
   
@@ -211,7 +203,7 @@
       file = buffer
     }
     return ffmpeg(file, [
-      '-ss', '00:00:00',
+      '-ss', '00:01:00',
       '-vf', 'scale=32:-1',
       '-vframes', '1',
       '-f', 'image2',

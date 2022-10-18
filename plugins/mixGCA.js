@@ -8,13 +8,15 @@
  const {sleep} = require('../library/lib')
 
  module.exports = anuplug = async(m, anubis, { participants, text, command, args, usedPrefix }) => {
+     let dbChats = anubis.db.data.chats[m.chat]
      let vote = anubis.db.data.others.vote;
      let user = m.mentionedJid[0]
-             ? m.mentionedJid[0]
-             : m.quoted
-             ? m.quoted.sender
-             : text.replace(/[^0-9]/g, "");
-     let users = user.split("@")[0]
+        ? m.mentionedJid[0]
+        
+        : m.quoted
+        ? m.quoted.sender
+        : text.replace(/[^0-9]/g, "");
+    let users = user.split("@")[0]
      switch(command){
          case 'add':
              {
@@ -106,13 +108,13 @@
                  await sleep(1000)
                  let teks = `*[ VOTE ]*
  
- *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
- 
- *[ SETUJU ]* : ${vote[m.chat][1].length}
- ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
- 
- *[ TIDAK ]* : ${vote[m.chat][2].length}
- ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
  `
                  let buttons = [
                      { buttonId: `${usedPrefix}upvote`, buttonText: { displayText: "SETUJU" }, type: 1 },
@@ -127,13 +129,13 @@
                  if (!(m.chat in vote)) return m.reply(`_*gak ada vote di group ini ngab!*_\n\n*${usedPrefix}vote* - untuk memulai vote ngab!`)
                  let teks = `*[ HASIL VOTE ]*
  
- *Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
- 
- *[ SETUJU ]* : ${vote[m.chat][1].length}
- ${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
- 
- *[ TIDAK ]* : ${vote[m.chat][2].length}
- ${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+*Alasan* : ${vote[m.chat][0] ? vote[m.chat][0] : 'tanpa alasan'}
+
+*[ SETUJU ]* : ${vote[m.chat][1].length}
+${vote[m.chat][1].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
+
+*[ TIDAK ]* : ${vote[m.chat][2].length}
+${vote[m.chat][2].map((v, i) => `${i + 1}. @${v.split`@`[0]}`).join("\n")}
  `
                  const a = await anubis.sendMessage(m.chat, {text: teks}, {quoted: m})
                  if (a.status) {
@@ -142,11 +144,105 @@
                  }
              }
          break;
+         case 'antilinkadd': {
+             if (!text) return m.reply(`Example: \n${usedPrefix + command} google.com\n${usedPrefix + command} google.com,youtube.com,...`);
+             if (!/\./.test(text)) return m.reply(`Example: ${usedPrefix + command} google.com`);
+             let dom = text.split(',')
+             let old = dbChats.banUrl.length
+             for (let dm of dom){
+                 const isSame = dbChats.banUrl.filter((v) => v === dm)
+                 if (!isSame[0]) dbChats.banUrl.push(dm)
+             }
+             console.log(dbChats.banUrl)
+             if (dbChats.banUrl.length === old){
+                 m.reply(`Domain ${text} sudah ada di lists banned di group ini!`) 
+             } else {
+                 m.reply(`Domain ${text} berhasil di tambahkan di lists banned di group ini!`) 
+             }
+         }
+         break;
+         case 'antilinkdel': {
+             if (!text) return m.reply(`Example: \n${usedPrefix + command} google.com\n${usedPrefix + command} google.com,youtube.com,...`);
+             if (!/\./.test(text)) return m.reply(`Example: ${usedPrefix + command} google.com`);
+             let dom = text.split(',')
+             let old = dbChats.banUrl.length
+             for (let dm of dom){
+                 const isSame = dbChats.banUrl.find((v)=> v === dm)
+                 if (isSame) dbChats.banUrl.splice(dbChats.banUrl.indexOf(isSame), 1);
+             }
+             if (dbChats.banUrl.length === old){
+                 m.reply(`Domain ${text} tidak ada di lists banned global domain!`) 
+             } else {
+                 m.reply(`Domain ${text} berhasil di hapus dari lists banned global domain!`) 
+             }
+         }
+         break;
+         case 'antilinklist': {
+             let banUrl = dbChats.banUrl.sort((a, b) => a.localeCompare(b));
+             let pes = `*[ DOMAIN ANTILINK BANNED LIST ]*
+             
+${banUrl.map((v, i) => `${i+1}. ${v}`).join('\n')}`
+             m.reply(pes)
+         }
+         break;
+         case 'setting': {
+             if (!text){
+                 let seting = [
+                     {name: 'antiviewonce', text: 'If on auto forwards oncetimeview media in this group', text2: 'If off disable auto forwards oncetimeview media in this group'},
+                     {name: 'antilink', text: 'If on auto warn member if detected send link with banned domain in this group', text2: 'If off disable auto warn member if detected send link with banned domain in this group'},
+                     {name: 'welcomer', text: 'If on auto send Welcomer to new member or leave member in this group', text2: 'If off disable auto send welcomer to new member or leave member in this group'},
+                 ]
+                 let secs = []
+                 seting.forEach((v) => {
+                     secs.push({
+                         rows: [
+                             { title: "on", description: `${v.text}`, rowId: `${usedPrefix + command} ${v.name} on` },
+                             { title: "off", description: `${v.text2}`, rowId: `${usedPrefix + command} ${v.name} off` },
+                         ],
+                         title: v.name + ` ${(dbChats[v.name]) ? 'on' : 'off'}`,
+                     })
+                 })
+                 let pesane = '*Choose one of the following options* :\n'
+                 await anubis.sendList(m.chat, "*[ SETTINGS GROUP ]*", pesane, 'RESULT', secs, m);
+             } else {
+                 let [sName, value] = args
+                 switch (sName){
+                     case 'antiviewonce': {
+                         if (value === 'on'){
+                             dbChats[sName] = true
+                         } else if (value === 'off'){
+                             dbChats[sName] = true
+                         }
+                         m.reply((dbChats[sName]) ? `${sName} Dinyalakan!` : `${sName} Dimatikan!`)
+                     }
+                     break;
+                     case 'antilink': {
+                         if (value === 'on'){
+                             dbChats[sName] = true
+                         } else if (value === 'off'){
+                             dbChats[sName] = true
+                         }
+                         m.reply((dbChats[sName]) ? `${sName} Dinyalakan!` : `${sName} Dimatikan!`)
+                     }
+                     break;
+                     case 'welcomer': {
+                         if (value === 'on'){
+                             dbChats[sName] = true
+                         } else if (value === 'off'){
+                             dbChats[sName] = true
+                         }
+                         m.reply((dbChats[sName]) ? `${sName} Dinyalakan!` : `${sName} Dimatikan!`)
+                     }
+                     break;
+                 }
+             }
+         }
+         break;
      }
  }
- anuplug.help = ['add','kick','promote','demote','setname','setdesk','setppgroup','delete','vote','delvote']
+ anuplug.help = ['add','kick','promote','demote','setname','setdesk','setppgroup','delete','vote','delvote','antilinkadd','antilinkdel','antilinklist','setting']
  anuplug.tags = ['group']
- anuplug.command = /^(add|kick|(pro|de)mote|set(desk(ripsi)?|name|pp(gc|group|grup))|del(ete|vote)?)$/i
+ anuplug.command = /^(add|kick|(pro|de)mote|set(desk(ripsi)?|name|pp(gc|group|grup))|del(ete|vote)?|antilink(add|del|list)|setting)$/i
  anuplug.group = true
  anuplug.botAdmin = true
  anuplug.admin = true

@@ -6,8 +6,7 @@
  */
 
  require('./conf')
- const yargs = require('yargs/yargs')
- const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
+ const opts = new Object(require('yargs/yargs')(process.argv.slice(2)).exitProcess(false).parse())
  const { default: WAConnection ,DisconnectReason, useMultiFileAuthState, fetchLatestWaWebVersion, S_WHATSAPP_NET, makeInMemoryStore } = require('@adiwajshing/baileys')
  const { Boom } = require('@hapi/boom')
  const fs = require('fs')
@@ -15,9 +14,9 @@
  const _ = require('lodash')
  const syntaxerror = require('syntax-error')
  const pino = require('pino').default
- const { Low, JSONFile }  = require('./library/lowdb')
+ const { Low, JSONFileSync }  = require('./library/lowdb')
  const mongoDB = require('./library/mongoDB')
- const database = new Low(opts['test'] ? new JSONFile(`database.json`) : new mongoDB(mongoUser))
+ const database = new Low(opts['test'] ? new JSONFileSync(`database.json`) : new mongoDB(mongoUser))
  const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
  const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
  
@@ -26,7 +25,7 @@
      console.log('LOADING DATABASE...')
      await sleep(5000)
      if (database.READ) return new Promise((resolve) => setInterval(function () { (!database.READ ? (clearInterval(this), resolve(database.data == null ? loadDatabase() : database.data)) : null) }, 0.5 * 1000))
-     if (database.data.users == null) {
+     if (database.data == null) {
          database.READ = true
          await database.read()
          database.READ = false
@@ -97,8 +96,9 @@
          auth: state,
          browser: [global.author,'Safari','1.0.0'],
          generateHighQualityLinkPreview: true,
+         linkPreviewImageThumbnailWidth: 200,
          syncFullHistory: true,
-         connectTimeoutMs: 1000,
+         connectTimeoutMs: 5000,
      })
      anubis.db = database
      anubis.anubiskun = S_WHATSAPP_NET
@@ -113,11 +113,11 @@
              if (reason === DisconnectReason.badSession) { console.log(`Bad Session, reconnecting...`); reloadConnector(); }
              else if (reason === DisconnectReason.connectionClosed) { console.log("Connection closed"); reloadConnector(); }
              else if (reason === DisconnectReason.connectionLost) { console.log("Connection Lost from Server, reconnecting..."); reloadConnector(); }
-             else if (reason === DisconnectReason.connectionReplaced) { console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First"); anubis.logout(); }
-             else if (reason === DisconnectReason.loggedOut) { console.log(`Device Logged Out, Please Scan Again And Run.`); anubis.logout(); }
+             else if (reason === DisconnectReason.connectionReplaced) { console.log("Connection Replaced, Another New Session Opened, Please Close Current Session First"); process.send('stop'); }
+             else if (reason === DisconnectReason.loggedOut) { console.log(`Device Logged Out, Please Scan Again And Run.`); delete database.data.auth[global.sesName]; await database.write(); reloadConnector(); }
              else if (reason === DisconnectReason.restartRequired) { console.log("Restart Required, Restarting..."); reloadConnector(); }
              else if (reason === DisconnectReason.timedOut) { console.log("Connection TimedOut, Reconnecting..."); reloadConnector(); }
-             else if (reason === DisconnectReason.multideviceMismatch) { console.log("Multi device mismatch, please scan again"); anubis.logout(); }
+             else if (reason === DisconnectReason.multideviceMismatch) { console.log("Multi device mismatch, please scan again"); delete database.data.auth[global.sesName]; await database.write(); reloadConnector()  }
              else anubis.end(`Unknown DisconnectReason: ${reason}|${connection}`)
          }
          if (update.receivedPendingNotifications) {
@@ -127,6 +127,19 @@
                  let a = await anubis.sendMessage(Owner + anubis.anubiskun, { text: 'Bot jalan ngab!' })
                  if (isLatest) anubis.sendMessage(Owner + anubis.anubiskun, { text: `New Update [ *anubisbot-MD* *v${version}* ]\n\n${changeLogs[0]}` })
                  if (a.status) console.log('BOT RUNNING!')
+                 let prem = Object.entries(anubis.db.data.users).map(([key, value]) => {return {...value, jid: key}}).filter((v) => v.isPremium)
+                 for (let user of prem){
+                     if (user.isPremium){
+                         if (user.premTime < (new Date() * 1)){
+                             anubis.db.data.users[user.jid].isPremium = false
+                             anubis.db.data.users[user.jid].premTime = -1
+                         }
+                     }
+                 }
+                 if (anubis.db.data.database.lastRestart){
+                     a = await anubis.sendMessage(Owner + anubis.anubiskun, {text: 'Aku kembali aaay! 💖'})
+                     if (a.status) anubis.db.data.database.lastRestart = false
+                 }
              })
          }
      })
@@ -134,7 +147,7 @@
          for (let i = 0; i < chatupdate.messages.length; i++) {
              const conn = anubisFunc(anubis, store)
              const anu = chatupdate.messages[i];
-             if (!anu.message) return;
+             if (!anu.message && !anu.pushName) return;
              anu.message = Object.keys(anu.message)[0] === "ephemeralMessage" ? anu.message.ephemeralMessage.message : anu.message;
              if (anu.key && anu.key.remoteJid === "status@broadcast") return;
              if (anu.key.id.startsWith("BAE5") && anu.key.id.length === 16) return;
@@ -152,10 +165,11 @@
          anuCreds();
          await database.write()
      })
+    //  require('./server.js')(anubis, store)
      return true
  }
  
- 
+
  setTimeout(async () => {
      await loadDatabase()
      console.log('DATABASE LOADED!')

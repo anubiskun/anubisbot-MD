@@ -16,6 +16,7 @@ const {
   getContentType,
   BufferJSON,
   initAuthCreds,
+  extractImageThumb,
 } = require("@adiwajshing/baileys");
 const Path = require("path");
 const axios = require("axios").default;
@@ -30,9 +31,7 @@ const util = require("util");
 const FileType = require("file-type");
 const { writeExifVid, writeExif } = require("./exif");
 const {
-  imageToWebp,
   videoToWebp,
-  ffmpeg,
   videoToThumb,
   imageToThumb,
 } = require("./converter");
@@ -394,11 +393,10 @@ const anubisFunc = (conn, store) => {
       return await this.sendMessage(jid, listMessage, { quoted, ...options });
     },
 
-    /** Send Button 5 Message
+    /** Send Button 3 Message
      *
      * @param {*} jid
      * @param {*} text
-     * @param {*} footer
      * @param {*} button
      * @returns
      */
@@ -417,11 +415,10 @@ const anubisFunc = (conn, store) => {
       return await this.sendMessage(jid, buttonMessage, { quoted, ...options });
     },
 
-    /** Send Button 5 Image
+    /** Send Button 3 Image
      *
      * @param {*} jid
      * @param {*} text
-     * @param {*} footer
      * @param {*} image
      * @param [*] button
      * @param {*} options
@@ -430,23 +427,78 @@ const anubisFunc = (conn, store) => {
     async sendButtonImg(
       jid,
       text = "",
-      img,
+      path,
       buttons = [],
       quoted = "",
       options = {}
     ) {
+      let buffer = Buffer.isBuffer(path)
+        ? path
+        : /^data:.*?\/.*?;base64,/i.test(path)
+        ? Buffer.from(path.split`,`[1], "base64")
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0);
       return await this.sendMessage(
         jid,
-        { image: img, caption: text, footer: anuFooter, buttons },
+        { image: buffer, caption: text, footer: anuFooter, buttons },
         { quoted, ...options }
       );
     },
 
-    /** Send Button 5 Location
+    /** Send Button 3 Video
      *
      * @param {*} jid
      * @param {*} text
-     * @param {*} footer
+     * @param {*} Video
+     * @param [*] button
+     * @param {*} options
+     * @returns
+     */
+    async sendButtonVid(
+      jid,
+      text = "",
+      path,
+      buttons = [],
+      quoted = "",
+      thumb,
+      options = {}
+    ) {
+      let buffer = Buffer.isBuffer(path)
+        ? path
+        : /^data:.*?\/.*?;base64,/i.test(path)
+        ? Buffer.from(path.split`,`[1], "base64")
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0);
+      let jpegThumbnail;
+      if (isUrl(thumb)) {
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+      } else {
+        let bb = await this.genThumb(buffer);
+        jpegThumbnail = bb.status ? bb.thumbnail : "";
+      }
+      return await this.sendMessage(
+        jid,
+        {
+          video: buffer,
+          caption: text,
+          jpegThumbnail,
+          footer: anuFooter,
+          buttons,
+        },
+        { quoted, ...options }
+      );
+    },
+
+    /** Send Button 3 Location
+     *
+     * @param {*} jid
+     * @param {*} text
      * @param {*} location
      * @param [*] button
      * @param {*} options
@@ -454,9 +506,8 @@ const anubisFunc = (conn, store) => {
     async sendButtonLoc(
       jid,
       text = "",
-      footer = "",
       lok,
-      but = [],
+      buttons = [],
       quoted = "",
       options = {}
     ) {
@@ -468,51 +519,16 @@ const anubisFunc = (conn, store) => {
           location: { jpegThumbnail },
           caption: text,
           footer: anuFooter,
-          templateButtons: but,
+          buttons,
         },
         { quoted, ...options }
       );
     },
 
-    /** Send Button 5 Video
+    /** Send Button 3 Gif
      *
      * @param {*} jid
      * @param {*} text
-     * @param {*} footer
-     * @param {*} Video
-     * @param [*] button
-     * @param {*} options
-     * @returns
-     */
-    async sendButtonVid(
-      jid,
-      text = "",
-      footer = "",
-      vid,
-      but = [],
-      quoted = "",
-      options = {}
-    ) {
-      let bb = await this.genThumb(vid);
-      let jpegThumbnail = bb.status ? bb.thumbnail : "";
-      return await this.sendMessage(
-        jid,
-        {
-          video: vid,
-          caption: text,
-          jpegThumbnail,
-          footer: anuFooter,
-          templateButtons: but,
-        },
-        { quoted, ...options }
-      );
-    },
-
-    /** Send Button 5 Gif
-     *
-     * @param {*} jid
-     * @param {*} text
-     * @param {*} footer
      * @param {*} Gif
      * @param [*] button
      * @param {*} options
@@ -521,7 +537,6 @@ const anubisFunc = (conn, store) => {
     async sendButtonGif(
       jid,
       text = "",
-      footer = "",
       gif,
       but = [],
       quoted = "",
@@ -551,7 +566,6 @@ const anubisFunc = (conn, store) => {
      * @param {*} jid
      * @param {*} buttons
      * @param {*} caption
-     * @param {*} footer
      * @param {*} quoted
      * @param {*} options
      */
@@ -574,10 +588,10 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendText(jid, text, quoted = "", options) {
+    async sendText(jid, text = "", quoted = "", options) {
       return await this.sendMessage(
         jid,
-        { text: text, ...options },
+        { text, ...options },
         { quoted, ...options }
       );
     },
@@ -622,6 +636,7 @@ const anubisFunc = (conn, store) => {
       path,
       caption = "",
       quoted = "",
+      thumb,
       gif = false,
       options
     ) {
@@ -634,8 +649,13 @@ const anubisFunc = (conn, store) => {
         : fs.existsSync(path)
         ? fs.readFileSync(path)
         : Buffer.alloc(0);
-      let bb = await this.genThumb(buffer);
-      let jpegThumbnail = bb.status ? bb.thumbnail : "";
+      let jpegThumbnail;
+      if (isUrl(thumb)) {
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+      } else {
+        let bb = await this.genThumb(buffer);
+        jpegThumbnail = bb.status ? bb.thumbnail : "";
+      }
       return await this.sendMessage(
         jid,
         {
@@ -720,7 +740,10 @@ const anubisFunc = (conn, store) => {
         if (options && (options.packname || options.author)) {
           buffer = await writeExif(buff, options);
         } else {
-          buffer = await imageToWebp(buff);
+          buffer = await writeExif(buff, {
+            packname: global.packname,
+            author: global.author,
+          });
         }
         await this.sendMessage(
           jid,
@@ -729,6 +752,7 @@ const anubisFunc = (conn, store) => {
         );
         return buffer;
       } catch (err) {
+        console.log("error ngab!");
         console.err(err);
       }
     },
@@ -826,47 +850,82 @@ const anubisFunc = (conn, store) => {
     async sendMedia(
       jid,
       path,
-      fileName = "",
+      fileName,
       caption = "",
       quoted = "",
       options = {}
     ) {
-      let types = await this.getFile(path, true);
-      let { mime, ext, res, data, filename } = types;
-      if (res && res.status !== 200) {
+      let a = {},
+        types = {},
+        txt;
+      if (isUrl(path)) {
+        const url = new URL(path);
+        const res = await axios({
+          url: url.href,
+          method: "GET",
+          responseType: "arraybuffer",
+        });
+        path = res.data;
+        types = /text|json/.test(res.headers["content-type"])
+          ? { ext: "txt" }
+          : /application/.test(res.headers["content-type"])
+          ? { mime: "application" }
+          : await FileType.fromBuffer(path);
+      } else {
+        path = Buffer.isBuffer(path)
+          ? path
+          : /^data:.*?\/.*?;base64,/i.test(path)
+          ? Buffer.from(path.split`,`[1], "base64")
+          : isUrl(path)
+          ? await await getBuffer(path)
+          : fs.existsSync(path)
+          ? fs.readFileSync(path)
+          : Buffer.alloc(0);
+        types = await FileType.fromBuffer(path);
+      }
+      if (/txt/.test(types.ext)) {
         try {
-          throw { json: JSON.parse(file.toString()) };
+          path = util.format(JSON.parse(path + ""));
         } catch (e) {
-          if (e.json) throw e.json;
+          path = path + "";
+        } finally {
+          a = await this.sendText(
+            jid,
+            path.slice(0, 65536) + "",
+            quoted,
+            options
+          );
+        }
+      } else {
+        if (!fileName) fileName = getRandom("." + types.ext);
+        console.log(types);
+        if (/(png|jpg|webp)/.test(types.ext)) {
+          a = await this.sendImage(jid, path, caption, quoted);
+        } else if (/mp4/.test(types.ext)) {
+          a = await this.sendMessage(
+            jid,
+            { video: path, fileName, caption },
+            { quoted }
+          );
+        } else if (/mp3/.test(types.ext)) {
+          a = await this.sendText(jid, caption, quoted, options);
+          if (a.status) a = await this.sendAudio(jid, path, quoted);
+        } else if (/gif/.test(types.ext)) {
+          a = await this.sendMessage(
+            jid,
+            { video: path, fileName, caption, gifPlayback: true },
+            { quoted }
+          );
+        } else if (/application/.test(types.mime)) {
+          a = await this.sendMessage(
+            jid,
+            { document: path, mimetype: types.mime, fileName, caption },
+            { quoted }
+          );
         }
       }
-      let type = "",
-        mimetype = mime,
-        pathFile = filename;
-      if (options.asDocument) type = "document";
-      if (options.asSticker || /webp/.test(mime)) {
-        let { writeExif } = require("./lib/exif");
-        let media = { mimetype: mime, data };
-        pathFile = await writeExif(media, {
-          packname: options.packname ? options.packname : global.packname,
-          author: options.author ? options.author : global.author,
-          categories: options.categories ? options.categories : [],
-        });
-        await fs.promises.unlink(filename);
-        type = "sticker";
-        mimetype = "image/webp";
-      } else if (/image/.test(mime)) type = "image";
-      else if (/video/.test(mime)) type = "video";
-      else if (/audio/.test(mime)) type = "audio";
-      else type = "document";
-      let a = await this.sendMessage(
-        jid,
-        { [type]: { url: pathFile }, caption, mimetype, fileName, ...options },
-        { quoted, ...options }
-      );
       return {
         ...a,
-        pathFile: fs.promises.unlink(pathFile),
       };
     },
 
@@ -1083,7 +1142,8 @@ const jsonFileAuth = async (database, name = null) => {
   };
 
   if (typeof database == "object") {
-    if (name == null) throw new Error("parameter name can't be null");
+    if (name == null)
+      throw console.error("[ERROR] : parameter name can't be null");
     if (
       typeof database[name] == "object" &&
       typeof database[name].creds == "object"
@@ -1421,13 +1481,24 @@ const smsg = (conn, m, store) => {
    */
   m.reply = async (text, chatId = m.chat, options = {}) =>
     Buffer.isBuffer(text)
-      ? await conn.sendMedia(chatId, text, "file", "", m, { ...options })
-      : await conn.sendText(chatId, text, m, { ...options });
+      ? await conn.sendMedia(chatId, String(text), "file", "", m, {
+          ...options,
+        })
+      : await conn.sendText(chatId, String(text), m, { ...options });
 
   /**
    * Copy this message
    */
   m.copy = () => smsg(conn, M.fromObject(M.toObject(m)));
+
+  m.gcParUp = (user, action) => {
+    const isAct = /(add|remove|demote|promote)/.test(action) ? action : false;
+    if (isAct) {
+      if (!m.isGroup) return m.reply("Harus di Group ngab!");
+      user = typeof user == "string" ? user.split(",") : user;
+      conn.groupParticipantsUpdate(m.chat, user, isAct);
+    }
+  };
 
   m.err = console.err = (err, fun = false) => {
     conn.sendMessage(m.anubis, {
@@ -1440,18 +1511,7 @@ const smsg = (conn, m, store) => {
     console.log(err);
   };
 
-  m.gcParUp = (user, action) => {
-    const isAct = /(add|remove|demote|promote)/.test(action) ? action : false;
-    if (isAct) {
-      try {
-        if (!m.isGroup) return m.reply("Harus di Group ngab!");
-        user = typeof user == "string" ? user.split(",") : user;
-        conn.groupParticipantsUpdate(m.chat, user, isAct);
-      } catch (err) {
-        console.err(err);
-      }
-    }
-  };
+  m.delete = async (key) => await conn.sendMessage(m.sender, { delete: key });
 
   /**
    *
@@ -1516,7 +1576,7 @@ function msToTime(s) {
   var mins = s % 60;
   var hrs = (s - mins) / 60;
 
-  return hrs + ":" + mins + ":" + secs + "." + ms;
+  return hrs + ":" + mins + ":" + secs;
 }
 
 /**
@@ -1604,107 +1664,119 @@ const getRandom = (ext = "") => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * 
+ * @param {axiosConfig} options 
+ * @returns 
+ */
+function anureq(options) {
+  return new Promise((resolve, reject) => {
+    axios({ ...options })
+      .then(({ data }) => resolve(data))
+      .catch((e) => {
+        console.err(e, "anureq error");
+      });
+  });
+}
+
+/**
  *
  * @param {number} id
  * @returns
  */
-const igjson = (id) => {
+function igjson(id) {
   return new Promise((resolve, reject) => {
     let hasil = [];
     let user = {};
     let post = {};
     let media = [];
-    let promoses = [];
-    promoses.push(
-      axios
-        .get(`https://i.instagram.com/api/v1/media/${id}/info/`, {
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
-            cookie: anuCookie.ig,
-            "x-ig-app-id": 936619743392459,
-            "x-ig-www-claim": 0,
-            "x-asbd-id": 198387,
-            Accept: "*/*",
-          },
-        })
-        .then(({ data }) => {
-          let j = data.items[0];
-          if (j.carousel_media) {
-            for (var i = 0; i < j.carousel_media.length; i++) {
-              let jj = j.carousel_media[i];
-              if (jj.video_versions) {
-                media.push({
-                  url: jj.video_versions[0].url,
-                  type: "mp4",
-                });
-              } else {
-                media.push({
-                  url: jj.image_versions2.candidates[0].url,
-                  type: "jpg",
-                });
-              }
+    anureq({
+      url: `https://i.instagram.com/api/v1/media/${id}/info/`,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+        cookie: anuCookie.ig,
+        "x-ig-app-id": 936619743392459,
+        "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+        referer: "https://www.instagram.com/atrisna477769",
+      },
+      method: "GET",
+    })
+      .then((data) => {
+        let j = data.items[0];
+        if (j.carousel_media) {
+          for (var i = 0; i < j.carousel_media.length; i++) {
+            let jj = j.carousel_media[i];
+            if (jj.video_versions) {
+              media.push({
+                url: jj.video_versions[0].url,
+                thumb: jj.image_versions2.candidates[0].url,
+                type: "mp4",
+              });
+            } else {
+              media.push({
+                url: jj.image_versions2.candidates[0].url,
+                type: "jpg",
+              });
             }
-          } else if (j.video_versions) {
-            media.push({
-              url: j.video_versions[0].url,
-              type: "mp4",
-            });
-          } else {
-            media.push({
-              url: j.image_versions2.candidates[0].url,
-              type: "jpg",
-            });
           }
-          let cap;
-          if (j.caption == null) {
-            cap = "";
-          } else {
-            cap = j.caption.text;
-          }
-          user = {
-            username: j.user.username,
-            full_name: j.user.full_name,
-            is_private: j.user.is_private,
-            is_verified: j.user.is_verified,
-            profile_pic_url: j.user.profile_pic_url,
-            id: j.user.pk,
-          };
-
-          if (j.taken_at) {
-            post = {
-              title: j.title,
-              caption: cap,
-              taken_at: j.taken_at,
-              comment_count: j.comment_count,
-              like_count: j.like_count,
-              video_duration: j.video_duration,
-              view_count: j.view_count,
-              play_count: j.play_count,
-              has_audio: j.has_audio,
-            };
-          }
-
-          hasil.push({
-            user: user,
-            post: post,
-            media: media,
+        } else if (j.video_versions) {
+          media.push({
+            url: j.video_versions[0].url,
+            thumb: j.image_versions2.candidates[0].url,
+            type: "mp4",
           });
+        } else {
+          media.push({
+            url: j.image_versions2.candidates[0].url,
+            type: "jpg",
+          });
+        }
+        let cap;
+        if (j.caption == null) {
+          cap = "";
+        } else {
+          cap = j.caption.text;
+        }
+        user = {
+          username: j.user.username,
+          full_name: j.user.full_name,
+          is_private: j.user.is_private,
+          is_verified: j.user.is_verified,
+          profile_pic_url: j.user.profile_pic_url,
+          id: j.user.pk,
+        };
 
-          Promise.all(promoses).then(() =>
-            resolve({
-              creator: "anubis-bot",
-              status: true,
-              data: hasil,
-            })
-          );
-        })
-        .catch((err) => {
-          console.err(err, "igjson");
-        })
-    );
+        if (j.taken_at) {
+          post = {
+            title: j.title,
+            caption: cap,
+            taken_at: j.taken_at,
+            comment_count: j.comment_count,
+            like_count: j.like_count,
+            video_duration: j.video_duration,
+            view_count: j.view_count,
+            play_count: j.play_count,
+            has_audio: j.has_audio,
+          };
+        }
+
+        hasil.push({
+          user: user,
+          post: post,
+          media: media,
+        });
+
+        resolve({
+          creator: "anubis-bot",
+          status: true,
+          data: hasil,
+        });
+      })
+      .catch((err) => {
+        console.err(err, "igjson");
+      });
   });
-};
+}
 
 /**
  *
@@ -1713,23 +1785,25 @@ const igjson = (id) => {
  */
 const iggetid = (shortcode) => {
   return new Promise(async (resolve, reject) => {
-    const igid = await axios({
+    anureq({
       url: `https://www.instagram.com/graphql/query/?query_hash=d4e8ae69cb68f66329dcebe82fb69f6d&variables={"shortcode":"${shortcode}"}`,
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
         cookie: anuCookie.ig,
+        "x-ig-app-id": 936619743392459,
+        "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+        referer: "https://www.instagram.com/atrisna477769",
       },
-      data: null,
       method: "GET",
-    }).catch((err) => {
-      console.err(err, "iggetid");
-    });
-    try {
-      resolve({ status: true, id: igid.data.data.shortcode_media.id });
-    } catch (e) {
-      resolve({ status: false });
-    }
+    })
+      .then((data) => {
+        resolve({ status: true, id: data.data.shortcode_media.id });
+      })
+      .catch((err) => {
+        console.err(err, "iggetid failed get id");
+        resolve({ status: false });
+      });
   });
 };
 
@@ -1749,20 +1823,19 @@ const igstory = (urlnya) => {
     let anubis = {};
     let user = {};
     if (regx[2] == "highlights") {
-      axios({
+      anureq({
         url: `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=highlight:${regx[3]}`,
         headers: {
           "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
           cookie: anuCookie.ig,
           "x-ig-app-id": 936619743392459,
-          "x-ig-www-claim": 0,
-          "x-asbd-id": 198387,
-          Accept: "*/*",
+          "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+          referer: "https://www.instagram.com/atrisna477769",
         },
         method: "GET",
       })
-        .then(({ data }) => {
+        .then((data) => {
           let j = data.reels_media[0];
           for (var i = 0; i < j.items.length; i++) {
             let jj = j.items[i];
@@ -1776,6 +1849,7 @@ const igstory = (urlnya) => {
               media.push({
                 id: jj.id,
                 url: jj.video_versions[0].url,
+                thumb: jj.image_versions2.candidates[0].url,
                 type: "mp4",
                 caption: cap,
                 taken_at: jj.taken_at,
@@ -1982,6 +2056,77 @@ function pinterest(querry) {
         resolve(hasil);
       })
       .catch((err) => console.err(err, "pinterest"));
+  });
+}
+
+/**
+ *
+ * @param {String} query
+ * @returns
+ */
+function pinterest2(query) {
+  return new Promise((resolve, reject) => {
+    anureq({
+      url: `https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${encodeURIComponent(
+        query
+      )}&rs=typed&data={"options":{"article":null,"applied_filters":null,"appliedProductFilters":"---","auto_correction_disabled":false,"corpus":null,"customized_rerank_type":null,"filters":null,"query":"${query}","query_pin_sigs":null,"redux_normalize_feed":true,"rs":"typed","scope":"pins","source_id":null,"no_fetch_context_on_resource":false},"context":{}}&_=1665811633913`,
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/json, text/javascript, */*, q=0.01",
+        "X-Pinterest-Source-Url": `/search/pins/?q=${encodeURIComponent(
+          query
+        )}&rs=typed`,
+        "X-Pinterest-PWS-Handler": "www/index.js",
+        cookie:
+          global.anuCookie.pinterest,
+      },
+      method: "GET",
+    })
+      .then((data) => {
+        let res = [];
+        for (let img of data.resource_response.data.results) {
+          if (!img.images) continue;
+          if (!img.images.orig) continue;
+          let owner = {};
+          let id = img.id;
+          let type = img.type;
+          let title = img.title;
+          let image = img.images.orig;
+          let desc = img.description;
+          let alt = img.alt_text;
+          let video =
+            img.videos == null
+              ? null
+              : img.videos.video_list.V_EXP7
+              ? img.videos.video_list.V_EXP7
+              : null;
+          let img_sign = img.image_signature;
+          let created = img.created_at.split("+")[0];
+          owner.profile = img.pinner.image_large_url;
+          owner.id = img.pinner.id;
+          owner.username = img.pinner.username;
+          owner.full_name = img.pinner.full_name;
+          owner.follower = img.pinner.follower_count;
+          res.push({
+            id,
+            type,
+            title,
+            image,
+            desc,
+            alt,
+            video,
+            img_sign,
+            created,
+            owner,
+          });
+        }
+        arrayMix(res);
+        resolve({ status: true, anubis: res });
+      })
+      .catch((err) => {
+        console.err(err, "pinterest");
+        resolve({ status: false });
+      });
   });
 }
 
@@ -2313,7 +2458,7 @@ function y2mateConvert(id, ytid, type, quality) {
           return resolve({ a });
         }
         const $ = cheerio.load(data.result);
-        const url = $("div > a").attr("href");
+        const url = $("a").attr("href");
         resolve({ url });
       })
       .catch((err) => console.err(err, "y2mateConverter"));
@@ -2433,6 +2578,7 @@ function jooxSearch(query) {
             artis_list += track.artist_list[j].name;
             artis_list += ", ";
           }
+          if (typeof track.images[1] === "undefined") continue;
           if (track.is_playable) {
             let duration = durasiConverter(track.play_duration);
             tracks.push({
@@ -2586,15 +2732,86 @@ function soundcloud(query) {
   });
 }
 
+function slBitly(url) {
+  return new Promise((resolve, reject) => {
+    anureq({
+      url: `https://bitly.com/data/anon_shorten`,
+      headers: {
+        "x-requested-with": "XMLHttpRequest",
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "x-xsrftoken": "9f377bfe66074af3830a5328d3ff5108",
+        cookie:
+          "_xsrf=9f377bfe66074af3830a5328d3ff5108; anon_u=cHN1X18zZjNjMGRjZC04MWE1LTRhZjMtODdjNi1kNTA0MzBhYWRhNjc=|1665818550|8d3b7544ca7629f38edff458f52116a270bfbd3f; cookie_banner=1; wow-modal-id-12=yes",
+      },
+      data: `url=${encodeURIComponent(url)}`,
+      method: "POST",
+    })
+      .then((data) => {
+        if (data.status_code !== 200) return resolve({ status: false });
+        resolve({ status: true, url: data.data.link });
+      })
+      .catch((e) => {
+        resolve({ status: false });
+      });
+  });
+}
+
+function slTiny(url) {
+  return new Promise((resolve, reject) => {
+    anureq({
+      url: `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
+      headers: {
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      },
+      method: "GET",
+    })
+      .then((data) => {
+        if (!isUrl(data)) return resolve({ status: false });
+        resolve({ status: true, url: data });
+      })
+      .catch((e) => {
+        resolve({ status: false });
+      });
+  });
+}
+
 /**
  *
  * @param {uri} url
  */
 async function shortlink(url) {
-  let res = await axios
-    .get("https://tinyurl.com/api-create.php?url=" + url)
-    .catch((err) => console.err(err, "shortlink"));
-  return res.data;
+  return new Promise((resolve, reject) => {
+    slBitly(url)
+      .then((anu) => {
+        if (anu.status) return resolve(anu.url);
+      })
+      .catch((e) => {
+        return slTiny(url);
+      })
+      .then((anu) => {
+        if (anu.status) return resolve(anu.url);
+      })
+      .catch((e) => {});
+  });
+}
+
+const isNum = (x) => typeof x === "number" && !isNaN(x);
+
+function arrayMix(array) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
 }
 
 module.exports = {
@@ -2624,6 +2841,7 @@ module.exports = {
   urlDirect2,
   isJson,
   pinterest,
+  pinterest2,
   hagodl,
   subFinder,
   ytUrlRegex,
@@ -2636,4 +2854,7 @@ module.exports = {
   jooxLyric,
   soundcloud,
   shortlink,
+  isNum,
+  anureq,
+  arrayMix,
 };

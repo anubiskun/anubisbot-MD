@@ -11,13 +11,13 @@ let moment = require('moment-timezone')
 const defaultMenu = {
   before: `
 ╭──────〔 *%me* 〕
-│ Hai, %name!
+│ Hai, %name! %prem
+│ Limit: %limit
 │ 
 │ Date: %date
 │ Time: *%time*
 │
 │ Uptime: *%uptime*
-│ Github: %github
 │
 ╰─────〔 *%me* 〕
 %readmore`.trimStart(),
@@ -83,7 +83,7 @@ ${'```%npmdesc```'}
             rows: rows
           }
         ]
-        return anubis.sendList(m.chat, 'MENU', `${ucapan()} ${name}`, 'MENU', secs, m)
+        return anubis.sendList(m.chat, 'MENU', `${ucapan()} ${name} ${(m.isPremium) ? '✅' : ''}\nSisa Limit : *${m.limit}*`, 'MENU', secs, m)
       }
 
       let groups = {}
@@ -121,6 +121,8 @@ ${'```%npmdesc```'}
         '%': '%',
         p: usedPrefix, uptime,
         me: anubis.user.name,
+        prem: (m.isPremium) ? '✅' : '',
+        limit: m.limit,
         npmname: package.name,
         npmdesc: package.description,
         version: package.version,
@@ -133,25 +135,25 @@ ${'```%npmdesc```'}
         { buttonId: `${usedPrefix}owner`, buttonText: { displayText: "Contact Owner" }, type: 1 },
         { buttonId: `${usedPrefix}changelogs`, buttonText: { displayText: "Change Logs" }, type: 1 },
       ];
-      let buttonMessage = {}
+      let content = {}
       if (thumbnail.type === 'video') {
-        buttonMessage = { 
+        content = { 
           video: Buffer.from(thumbnail.buffer, 'base64'),
           gifPlayback: true,
           jpegThumbnail: Buffer.from(thumbnail.thumb, 'base64'),
           caption: pesen.trim(),
           footer: global.anuFooter,
-          buttons: buttons,
+          buttons,
         }
       } else {
-        buttonMessage = {
+        content = {
           image: Buffer.from(thumbnail.buffer, 'base64'),
           caption: pesen.trim(),
           footer: global.anuFooter,
-          buttons: buttons,
+          buttons,
         };
       }
-      anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
+      anubis.sendMessage(m.chat, content, { quoted: m });
     } catch (err) {
       console.err(err)
     }

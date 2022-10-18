@@ -9,7 +9,7 @@ let cp = require('child_process')
 let { promisify } = require('util')
 let exec = promisify(cp.exec).bind(cp)
 
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
+module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, botNumber }) => {
     switch(command){
         case 'addnote':
         case 'an':
@@ -23,7 +23,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                 } else {
                     lock = true
                 }
-                let msgs = anubis.db.data.database[m.chat]
+                let msgs = anubis.db.data.database.note[m.chat]
                 let pesan = JSON.stringify(m.quoted.fakeObj)
                 pesan = JSON.parse(pesan)
                 if (nama.toLowerCase() in msgs) return m.reply(`nama '${nama}' sudah ada ngab!`)
@@ -38,7 +38,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
         case 'dn':
             {
                 if (!text) return m.reply(`Example: ${usedPrefix + command} note name`)
-                let msgs = anubis.db.data.database[m.chat]
+                let msgs = anubis.db.data.database.note[m.chat]
                 if (!(text.toLowerCase() in msgs)) return m.reply('Gaada ngab!')
                 delete msgs[text.toLowerCase()];
                 m.reply('berhasil ngab!')
@@ -51,7 +51,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                 const [nama, ganti] = text.split('|')
                 if (!nama) return m.reply('lu mau ganti nama note yang mana ngab!')
                 if (!ganti) return m.reply('mau di ganti nama apa ngab! masukin dong!')
-                let msgs = anubis.db.data.database[m.chat]
+                let msgs = anubis.db.data.database.note[m.chat]
                 if (!(nama.toLowerCase() in msgs)) return m.reply('Gaada ngab!')
                 msgs[ganti.toLowerCase()] = msgs[nama.toLowerCase()]
                 delete msgs[nama.toLowerCase()];
@@ -88,10 +88,26 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
                 m.reply(`Exif berhasil diubah menjadi\n\n🌀> Packname : ${global.packname}\n🌀> Author : ${global.author}`);
             }
         break;
+        case 'setcookie': {
+            if (!text) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
+            const a = text.split('|')
+            if (!a[0]) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
+            if (!a[1]) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
+            switch (a[0]){
+                case 'ig': {
+                    anubis.db.data.settings[botNumber].igCookie = String(a[1]);
+                    m.reply('Berhasil mereplace cookie ' + a[0])
+                }
+                break;
+            }
+        }
+        break;
         case 'restart':
             {
+                anubis.db.data.database.lastRestart = true
                 const a = await anubis.sendMessage(m.chat, {text: 'Bot sedang di restart tunggu beberapa saat ngab!'}, {quoted: m})
                 if (a.status) {
+                    await anubis.db.write()
                     process.send('restart')
                 }
             }
@@ -131,7 +147,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
         break;
     }
 }
-anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','$','cthumb']
+anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','$','insta','setcookie','cthumb']
 anuplug.tags = ['owner']
-anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart|[$]|cthumb)$/i
+anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart|[$]|insta|setcookie|cthumb)$/i
 anuplug.isAnubis = true

@@ -1,7 +1,7 @@
 {
   "name": "anubisbot-md",
-  "version": "2.1.4-core-2.4",
-  "versionCode": 2142022101524,
+  "version": "2.2.0-core-2.5",
+  "versionCode": 2202022101925,
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -13,7 +13,20 @@
   },
   "scripts": {
     "start": "node index.js --server",
-    "test": "node index.js --test"
+    "test": "nodemon -- --name anubisTest --test"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "*/*.json",
+      "*/*.png",
+      "*/*.jpg",
+      "*/*.mp4",
+      "*/*.mp3",
+      "*/plugins/*",
+      "*/node_modules/*",
+      "*/.git/*",
+      "*/temp/*"
+    ]
   },
   "repository": {
     "type": "git",
@@ -36,9 +49,9 @@
   "bugs": {
     "url": "https://github.com/anubiskun/anubisbot-MD/issues"
   },
-  "homepage": "https://github.com/anubiskun/anubisbot-MD",
+  "homepage": "https://github.com/anubiskun/anubisbot-MD#readme",
   "dependencies": {
-    "@adiwajshing/baileys": "github:adiwajshing/baileys",
+    "@adiwajshing/baileys": "git@github.com:anubiskun/Baileys.git",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hapi/boom": "^10.0.0",
@@ -54,7 +67,7 @@
     "follow-redirect-url": "^2.0.1",
     "form-data": "^4.0.0",
     "google-it": "^1.6.3",
-    "googlethis": "^1.4.1",
+    "googlethis": "^1.4.3",
     "got": "^12.5.1",
     "human-readable": "^0.2.1",
     "is-url": "^1.2.4",
@@ -76,7 +89,11 @@
     "yargs": "^17.5.1",
     "youtube-search-api": "^1.1.0"
   },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  },
   "changeLogs": [
+    "[ V 2.2.0-core-2.5 ]\n- Update core v2.5\n- Fix Many Bugs\n- Added AntiLink Private and Group Chats\n- Added Antilink Filter Domain\n- Added AntiViewOnce Group Chats\n- Added antilinkadd & antilinkdel & antilinklist command for add domain lists (group)\n- Added setting command (group)\n- Added Premium time\n- Reset Limit every 00:00 AM UTC + 07:00 Jakarta\n- Fix Instagram new Method\n- New Pinterest Search\n- Fix Shortlink",
     "[ V 2.1.4-core-2.4 ]\n- Added Group Update (https://github.com/irham01)\n Added Limit Premium Free fiture",
     "[ V 2.1.2-core-2.4 ]\n- Update core v2.4\n- System Send Notif if Error\n- Error Catch\n- Fix SoundCloud search\n- Fix Tiktok Downloader\n- Fix Google Search\n- Added Welcomer in group\n- Added Anti link",
     "[ V 2.1.0-core-2.3 ]\n- Update core v2.3\n- Added Command Corections\n- Added notification updates\n- Fix command removebg",

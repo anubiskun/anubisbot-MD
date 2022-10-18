@@ -1,16 +1,16 @@
 const fs = require('fs')
 const path = require('path')
-const yargs = require('yargs/yargs')
-const opts = new Object(yargs(process.argv.slice(2)).exitProcess(false).parse())
+const opts = new Object(require('yargs/yargs')(process.argv.slice(2)).exitProcess(false).parse())
 
-global.botpublic = opts['test'] ? false : true // Bot Status
+global.botpublic = true // Bot Status
 global.sesName = opts['test'] ? 'anubisTest' : 'anubisAuth' // Session Folder
-global.mongoUser = 'mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority' //mongo uri
+global.mongoUser = opts['db'] ? (typeof opts['db'] !== 'string') ? 'mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority' : opts['db'] : 'mongodb+srv://test:test123@test.onzmz8w.mongodb.net/?retryWrites=true&w=majority'
 global.ownerNum = ['6289653909054'] // owner number
 global.fla = 'https://www6.flamingtext.com/net-fu/proxy_form.cgi?&imageoutput=true&script=sketch-name&doScale=true&scaleWidth=800&scaleHeight=500&fontsize=100&fillTextType=1&fillTextPattern=Warning!&fillColor1Color=%23f2aa4c&fillColor2Color=%23f2aa4c&fillColor3Color=%23f2aa4c&fillColor4Color=%23f2aa4c&fillColor5Color=%23f2aa4c&fillColor6Color=%23f2aa4c&fillColor7Color=%23f2aa4c&fillColor8Color=%23f2aa4c&fillColor9Color=%23f2aa4c&fillColor10Color=%23f2aa4c&fillOutlineColor=%23f2aa4c&fillOutline2Color=%23f2aa4c&backgroundColor=%23101820&text='
 global.thumb = fs.readFileSync('./library/intro.mp4')
 global.__root = path.join(__dirname, '/')
 global.__temp = path.join(__dirname, '/temp/')
+global.lastMsg = {}
 global.msg = {
     err: "error ngab! coba hubungi owner",
     nUrl: "bad URL",
@@ -28,9 +28,10 @@ global.mess = {
 global.anuCookie = {
     ig: '', // instagram cookies
     joox: '', // joox cookies
+    pinterest: '', // pinterest cookies
     soundcloud: 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX', //soundcloud client_id
 }
-global.pingWeb = '' 
+global.pingWeb = 'google.com' 
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author

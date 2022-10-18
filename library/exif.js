@@ -10,6 +10,7 @@
  const webp = require("node-webpmux")
  const path = require("path");
  const { imageToWebp, videoToWebp, WebpToWebp } = require('./converter');
+ const { webp2mp4File } = require('./upload');
  
  async function writeExifImg (media, metadata) {
      let wMedia = await imageToWebp(media)
@@ -67,8 +68,11 @@
          try {
              await img.load(media)
          } catch (err) {
-             let media = videoToWebp(file)
-             await img.load(media)
+             fs.writeFileSync(tmpFileOut, file)
+             let {result} = await webp2mp4File(tmpFileOut)
+             fs.unlinkSync(tmpFileOut)
+             let buff = await WebpToWebp(result)
+             await img.load(buff)
          }
          img.exif = exif
          await img.save(tmpFileOut)
