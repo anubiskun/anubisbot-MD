@@ -126,15 +126,8 @@ module.exports = {
           setting.thumbnail = global.thumb;
         if (!("buffer" in setting.thumbnail))
           setting.thumbnail.buffer = anubis.decodeBuffer(global.thumb);
-        if (!("thumb" in setting.thumbnail))
-          setting.thumbnail.thumb = anubis.decodeBuffer(
-            (await anubis.genThumb(global.thumb))
-              ? await (
-                  await anubis.genThumb(global.thumb)
-                ).thumbnail
-              : false
-          );
-        if (!("type" in setting.thumbnail)) setting.thumbnail.type = "video";
+        if (!("thumb" in setting.thumbnail)) setting.thumbnail.thumb = ''
+        if (!("type" in setting.thumbnail)) setting.thumbnail.type = "image";
 
         let others = anubis.db.data.others;
         if (typeof others.vote !== "object") others.vote = [];
