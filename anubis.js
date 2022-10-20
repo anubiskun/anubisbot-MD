@@ -163,7 +163,7 @@ async function reloadConnector() {
         anuCreds();
         await database.write()
     })
-    //  require('./server.js')(anubis, store)
+    if (opts['server']) (!server) ? require(__root +'server.js')(anubis, store) : server = true
     return true
 }
 
