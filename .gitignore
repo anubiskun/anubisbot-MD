@@ -108,3 +108,4 @@ test.js
 anubisAuth/
 anubisTest/
 package-lock.json
+database1.json
