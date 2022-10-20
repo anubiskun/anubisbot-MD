@@ -116,8 +116,7 @@ module.exports = anuplug = {
         if (pada.length === 0) {
           anubis.sendButtonMsg(
             m.chat,
-            `Command *${
-              prefix + command
+            `Command *${prefix + command
             }* tidak ditemukan ngab!\nCoba cek menu list`,
             buttons,
             m

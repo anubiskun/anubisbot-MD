@@ -1,7 +1,7 @@
 {
   "name": "anubisbot-md",
-  "version": "2.2.0-core-2.5",
-  "versionCode": 2202022101925,
+  "version": "2.3.0-core-2.5",
+  "versionCode": 2302022102025,
   "description": "anubisbot-md coded by anubiskun",
   "depecrated": false,
   "main": "index.js",
@@ -51,7 +51,7 @@
   },
   "homepage": "https://github.com/anubiskun/anubisbot-MD#readme",
   "dependencies": {
-    "@adiwajshing/baileys": "git@github.com:anubiskun/Baileys.git",
+    "@adiwajshing/baileys": "github:anubiskun/Baileys",
     "@adiwajshing/keyed-db": "^0.2.4",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@hapi/boom": "^10.0.0",
@@ -93,6 +93,7 @@
     "nodemon": "^2.0.20"
   },
   "changeLogs": [
+    "[ V 2.3.0-core-2.5 ]\n- Bug Fix\n- Added antiBadwords\n- Recode antilink",
     "[ V 2.2.0-core-2.5 ]\n- Update core v2.5\n- Fix Many Bugs\n- Added AntiLink Private and Group Chats\n- Added Antilink Filter Domain\n- Added AntiViewOnce Group Chats\n- Added antilinkadd & antilinkdel & antilinklist command for add domain lists (group)\n- Added setting command (group)\n- Added Premium time\n- Reset Limit every 00:00 AM UTC + 07:00 Jakarta\n- Fix Instagram new Method\n- New Pinterest Search\n- Fix Shortlink",
     "[ V 2.1.4-core-2.4 ]\n- Added Group Update (https://github.com/irham01)\n Added Limit Premium Free fiture",
     "[ V 2.1.2-core-2.4 ]\n- Update core v2.4\n- System Send Notif if Error\n- Error Catch\n- Fix SoundCloud search\n- Fix Tiktok Downloader\n- Fix Google Search\n- Added Welcomer in group\n- Added Anti link",

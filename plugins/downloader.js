@@ -7,15 +7,15 @@
 
 const fs = require('fs')
 const isUrl = require('is-url');
-const {iggetid, igjson, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud, pinterest, shortlink, pinterest2} = require('../library/lib')
+const { iggetid, igjson, igstory, hagodl, tiktok, jooxDownloader, jooxSearch, soundcloud, pinterest, shortlink, pinterest2 } = require('../library/lib')
 const moment = require('moment-timezone');
 const { yta, ytv, ytIdRegex } = require('../library/y2mate')
 let youtube = require("youtube-search-api")
 const google = require('googlethis')
 const { tmpfiles } = require('../library/upload');
 
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, mime, qmsg }) => {
-    switch(command){
+module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix, mime, qmsg }) => {
+    switch (command) {
         case 'instagram':
         case 'ig':
             {
@@ -60,57 +60,57 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                             } else if (json.media[i].type == "jpg") {
                                 anubis.sendImage(m.chat, json.media[i].url, teks, m)
                             } else {
-                            m.reply("command error, mohon lapor ke owner! ");
+                                m.reply("command error, mohon lapor ke owner! ");
                             }
                         }
                     } else {
                         if (igreg[1] == 's' || igreg[2] == "highlights") {
-                        const json = await igstory(text)
-                        if (!json.status) return m.reply('Media error ngab! / cek urlnya!')
-                        if (typeof json.anubis.url == 'undefined'){
-                            if (json.user.is_verified == true) {
-                                teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username} ✅\n*Full Name*: ${json.user.full_name}`;
-                            } else {
-                                teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username}\n*Full Name*: ${json.user.full_name}`;
-                            }
-                            for (let i = 0; i < json.media.length; i++) {
-                                if (json.media[i].type == "mp4") {
-                                    anubis.sendVideo(m.chat, json.media[i].url, teks, m, json.media[i].thumb)
-                                } else if (json.media[i].type == "jpg") {
-                                    anubis.sendImage(m.chat, json.media[i].url, teks, m)
+                            const json = await igstory(text)
+                            if (!json.status) return m.reply('Media error ngab! / cek urlnya!')
+                            if (typeof json.anubis.url == 'undefined') {
+                                if (json.user.is_verified == true) {
+                                    teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username} ✅\n*Full Name*: ${json.user.full_name}`;
                                 } else {
-                                m.reply("command error, mohon lapor ke owner!");
+                                    teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username}\n*Full Name*: ${json.user.full_name}`;
+                                }
+                                for (let i = 0; i < json.media.length; i++) {
+                                    if (json.media[i].type == "mp4") {
+                                        anubis.sendVideo(m.chat, json.media[i].url, teks, m, json.media[i].thumb)
+                                    } else if (json.media[i].type == "jpg") {
+                                        anubis.sendImage(m.chat, json.media[i].url, teks, m)
+                                    } else {
+                                        m.reply("command error, mohon lapor ke owner!");
+                                    }
+                                }
+                            } else {
+                                const time = moment
+                                    .unix(json.anubis.taken_at)
+                                    .format("DD-MM-YYYY HH:mm:ss");
+                                if (json.user.is_verified == true) {
+                                    teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username} ✅\n*Full Name*: ${json.user.full_name}`;
+                                } else {
+                                    teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username}\n*Full Name*: ${json.user.full_name}`;
+                                }
+                                teks += `\n*Upload at*: ${time}`;
+                                if (!json.anubis.caption == "") {
+                                    teks += `\n*Caption*: ${json.anubis.caption}`;
+                                }
+                                if (json.anubis.type == "mp4") {
+                                    anubis.sendVideo(m.chat, json.anubis.url, teks, m, json.anubis.thumb)
+                                } else if (json.anubis.type == "jpg") {
+                                    anubis.sendImage(m.chat, json.anubis.url, teks, m)
+                                } else {
+                                    m.reply("command error, mohon lapor ke owner!");
                                 }
                             }
-                        } else {
-                            const time = moment
-                                .unix(json.anubis.taken_at)
-                                .format("DD-MM-YYYY HH:mm:ss");
-                            if (json.user.is_verified == true) {
-                                teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username} ✅\n*Full Name*: ${json.user.full_name}`;
-                            } else {
-                                teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username}\n*Full Name*: ${json.user.full_name}`;
-                            }
-                            teks += `\n*Upload at*: ${time}`;
-                            if (!json.anubis.caption == "") {
-                                teks += `\n*Caption*: ${json.anubis.caption}`;
-                            }
-                            if (json.anubis.type == "mp4") {
-                                anubis.sendVideo(m.chat, json.anubis.url, teks, m, json.anubis.thumb)
-                            } else if (json.anubis.type == "jpg") {
-                                anubis.sendImage(m.chat, json.anubis.url, teks, m)
-                            } else {
-                            m.reply("command error, mohon lapor ke owner!");
-                            }
-                        }
-                        
+
                         } else {
                             let ig = await igjson(igreg[3]);
                             json = ig.data[Math.floor(Math.random() * ig.data.length)];
                             time = moment
                                 .unix(json.post.taken_at)
                                 .format("DD-MM-YYYY HH:mm:ss");
-                                if (json.user.is_verified == true) {
+                            if (json.user.is_verified == true) {
                                 teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username} ✅\n*Full Name*: ${json.user.full_name}`;
                             } else {
                                 teks = `「 INSTAGRAM DOWNLOADER 」\n\n*Username*: ${json.user.username}\n*Full Name*: ${json.user.full_name}`;
@@ -128,7 +128,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                                 } else if (json.media[i].type == "jpg") {
                                     anubis.sendImage(m.chat, json.media[i].url, teks, m)
                                 } else {
-                                m.reply("command error, mohon lapor ke owner!");
+                                    m.reply("command error, mohon lapor ke owner!");
                                 }
                             }
                         }
@@ -139,7 +139,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     return
                 }
             }
-        break;
+            break;
         case 'hago':
         case 'hg':
             {
@@ -166,7 +166,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     console.err(err)
                 }
             }
-        break;
+            break;
         case 'tiktok':
         case 'tt':
             {
@@ -181,7 +181,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                         let rows = []
                         tt.nowm.splice(tt.nowm.length, tt.nowm.length);
                         tt.nowm.forEach((xres, i) => {
-                            rows.push({ title: xres.text, description: ``, rowId: `${usedPrefix}fetch ${xres.url}`})
+                            rows.push({ title: xres.text, description: ``, rowId: `${usedPrefix}fetch ${xres.url}` })
                         })
                         let secs = [
                             {
@@ -189,7 +189,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                                 rows: rows
                             }
                         ]
-                        return anubis.sendList(m.chat, '「 TIKTOK DOWNLOADER 」',`*USERNAME* : null\n*CAPTION* : null`,'RESULT',secs, m)
+                        return anubis.sendList(m.chat, '「 TIKTOK DOWNLOADER 」', `*USERNAME* : null\n*CAPTION* : null`, 'RESULT', secs, m)
                     } else {
                         m.reply('Command error ngab!\nLapor ke Owner!')
                     }
@@ -198,7 +198,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     m.reply('Command error ngab!\nLapor ke Owner!')
                 }
             }
-        break;
+            break;
         case 'jooxdl':
         case 'jooxdownloader':
             {
@@ -209,14 +209,14 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     let json = await jooxDownloader(text)
                     if (!json.status) return m.reply(global.msg.err)
                     let media = json.anubis
-                    anubis.sendImage(m.chat, media.imgSrc,`Title : ${media.msong}\nSinger : ${media.msinger}\nDurasi : ${media.duration}\nFile Size : ${media.size}\nPublic Time : ${media.public_time}\nExt : MP3\nResolusi : 128kbps`,m);
-                    await anubis.sendMessage(m.chat,{audio: { url: media.mp3Url },mimetype: "audio/mpeg",fileName: `${media.msong}.mp3`},{ quoted: m });
+                    anubis.sendImage(m.chat, media.imgSrc, `Title : ${media.msong}\nSinger : ${media.msinger}\nDurasi : ${media.duration}\nFile Size : ${media.size}\nPublic Time : ${media.public_time}\nExt : MP3\nResolusi : 128kbps`, m);
+                    await anubis.sendMessage(m.chat, { audio: { url: media.mp3Url }, mimetype: "audio/mpeg", fileName: `${media.msong}.mp3` }, { quoted: m });
                 } catch (err) {
                     console.err(err)
                     m.reply(global.msg.err)
                 }
             }
-        break;
+            break;
         case 'jooxsearch':
         case 'jooxs':
             {
@@ -229,7 +229,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     let rows = []
                     json.anubis.splice(json.anubis.length, json.anubis.length);
                     json.anubis.forEach((xres, i) => {
-                        rows.push({ title: xres.name, description: `Artis List: ${xres.artis_list}\nDurasi: ${xres.duration}`, rowId: `${usedPrefix}jooxdl ${xres.id}`})
+                        rows.push({ title: xres.name, description: `Artis List: ${xres.artis_list}\nDurasi: ${xres.duration}`, rowId: `${usedPrefix}jooxdl ${xres.id}` })
                     })
                     let secs = [
                         {
@@ -243,7 +243,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     m.reply(global.msg.err)
                 }
             }
-        break;
+            break;
         case 'soundcloudsearch':
         case 'scs':
             {
@@ -256,7 +256,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     let rows = []
                     json.anubis.splice(json.anubis.length, json.anubis.length);
                     json.anubis.forEach((xres, i) => {
-                        rows.push({ title: xres.title, description: `Full Name: ${xres.full_name}\nUsername: ${xres.username}\nLink SC: ${xres.user_url}\nGenre : ${xres.genre}\nCreated: ${xres.created_at}\nDurasi: ${xres.duration}\nComment Count: ${xres.comment_count}\nLike Count: ${xres.likes_count}\nPlay Count: ${xres.playback_count}\nRepost Count: ${xres.reposts_count}\nDescription: ${xres.description}`, rowId: `${usedPrefix}fetch ${xres.urlmp3}`})
+                        rows.push({ title: xres.title, description: `Full Name: ${xres.full_name}\nUsername: ${xres.username}\nLink SC: ${xres.user_url}\nGenre : ${xres.genre}\nCreated: ${xres.created_at}\nDurasi: ${xres.duration}\nComment Count: ${xres.comment_count}\nLike Count: ${xres.likes_count}\nPlay Count: ${xres.playback_count}\nRepost Count: ${xres.reposts_count}\nDescription: ${xres.description}`, rowId: `${usedPrefix}fetch ${xres.urlmp3}` })
                     })
                     let secs = [
                         {
@@ -270,7 +270,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     m.reply(global.msg.err)
                 }
             }
-        break;
+            break;
         case 'pinterest':
             {
                 if (!text) throw `Example : ${usedPrefix + command} gojo satoru`
@@ -293,7 +293,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     pes += `*Uploader* : ${result.owner.username}\n`
                     pes += `*Full Name* : ${result.owner.full_name}\n`
                     pes += `*Follower* : ${result.owner.follower}\n`
-                    if (result.video !== null){
+                    if (result.video !== null) {
                         pes += `*Media Url* : ${await shortlink(result.video.url)}\n`
                         let buttonMessage = {
                             video: { url: result.video.url },
@@ -329,17 +329,17 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                         headerType: 4,
                     };
                     await anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
-                    
+
                 }
             }
-        break;
+            break;
         case 'gimage':
             {
                 if (!text) throw `Example : ${usedPrefix + command} gojo satoru`
                 m.reply(mess.wait)
                 try {
                     let n = []
-                    n = await google.image(text,{safe: false}).catch(async(e) => {n = await google.image(text,{safe: false}).catch(console.err)})
+                    n = await google.image(text, { safe: false }).catch(async (e) => { n = await google.image(text, { safe: false }).catch(console.err) })
                     images = n[Math.floor(Math.random() * n.length)]
                     let buttons = [
                         {
@@ -368,7 +368,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     return m.reply(`command *${command}* lagi error ngab!`)
                 }
             }
-        break;
+            break;
         case 'gimgrev':
             {
                 return m.reply(`command *${command}* lagi error ngab!`)
@@ -377,27 +377,27 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                 if (isUrl(text)) qstring = text
                 if (/image/.test(mime)) {
                     let media = await anubis.downloadAndSaveMediaMessage(qmsg);
-                    let {url} = await tmpfiles(media)
+                    let { url } = await tmpfiles(media)
                     await fs.unlinkSync(media);
                     qstring = url
                 }
                 m.reply(mess.wait)
                 try {
-                    const {results} = await google.search(qstring, { ris: true });
+                    const { results } = await google.search(qstring, { ris: true });
                     let teks = `Result from Google search by Image :\n\n`
-                    if (!results) return m.reply('Gambar Tidak di temukan kecocokan ngab!') 
+                    if (!results) return m.reply('Gambar Tidak di temukan kecocokan ngab!')
                     for (let g of results) {
                         teks += `⭔ *Title* : ${g.title}\n`
                         teks += `⭔ *Description* : ${g.description}\n`
                         teks += `⭔ *Link* : ${g.url}\n\n────────────────────────\n\n`
                     }
-                    anubis.sendMessage(m.chat, {text: teks}, { quoted: m });
+                    anubis.sendMessage(m.chat, { text: teks }, { quoted: m });
                 } catch (err) {
                     console.err(err)
                     return m.reply(`command *${command}* lagi error ngab!`)
                 }
             }
-        break;
+            break;
         case 'ytmp3':
         case 'yta':
             {
@@ -406,16 +406,16 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                 let quality = args[1] ? args[1] : "128kbps"
                 try {
                     let media = await yta(text, quality)
-                    if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
-                    anubis.sendImage(m.chat,media.thumb,`🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}`,m);
-                    await anubis.sendMessage(m.chat,{audio: { url: media.dl_link },mimetype: "audio/mpeg",fileName: `${media.title}.mp3`},{ quoted: m });
+                    if (media.filesize >= 100000) return anubis.sendImage(m.chat, media.thumb, `*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}\n*Link* : ${await shortlink(media.dl_link)}`, m);
+                    anubis.sendImage(m.chat, media.thumb, `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP3\n🌀 Resolusi : ${args[1] || "128kbps"}`, m);
+                    await anubis.sendMessage(m.chat, { audio: { url: media.dl_link }, mimetype: "audio/mpeg", fileName: `${media.title}.mp3` }, { quoted: m });
                 } catch (err) {
                     console.err(err)
                     let buttons = [{ buttonId: `${usedPrefix}ytdla ${text}`, buttonText: { displayText: "YT Downloader" }, type: 1 }];
                     anubis.sendButtonText(m.chat, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
                 }
             }
-        break;
+            break;
         case 'ytmp4':
         case 'ytv':
             {
@@ -424,8 +424,8 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                 let quality = args[1] ? args[1] : "360p"
                 try {
                     let media = await ytv(text, quality)
-                    
-                    if (media.filesize >= 100000) return anubis.sendImage(m.chat,media.thumb,`*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${await shortlink(media.dl_link)}`,m);
+
+                    if (media.filesize >= 100000) return anubis.sendImage(m.chat, media.thumb, `*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}\n*Link* : ${await shortlink(media.dl_link)}`, m);
                     await anubis.sendVideo(m.chat, media.dl_link, `🌀 Title : ${media.title}\n🌀 Like : ${media.likes}\n🌀 Dislike : ${media.dislikes}\n🌀 Rating : ${media.rating}\n🌀 ViewCount : ${media.viewCount}\n🌀 File Size : ${media.filesizeF}\n🌀 Ext : MP4\n🌀 Resolusi : ${args[1] || "360p"}`, m, media.thumb)
                 } catch (err) {
                     console.err(err)
@@ -433,7 +433,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                     anubis.sendButtonText(m.chat, buttons, 'command lagi error ngab!\ncoba pake YTDL v2!', m)
                 }
             }
-        break;
+            break;
         case 'yts':
         case 'ytsearch':
             {
@@ -441,13 +441,13 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                 m.reply(mess.wait)
                 let json = await youtube.GetListByKeyword(text, false, 25)
                 let ytjson = []
-                for(var i=0; i< json.items.length; i++){
-                    if (json.items[i].type=="video") {
+                for (var i = 0; i < json.items.length; i++) {
+                    if (json.items[i].type == "video") {
                         ytjson.push({
-                        url: "https://m.youtube.com/watch?v="+ json.items[i].id,
-                        title: json.items[i].title,
-                        chname: json.items[i].channelTitle,
-                        shortBylineText: json.items[i].shortBylineText,
+                            url: "https://m.youtube.com/watch?v=" + json.items[i].id,
+                            title: json.items[i].title,
+                            chname: json.items[i].channelTitle,
+                            shortBylineText: json.items[i].shortBylineText,
                         })
                     }
                 }
@@ -456,31 +456,31 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, m
                 ytjson.splice(ytjson.length, ytjson.length);
                 ytjson.forEach((xres, i) => {
                     secs.push({
-                    rows: [
-                        {
-                        title: "MP3",
-                        description:
-                            `${xres.title}` +
-                            `\n\n*Channel Name*: ${xres.chname}`,
-                        rowId: `${usedPrefix}yta ${xres.url}`,
-                        },
-                        {
-                        title: "MP4",
-                        description:
-                            `${xres.title}` +
-                            `\n\n*Channel Name*: ${xres.chname}`,
-                        rowId: `${usedPrefix}ytv ${xres.url}`,
-                        },
-                    ],
-                    title: i + 1,
+                        rows: [
+                            {
+                                title: "MP3",
+                                description:
+                                    `${xres.title}` +
+                                    `\n\n*Channel Name*: ${xres.chname}`,
+                                rowId: `${usedPrefix}yta ${xres.url}`,
+                            },
+                            {
+                                title: "MP4",
+                                description:
+                                    `${xres.title}` +
+                                    `\n\n*Channel Name*: ${xres.chname}`,
+                                rowId: `${usedPrefix}ytv ${xres.url}`,
+                            },
+                        ],
+                        title: i + 1,
                     });
                 });
                 anubis.sendList(m.chat, "*[ YOUTUBE SEARCH ]*", pesane, 'RESULT', secs, m);
             }
-        break;
+            break;
     }
 }
-anuplug.help = ['instagram','hago','tiktok','jooxsearch','soundcloudsearch','ytsearch','pinterest','gimage','gimgrev (error)','ytmp3','ytmp4']
+anuplug.help = ['instagram', 'hago', 'tiktok', 'jooxsearch', 'soundcloudsearch', 'ytsearch', 'pinterest', 'gimage', 'gimgrev (error)', 'ytmp3', 'ytmp4']
 anuplug.tags = ['downloader']
 anuplug.command = /^(ig|instagram|hago|hg|tiktok|tt|jooxdownloader|jooxdl|jooxsearch|jooxs|soundcloudsearch|scs|pinterest|gimage|gimgrev|yta|ytmp3|ytv|ytmp4|yts|ytsearch)$/i
 anuplug.isPremium = true
@@ -492,7 +492,7 @@ function ses(secs) {
     let seconds = sec_num % 60;
 
     return [hours, minutes, seconds]
-    .map((v) => (v < 10 ? "0" + v : v))
-    .filter((v, i) => v !== "00" || i > 0)
-    .join(":");
+        .map((v) => (v < 10 ? "0" + v : v))
+        .filter((v, i) => v !== "00" || i > 0)
+        .join(":");
 }

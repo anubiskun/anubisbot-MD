@@ -31,7 +31,7 @@ global.anuCookie = {
     pinterest: '', // pinterest cookies
     soundcloud: 'iZIs9mchVcX5lhVRyQGGAYlNPVldzAoX', //soundcloud client_id
 }
-global.pingWeb = 'google.com' 
+global.pingWeb = 'google.com'
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author

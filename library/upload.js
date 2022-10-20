@@ -15,13 +15,13 @@ let cheerio = require('cheerio')
  * @param {path} Path 
  * @returns 
  */
-function telegraphUp (Path) {
-	return new Promise (async (resolve, reject) => {
+function telegraphUp(Path) {
+	return new Promise(async (resolve, reject) => {
 		if (!fs.existsSync(Path)) return reject(new Error("File not Found"))
 		try {
 			const form = new BodyForm();
 			form.append("file", fs.createReadStream(Path))
-			const data = await  axios({
+			const data = await axios({
 				url: "https://telegra.ph/upload",
 				method: "POST",
 				headers: {
@@ -52,7 +52,7 @@ function webp2mp4File(path) {
 			url: 'https://s6.ezgif.com/webp-to-mp4',
 			data: form,
 			headers: {
-					'Content-Type': `multipart/form-data; boundary=${form._boundary}`
+				'Content-Type': `multipart/form-data; boundary=${form._boundary}`
 			}
 		}).then(({ data }) => {
 			const bodyFormThen = new BodyForm()
@@ -61,20 +61,20 @@ function webp2mp4File(path) {
 			bodyFormThen.append('file', file)
 			bodyFormThen.append('convert', "Convert WebP to MP4!")
 			axios({
-					method: 'post',
-					url: 'https://ezgif.com/webp-to-mp4/' + file,
-					data: bodyFormThen,
-					headers: {
-						'Content-Type': `multipart/form-data; boundary=${bodyFormThen._boundary}`
-					}
+				method: 'post',
+				url: 'https://ezgif.com/webp-to-mp4/' + file,
+				data: bodyFormThen,
+				headers: {
+					'Content-Type': `multipart/form-data; boundary=${bodyFormThen._boundary}`
+				}
 			}).then(({ data }) => {
-					const $ = cheerio.load(data)
-					const result = 'https:' + $('div#output > p.outfile > video > source').attr('src')
-					resolve({
-						status: true,
-						message: "Created By anubiskun",
-						result: result
-					})
+				const $ = cheerio.load(data)
+				const result = 'https:' + $('div#output > p.outfile > video > source').attr('src')
+				resolve({
+					status: true,
+					message: "Created By anubiskun",
+					result: result
+				})
 			}).catch(err => console.err(err, 'webp2mp4File'))
 		}).catch(err => console.err(err, 'webp2mp4File'))
 	})
@@ -85,28 +85,28 @@ function webp2mp4File(path) {
  * @param {path} input 
  * @returns 
  */
-async function tmpfiles (input) {
-	return new Promise (async (resolve, reject) => {
-			const form = new BodyForm();
-			form.append("file", fs.createReadStream(input))
-			await axios({
-				url: "https://tmpfiles.org/api/v1/upload",
-				method: "POST",
-				headers: {
-					...form.getHeaders()
-				},
-				data: form
-				
-			}).then(({data}) => {
-				// console.log(data)
-				let ew = /https?:\/\/tmpfiles.org\/(.*)/.exec(data.data.url)
-				resolve('https://tmpfiles.org/dl/' + ew[1])
-			}).catch(err => console.err(err, 'tmpfiles'))
+async function tmpfiles(input) {
+	return new Promise(async (resolve, reject) => {
+		const form = new BodyForm();
+		form.append("file", fs.createReadStream(input))
+		await axios({
+			url: "https://tmpfiles.org/api/v1/upload",
+			method: "POST",
+			headers: {
+				...form.getHeaders()
+			},
+			data: form
+
+		}).then(({ data }) => {
+			// console.log(data)
+			let ew = /https?:\/\/tmpfiles.org\/(.*)/.exec(data.data.url)
+			resolve('https://tmpfiles.org/dl/' + ew[1])
+		}).catch(err => console.err(err, 'tmpfiles'))
 	})
 }
 
 module.exports = {
-telegraphUp,
-tmpfiles,
-webp2mp4File,
+	telegraphUp,
+	tmpfiles,
+	webp2mp4File,
 }

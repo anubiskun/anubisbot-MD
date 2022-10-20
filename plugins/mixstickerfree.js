@@ -12,26 +12,26 @@ const path = require("path");
 const { WebpToWebp } = require('../library/converter');
 const { webp2mp4File } = require('../library/upload');
 
-module.exports = anuplug = async(m, anubis, { command, usedPrefix }) => {
+module.exports = anuplug = async (m, anubis, { command, usedPrefix }) => {
   const mquo = m.quoted || m;
   const quoted = mquo.mtype == "buttonsMessage"
-      ? mquo[Object.keys(mquo)[1]]
-      : mquo.mtype == "templateMessage"
+    ? mquo[Object.keys(mquo)[1]]
+    : mquo.mtype == "templateMessage"
       ? mquo.hydratedTemplate[Object.keys(mquo.hydratedTemplate)[1]]
       : mquo.mtype == "product"
-      ? mquo[Object.keys(mquo)[0]]
-      : m.quoted
-      ? m.quoted
-      : m;
+        ? mquo[Object.keys(mquo)[0]]
+        : m.quoted
+          ? m.quoted
+          : m;
   const mime = (quoted.msg || quoted).mimetype || "";
   const qmsg = quoted.msg || quoted;
-  switch(command){
+  switch (command) {
     case 's':
     case 'sticker':
     case 'stiker':
       {
         try {
-          if (!/(video|image|webp)/.test(mime)) return  m.reply(`Kirim/reply gambar/video/gif dengan caption ${usedPrefix + command}\nDurasi Video/Gif 1-9 Detik`);
+          if (!/(video|image|webp)/.test(mime)) return m.reply(`Kirim/reply gambar/video/gif dengan caption ${usedPrefix + command}\nDurasi Video/Gif 1-9 Detik`);
           m.reply(mess.wait);
           const tmpFileOut = path.join(__root, `/temp/${Crypto.randomBytes(6).readUIntLE(0, 6).toString(36)}.webp`)
           let media
@@ -53,21 +53,21 @@ module.exports = anuplug = async(m, anubis, { command, usedPrefix }) => {
             await img.load(media)
           } catch (err) {
             let mee = await anubis.downloadAndSaveMediaMessage(qmsg);
-            let {result} = await webp2mp4File(mee)
+            let { result } = await webp2mp4File(mee)
             let buff = await WebpToWebp(result)
             fs.unlinkSync(mee);
             await img.load(buff)
           }
           img.exif = exif
           await img.save(tmpFileOut)
-          await anubis.sendMessage(m.chat, { sticker: { url: tmpFileOut }}, { quoted: m })
+          await anubis.sendMessage(m.chat, { sticker: { url: tmpFileOut } }, { quoted: m })
           fs.unlinkSync(tmpFileOut);
         } catch (err) {
           m.reply('error ngab! cba wa ownernya!')
           console.err(err)
         }
       }
-    break;
+      break;
   }
 }
 anuplug.help = ['sticker']

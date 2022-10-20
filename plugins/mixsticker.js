@@ -6,27 +6,24 @@
  */
 
 const fs = require('fs')
-const Crypto = require("crypto")
-const webp = require("node-webpmux")
-const path = require("path");
-const { videoToWebp, WebpToWebp, webpTopng } = require('../library/converter');
+const { webpTopng } = require('../library/converter');
 const { webp2mp4File, tmpfiles } = require('../library/upload');
 const { fetchJson } = require('../library/lib');
 
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
+module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }) => {
   const mquo = m.quoted || m;
   const quoted = mquo.mtype == "buttonsMessage"
-      ? mquo[Object.keys(mquo)[1]]
-      : mquo.mtype == "templateMessage"
+    ? mquo[Object.keys(mquo)[1]]
+    : mquo.mtype == "templateMessage"
       ? mquo.hydratedTemplate[Object.keys(mquo.hydratedTemplate)[1]]
       : mquo.mtype == "product"
-      ? mquo[Object.keys(mquo)[0]]
-      : m.quoted
-      ? m.quoted
-      : m;
+        ? mquo[Object.keys(mquo)[0]]
+        : m.quoted
+          ? m.quoted
+          : m;
   const mime = (quoted.msg || quoted).mimetype || "";
   const qmsg = quoted.msg || quoted;
-  switch(command){
+  switch (command) {
     case 'smeme':
     case 'stickermeme':
     case 'stikermeme':
@@ -45,31 +42,31 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
         if (encmedia) await fs.unlinkSync(encmedia);
         await fs.unlinkSync(media);
       }
-    break;
+      break;
     case 'togif':
       {
         if (!/webp/.test(mime)) return m.reply(`Reply stiker dengan caption *${usedPrefix + command}*`)
         try {
-            let media = await anubis.downloadAndSaveMediaMessage(qmsg);
-              let webpToMp4 = await webp2mp4File(media);
-              await anubis.sendMessage(
-                m.chat,
-                {
-                  video: {
-                    url: webpToMp4.result,
-                    caption: "Convert Webp To Video",
-                  },
-                  gifPlayback: true,
-                },
-                { quoted: m }
-              );
-              await fs.unlinkSync(media);
+          let media = await anubis.downloadAndSaveMediaMessage(qmsg);
+          let webpToMp4 = await webp2mp4File(media);
+          await anubis.sendMessage(
+            m.chat,
+            {
+              video: {
+                url: webpToMp4.result,
+                caption: "Convert Webp To Video",
+              },
+              gifPlayback: true,
+            },
+            { quoted: m }
+          );
+          await fs.unlinkSync(media);
         } catch (err) {
           console.err(err)
           m.reply('error ngab! cba wa ownernya!')
         }
       }
-    break;
+      break;
     case 'toimg':
     case 'topng':
       {
@@ -90,7 +87,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
           m.reply('error ngab! cba wa ownernya!')
         }
       }
-    break;
+      break;
     case 'tomp4':
       {
         if (!/webp/.test(mime)) return m.reply(`Reply stiker dengan caption ${usedPrefix + command}`)
@@ -105,12 +102,12 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
           m.reply('error ngab! cba wa ownernya!')
         }
       }
-    break;
+      break;
     case 'emix': {
       if (!text) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍|😪\nExample: ${usedPrefix + command} 😍`)
       if (/\|/.test(text)) {
-          args = []
-          args.push(text.split('|')[0],text.split('|')[1])
+        args = []
+        args.push(text.split('|')[0], text.split('|')[1])
       }
       let [emo1, emo2] = args
       if (!emo1) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍|😪\nExample: ${usedPrefix + command} 😍`)
@@ -127,10 +124,10 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
         m.reply('command lagi error ngab!')
       }
     }
-    break;
+      break;
   }
 }
-anuplug.help = ['stickermeme','togif','toimg','topng','tomp4','emix']
+anuplug.help = ['stickermeme', 'togif', 'toimg', 'topng', 'tomp4', 'emix']
 anuplug.tags = ['sticker']
 anuplug.command = /^(s(ticker|tiker)?(meme)|to(gif|img|png|mp4)|emix)$/i
 anuplug.isPremium = true

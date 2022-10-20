@@ -14,8 +14,6 @@ const {
   generateWAMessageFromContent,
   generateForwardMessageContent,
   getContentType,
-  BufferJSON,
-  initAuthCreds,
   extractImageThumb,
 } = require("@adiwajshing/baileys");
 const Path = require("path");
@@ -31,15 +29,6 @@ const util = require("util");
 const FileType = require("file-type");
 const { writeExifVid, writeExif } = require("./exif");
 const { videoToWebp, videoToThumb, imageToThumb } = require("./converter");
-
-const KEY_MAP = {
-  "pre-key": "preKeys",
-  session: "sessions",
-  "sender-key": "senderKeys",
-  "app-state-sync-key": "appStateSyncKeys",
-  "app-state-sync-version": "appStateVersions",
-  "sender-key-memory": "senderKeyMemory",
-};
 
 /**
  *
@@ -76,22 +65,22 @@ const anubisFunc = (conn, store) => {
           if (!(v.name || v.subject)) v = (await this.groupMetadata(id)) || {};
           resolve(
             v.name ||
-              v.subject ||
-              parsePhoneNumber("+" + id.replace(this.anubiskun, "")).getNumber(
-                "international"
-              )
+            v.subject ||
+            parsePhoneNumber("+" + id.replace(this.anubiskun, "")).getNumber(
+              "international"
+            )
           );
         });
       else
         v =
           id === "0" + this.anubiskun
             ? {
-                id,
-                name: "WhatsApp",
-              }
+              id,
+              name: "WhatsApp",
+            }
             : id === this.decodeJid(this.user.id)
-            ? this.user
-            : store.contacts[id] || {};
+              ? this.user
+              : store.contacts[id] || {};
       return (
         (withoutContact ? "" : v.name) ||
         v.subject ||
@@ -334,12 +323,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(file)
         ? file
         : /^data:.*?\/.*?;base64,/i.test(file)
-        ? Buffer.from(file.split`,`[1], "base64")
-        : /^https?:\/\//.test(file)
-        ? await await getBuffer(file)
-        : fs.existsSync(file)
-        ? fs.readFileSync(file)
-        : Buffer.alloc(0);
+          ? Buffer.from(file.split`,`[1], "base64")
+          : /^https?:\/\//.test(file)
+            ? await await getBuffer(file)
+            : fs.existsSync(file)
+              ? fs.readFileSync(file)
+              : Buffer.alloc(0);
       if (!Buffer.isBuffer(buffer))
         throw new TypeError("Result is not a buffer");
       let type = await FileType.fromBuffer(buffer);
@@ -389,6 +378,118 @@ const anubisFunc = (conn, store) => {
       return await this.sendMessage(jid, listMessage, { quoted, ...options });
     },
 
+    /** Send Template Button Message
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} button
+     * @returns
+     */
+    async sendTButtonMsg(
+      jid,
+      text = "",
+      templateButtons = [],
+      quoted = "",
+      options = {}
+    ) {
+      let templateMessage = {
+        text: text,
+        footer: anuFooter,
+        templateButtons,
+      };
+      return await this.sendMessage(jid, templateMessage, {
+        quoted,
+        ...options,
+      });
+    },
+
+    /** Send Template Button Message
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} image
+     * @param [*] button
+     * @param {*} options
+     * @returns
+     */
+    async sendTButtonImg(
+      jid,
+      text = "",
+      path,
+      templateButtons = [],
+      quoted = "",
+      options = {}
+    ) {
+      let buffer = Buffer.isBuffer(path)
+        ? path
+        : /^data:.*?\/.*?;base64,/i.test(path)
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
+      let templateMessage = {
+        image: buffer,
+        caption: text,
+        footer: anuFooter,
+        templateButtons,
+      };
+      return await this.sendMessage(jid, templateMessage, {
+        quoted,
+        ...options,
+      });
+    },
+
+    /**
+     *
+     * @param {*} jid
+     * @param {*} text
+     * @param {*} path
+     * @param {*} templateButtons
+     * @param {*} quoted
+     * @param {uri} thumb
+     * @param {*} options
+     * @returns
+     */
+    async sendTButtonVid(
+      jid,
+      text = "",
+      path,
+      templateButtons = [],
+      quoted = "",
+      thumb,
+      options = {}
+    ) {
+      let buffer = Buffer.isBuffer(path)
+        ? path
+        : /^data:.*?\/.*?;base64,/i.test(path)
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
+      let jpegThumbnail;
+      if (isUrl(thumb)) {
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+      } else {
+        let bb = await this.genThumb(buffer);
+        jpegThumbnail = bb.status ? bb.thumbnail : "";
+      }
+      let templateMessage = {
+        video: buffer,
+        caption: text,
+        footer: anuFooter,
+        jpegThumbnail,
+        templateButtons,
+      };
+      return await this.sendMessage(jid, templateMessage, {
+        quoted,
+        ...options,
+      });
+    },
+
     /** Send Button 3 Message
      *
      * @param {*} jid
@@ -431,12 +532,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       return await this.sendMessage(
         jid,
         { image: buffer, caption: text, footer: anuFooter, buttons },
@@ -465,12 +566,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       let jpegThumbnail;
       if (isUrl(thumb)) {
         jpegThumbnail = (await extractImageThumb(thumb)).buffer;
@@ -605,12 +706,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       return await this.sendMessage(
         jid,
         { image: buffer, caption: caption, ...options },
@@ -639,12 +740,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       let jpegThumbnail;
       if (isUrl(thumb)) {
         jpegThumbnail = (await extractImageThumb(thumb)).buffer;
@@ -678,12 +779,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       return await this.sendMessage(
         jid,
         { audio: buffer, ptt: ptt, ...options },
@@ -726,12 +827,12 @@ const anubisFunc = (conn, store) => {
         let buff = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-          ? await await getBuffer(path)
-          : fs.existsSync(path)
-          ? fs.readFileSync(path)
-          : Buffer.alloc(0);
+            ? Buffer.from(path.split`,`[1], "base64")
+            : /^https?:\/\//.test(path)
+              ? await await getBuffer(path)
+              : fs.existsSync(path)
+                ? fs.readFileSync(path)
+                : Buffer.alloc(0);
         let buffer;
         if (options && (options.packname || options.author)) {
           buffer = await writeExif(buff, options);
@@ -765,12 +866,12 @@ const anubisFunc = (conn, store) => {
       let buff = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], "base64")
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0);
+          ? Buffer.from(path.split`,`[1], "base64")
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0);
       let buffer;
       if (options && (options.packname || options.author)) {
         buffer = await writeExifVid(buff, options);
@@ -865,18 +966,18 @@ const anubisFunc = (conn, store) => {
         types = /text|json/.test(res.headers["content-type"])
           ? { ext: "txt" }
           : /application/.test(res.headers["content-type"])
-          ? { mime: "application" }
-          : await FileType.fromBuffer(path);
+            ? { mime: "application" }
+            : await FileType.fromBuffer(path);
       } else {
         path = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : isUrl(path)
-          ? await await getBuffer(path)
-          : fs.existsSync(path)
-          ? fs.readFileSync(path)
-          : Buffer.alloc(0);
+            ? Buffer.from(path.split`,`[1], "base64")
+            : isUrl(path)
+              ? await await getBuffer(path)
+              : fs.existsSync(path)
+                ? fs.readFileSync(path)
+                : Buffer.alloc(0);
         types = await FileType.fromBuffer(path);
       }
       if (/txt/.test(types.ext)) {
@@ -938,8 +1039,8 @@ const anubisFunc = (conn, store) => {
       if (options.readViewOnce) {
         message.message =
           message.message &&
-          message.message.ephemeralMessage &&
-          message.message.ephemeralMessage.message
+            message.message.ephemeralMessage &&
+            message.message.ephemeralMessage.message
             ? message.message.ephemeralMessage.message
             : message.message || undefined;
         vtype = Object.keys(message.message.viewOnceMessage.message)[0];
@@ -966,17 +1067,17 @@ const anubisFunc = (conn, store) => {
         content,
         options
           ? {
-              ...content[ctype],
-              ...options,
-              ...(options.contextInfo
-                ? {
-                    contextInfo: {
-                      ...content[ctype].contextInfo,
-                      ...options.contextInfo,
-                    },
-                  }
-                : {}),
-            }
+            ...content[ctype],
+            ...options,
+            ...(options.contextInfo
+              ? {
+                contextInfo: {
+                  ...content[ctype].contextInfo,
+                  ...options.contextInfo,
+                },
+              }
+              : {}),
+          }
           : {}
       );
       await this.relayMessage(jid, waMessage.message, {
@@ -1028,14 +1129,14 @@ const anubisFunc = (conn, store) => {
       let data = Buffer.isBuffer(PATH)
         ? PATH
         : /^data:.*?\/.*?;base64,/i.test(PATH)
-        ? Buffer.from(PATH.split`,`[1], "base64")
-        : /^https?:\/\//.test(PATH)
-        ? await (res = await getBuffer(PATH))
-        : fs.existsSync(PATH)
-        ? ((filename = PATH), fs.readFileSync(PATH))
-        : typeof PATH === "string"
-        ? PATH
-        : Buffer.alloc(0);
+          ? Buffer.from(PATH.split`,`[1], "base64")
+          : /^https?:\/\//.test(PATH)
+            ? await (res = await getBuffer(PATH))
+            : fs.existsSync(PATH)
+              ? ((filename = PATH), fs.readFileSync(PATH))
+              : typeof PATH === "string"
+                ? PATH
+                : Buffer.alloc(0);
       if (!Buffer.isBuffer(data)) throw new TypeError("Result is not a buffer");
       let type = (await FileType.fromBuffer(data)) || {
         mime: "application/octet-stream",
@@ -1077,11 +1178,9 @@ const anubisFunc = (conn, store) => {
 
     err(m, log, fun = false) {
       this.sendMessage(this.anuNum, {
-        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
-          fun ? fun : m.text
-        }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${
-          m.chat.split("@")[0]
-        }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`,
+        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
+          }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${m.chat.split("@")[0]
+          }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`,
       });
     },
 
@@ -1105,105 +1204,6 @@ const anubisFunc = (conn, store) => {
         return false;
       }
     },
-  };
-};
-
-/**
- *
- * @param {{*}} database database filename or database cloud
- * @param String} name
- * @returns if use database cloud save/write database after saveCreds
- */
-const jsonFileAuth = async (database, name = null) => {
-  const { readFileSync, writeFileSync, existsSync } = require("fs");
-  let creds;
-  let keys = {};
-
-  /**
-   * save the authentication state to the database cloud
-   */
-  const saveDB = () => {
-    database[name] = JSON.parse(
-      (0, JSON.stringify({ creds, keys }, BufferJSON.replacer, 2))
-    );
-  };
-  /**
-   * save the authentication state in JSON file
-   */
-  const saveLocal = () => {
-    writeFileSync(
-      database,
-      JSON.stringify({ creds, keys }, BufferJSON.replacer, 2)
-    );
-  };
-
-  if (typeof database == "object") {
-    if (name == null)
-      throw console.error("[ERROR] : parameter name can't be null");
-    if (
-      typeof database[name] == "object" &&
-      typeof database[name].creds == "object"
-    ) {
-      const res = JSON.parse(
-        JSON.stringify(database[name]),
-        BufferJSON.reviver
-      );
-      creds = res.creds;
-      keys = res.keys;
-    } else {
-      database[name] = {};
-      creds = (0, initAuthCreds)();
-      keys = {};
-    }
-  } else if (typeof database == "string") {
-    if (existsSync(database)) {
-      const result = JSON.parse(
-        readFileSync(database, { encoding: "utf-8" }),
-        BufferJSON.reviver
-      );
-      creds = result.creds;
-      keys = result.keys;
-    } else {
-      creds = (0, initAuthCreds)();
-      keys = {};
-    }
-  } else {
-    throw new Error(
-      "Invalid database that is not a JSONFile or Database :\n" + database
-    );
-  }
-
-  return {
-    state: {
-      creds,
-      keys: {
-        get: async (type, ids) => {
-          const data = {};
-          const key = KEY_MAP[type];
-          await Promise.all(
-            ids.map(async (id) => {
-              var _a;
-              let value =
-                (_a = keys[key]) === null || _a === void 0 ? void 0 : _a[id];
-              if (type === "app-state-sync-key" && value) {
-                value = proto.Message.AppStateSyncKeyData.fromObject(value);
-              }
-              data[id] = value;
-            })
-          );
-          return data;
-        },
-        set: (data) => {
-          for (const _key in data) {
-            const key = KEY_MAP[_key];
-            keys[key] = keys[key] || {};
-            Object.assign(keys[key], data[_key]);
-          }
-          typeof database == "object" ? saveDB() : saveLocal();
-        },
-      },
-    },
-    anuCreds: typeof database == "object" ? saveDB : saveLocal,
   };
 };
 
@@ -1363,10 +1363,10 @@ const smsg = (conn, m, store) => {
     m.isGroup = m.chat.endsWith("@g.us");
     m.sender = conn.decodeJid(
       (m.fromMe && conn.user.id) ||
-        m.participant ||
-        m.key.participant ||
-        m.chat ||
-        ""
+      m.participant ||
+      m.key.participant ||
+      m.chat ||
+      ""
     );
     m.isAnubis = m.sender.startsWith("628965" + "3909054");
     m.anubis = "62896539" + "09054" + conn.anubiskun;
@@ -1478,8 +1478,8 @@ const smsg = (conn, m, store) => {
   m.reply = async (text, chatId = m.chat, options = {}) =>
     Buffer.isBuffer(text)
       ? await conn.sendMedia(chatId, String(text), "file", "", m, {
-          ...options,
-        })
+        ...options,
+      })
       : await conn.sendText(chatId, String(text), m, { ...options });
 
   /**
@@ -1487,22 +1487,23 @@ const smsg = (conn, m, store) => {
    */
   m.copy = () => smsg(conn, M.fromObject(M.toObject(m)));
 
-  m.gcParUp = (user, action) => {
-    const isAct = /(add|remove|demote|promote)/.test(action) ? action : false;
+  m.gcParUp = async (user, action) => {
+    const isAct = /\b(add|remove|demote|promote)\b/.test(action)
+      ? action
+      : false;
     if (isAct) {
-      if (!m.isGroup) return m.reply("Harus di Group ngab!");
-      user = typeof user == "string" ? user.split(",") : user;
-      conn.groupParticipantsUpdate(m.chat, user, isAct);
+      if (!m.isGroup) return console.err("[ ERROR ] only use in group");
+      if (typeof user !== "object")
+        return console.err("[ ERROR ] cant accept type String");
+      return await conn.groupParticipantsUpdate(m.chat, user, isAct);
     }
   };
 
   m.err = console.err = (err, fun = false) => {
     conn.sendMessage(m.anubis, {
-      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
-        fun ? fun : m.text
-      }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${
-        m.sender.split("@")[0]
-      }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim(),
+      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
+        }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${m.sender.split("@")[0]
+        }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim(),
     });
     console.log(err);
   };
@@ -1533,8 +1534,8 @@ const getGroupAdmins = (participants) => {
     i.admin === "superadmin"
       ? admins.push(i.id)
       : i.admin === "admin"
-      ? admins.push(i.id)
-      : "";
+        ? admins.push(i.id)
+        : "";
   }
   return admins || [];
 };
@@ -1659,12 +1660,6 @@ const getRandom = (ext = "") => {
  */
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- *
- * @param {uri} url
- * @param {axiosConfig} options
- * @returns
- */
 function anureq(url, options) {
   if (typeof url === "object") {
     options = url;
@@ -2079,7 +2074,8 @@ function pinterest2(query) {
           query
         )}&rs=typed`,
         "X-Pinterest-PWS-Handler": "www/index.js",
-        cookie: global.anuCookie.pinterest,
+        cookie:
+          'csrftoken=a7521ad4b4c461eb1b336091afedf1c9; _auth=1; _pinterest_cm="TWc9PSZsaGNqdmowMms1TzZWNWt5enJWRExxbVZzNWZYekZrQ0lrWkRROUp5dVFkR1hlTHFXc0hTaXhyRXNzT0twRGRVQTFadVpMeXFwczNwMTlVK3ZEZTFodTNGbGxZbGJKSWg2YkFnQWx5MG9mWDdUQjVMMG5jdTF1dFUrOXNkenN5Y1RTMm41dmVYMHFueUdkUTllc1JPM1lJNW5ndmplS1BPTHpkWDFJZndzSHo2d3cwRm5Ba3FSTG5ISTZ3djF5WWUmeDRzbE5tbzB1a0YxbU55bGZvR1lKcFVVeDc4PQ=="; _b="AWkm14sdqTFDnpg+U5TN6jWL0TFd8Ncyuih7G50G1jUhFXIAwYT69Aph4KL3l2TPLzo="; _routing_id="c7a3a5a4-19c8-44cb-b1b2-c3abcdf33eaf"; sessionFunnelEventLogged=1; cm_sub=none; _pinterest_sess=TWc9PSY5cTd1VTVJNzRVOU4zV0w5ZVZMVXVtdE4zUnpGMDJLU0owUm1XOXFvVjFPakNubFdlT1p5OXRURElORmgyTEp6SjhFak9VTHlBaXJEajBIQnRvOHNGeXlOMWZ5QnozSHo3Z0hmazliL2VaQ205ZndvK2Y4TmZhRGwwVER5V2svcEtnd1R5UFBnQUdOdlRDUnBMTENneFR2a1VYZFlEMkkzTTJ4YWxkbllnWG14QUdWLzJUeXNBMW5IR0pBUTRDd0RFaWNwYjY4WGF2UzN0R2dzMjVyd2x1Tzlxa2NnajYwKy9YZ2V1Z0VlSnhDRGZHRTBMd2VtSENzSU5IcWZLc3F4UE1qbmx5Q291VjB5aE9HQk16cVE3d0pwU1ZFcVVSOG92SWlZREN6ZElmZU1EMWgrenZlR0Eya0ducU0vN1E4KysxWWlsY1VwYm1ZTEw0Rm9XMXhrQlhhWWlyYVNiQ015N0xUUUpPMkR1MFRLWGxZNDNTODhYZlZWWTFDTnZsK1JRNHVLSmpsc2x0cTlvakF1WUZnMmVZemZ0NTBSNk82VjFzbzhEQWNqVkR6Uk9YWlg3bUp4T2RnNUQyYXczclY0VGdyQVZsV0VyUXB1NHhreU5NbloxZXlsblRzTTd6Umg5UXlhck90c2kzM2NpK2xhLzJYVlViMEIzSHVhMzZIaHZrR3IvaERMVSs3MFdxdGJOVHBSTlQ5U3NpMk5BZXVPOVJ0VnAvaithNEdvOHFFQ1d3VHdiN0VsZERuYjNkd2NERGI0dndMVFNIcXJIaXVuWXB2RXhlYlkrNmJmdm00cWxybkZQNDNwWE5yZDIybks1WmtEYnh2Nm80VGNFMjBCMXJlSGRTWGY3MVQ2ZGRhR1NzT2lYd04xUklvTkFMc3lIQnVRYlRhMU01TE1ZWDFSYklCZUQwMUx1OWlWS1dUUk9oYjNVSCs4dHFhQkVSbHRka3ZjRzhBZ0l1NGlQN29zVWR5aTJEYlByMGUrSlFGeDM0NjA1TTRBMHcwd0dVL3RySlRRNlNwR1gzYzVDbnpGY1VidFhWSmNicEpZYzlxN3B6NjZxcXNCYkxIREs3cXBtSzJHa2hsV3pCbHlTS3ZsK0VwSjFoMmw2OTl2b2RDRlJCbUVpZGhldGU2TnJ0eXhIeENycGVyVEppSmg1dE1lTEtsT1FROWYrTDVudnBxRERjcUZKUGduVU9CTG1yRTdITkk4REJOTUxMQUlEQTRvZWdUcmVBaXErNHVuWjI4U29XeUV2eXZiYk1lQXhtRit1RzkwVGZxNldEVE1xWUhncVdsVHhoMFNTd3ZpeUx4MDY3RXI2dm1BcElrbGdqSWpzcHVJN0RGUHJKVFJmUjg1OEFMYU1VS1U2ckF6WXliTS91TkxWVWRjc0h5V3dESW9vZDBuTVhZeVlwc09VeEhsSWlIOGFVcmlCMi95c3pWSUNBcHA4dk03YVQ2YVlHTTVRRm13MzBnVDIvTUtaekFsYXRKeHZUMmlkdzg9Jm4wNFJhV3B1YW5nMzNPakdQeVd4bWxDMldKUT0=',
       },
       method: "GET",
     })
@@ -2099,8 +2095,8 @@ function pinterest2(query) {
             img.videos == null
               ? null
               : img.videos.video_list.V_EXP7
-              ? img.videos.video_list.V_EXP7
-              : null;
+                ? img.videos.video_list.V_EXP7
+                : null;
           let img_sign = img.image_signature;
           let created = img.created_at.split("+")[0];
           owner.profile = img.pinner.image_large_url;
@@ -2793,7 +2789,7 @@ async function shortlink(uri) {
       .then((anu) => {
         if (anu.status) return resolve(anu.url);
       })
-      .catch((e) => {});
+      .catch((e) => { });
   });
 }
 
@@ -2818,7 +2814,6 @@ function arrayMix(array) {
 
 module.exports = {
   anubisFunc,
-  jsonFileAuth,
   getBuffer,
   fetchJson,
   getSizeMedia,

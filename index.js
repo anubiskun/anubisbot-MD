@@ -10,7 +10,7 @@ let { spawn } = require('child_process')
 let Path = require('path')
 var isRunning = false
 
- function start(file) {
+function start(file) {
   if (isRunning) return
   isRunning = true
   let args = [Path.join(__dirname, file), ...process.argv.slice(2)]
@@ -30,7 +30,7 @@ var isRunning = false
       case 'stop':
         p.kill();
         process.exit(1);
-      break
+        break
     }
   })
   p.on('exit', code => {

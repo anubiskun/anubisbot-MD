@@ -7,13 +7,13 @@
 
 const { subFinder } = require("../library/lib")
 
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix }) => {
+module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }) => {
     if (!text) return m.reply(`*Example* : ${usedPrefix + command} google.com`)
     if (!/\./.test(text)) return m.reply(`*Example* : ${usedPrefix + command} google.com`)
     if (/https?/.test(text)) text = text.replace(/https?\:\/\//, '')
     m.reply(mess.wait)
     try {
-        const {status, data} = await subFinder(text)
+        const { status, data } = await subFinder(text)
         if (!status) return m.reply('ga ada subdomain ngab!')
         let pesan = `[ SUBDOMAIN FINDER ] \n`
         for (let i = 0; i < data.length; i++) {
@@ -28,9 +28,8 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix })
     } catch (err) {
         console.err(err)
         m.reply('sory ngab lagi error!')
-}
+    }
 }
 anuplug.help = ['subfinder']
 anuplug.tags = ['inject']
 anuplug.command = /^(subfind|subfinder)$/i
-    

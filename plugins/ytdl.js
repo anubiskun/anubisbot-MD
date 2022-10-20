@@ -15,8 +15,7 @@ module.exports = anuplug = async (
 ) => {
   if (!text)
     return m.reply(
-      `Example : ${
-        usedPrefix + command
+      `Example : ${usedPrefix + command
       } https://youtube.com/watch?v=PtFMh6Tccag`
     );
   switch (command) {
@@ -28,8 +27,7 @@ module.exports = anuplug = async (
         try {
           if (!isUrl(text))
             return m.reply(
-              `Example : ${
-                usedPrefix + command
+              `Example : ${usedPrefix + command
               } https://youtube.com/watch?v=PtFMh6Tccag`
             );
           const ytdl = await y2mate(text);
@@ -134,14 +132,10 @@ module.exports = anuplug = async (
             return anubis.sendImage(
               m.chat,
               media.thumb,
-              `*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n*Title* : ${
-                media.title
-              }\n*File Size* : ${media.size}\n*Likes* : ${
-                media.likes
-              }\n*Dislike* : ${media.dislikes}\n*Rating* : ${
-                media.rating
-              }\n*Views* : ${media.viewCount}\n*Ext* : ${
-                media.type
+              `*FILE MELEBIHI BATAS SILAHKAN GUNAKAN LINK*\n\n*Title* : ${media.title
+              }\n*File Size* : ${media.size}\n*Likes* : ${media.likes
+              }\n*Dislike* : ${media.dislikes}\n*Rating* : ${media.rating
+              }\n*Views* : ${media.viewCount}\n*Ext* : ${media.type
               }\n*Quality* : ${media.quality}\n*Link* : ${await shortlink(
                 url
               )}`,

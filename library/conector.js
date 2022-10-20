@@ -110,6 +110,7 @@ module.exports = {
           if (!("ismute" in chats)) chats.ismute = false;
           if (!("isBanned" in chats)) chats.isBanned = false;
           if (!("antiviewonce" in chats)) chats.antiviewonce = false;
+          if (!("antibadword" in chats)) chats.antibadword = false;
           if (!("antilink" in chats)) chats.antilink = false;
           if (!("welcomer" in chats)) chats.welcomer = false;
           if (!("banUrl" in chats)) chats.banUrl = [];
@@ -119,14 +120,16 @@ module.exports = {
           anubis.db.data.settings[botNumber] = {};
         let setting = anubis.db.data.settings[botNumber];
         if (!("anticall" in setting)) setting.anticall = true;
+        if (!("antilink" in setting)) setting.antilink = false;
+        if (!("antibadword" in setting)) setting.antibadword = false;
         if (!("automess" in setting)) setting.automess = true;
         if (!("restrict" in setting)) setting.restrict = false;
         if (!("igCookie" in setting)) setting.igCookie = global.anuCookie.ig;
-        if (typeof setting.thumbnail !== "object")
-          setting.thumbnail = global.thumb;
+        if (!("cPlayerId" in setting)) setting.cPlayerId = "#999";
+        if (typeof setting.thumbnail !== "object") setting.thumbnail = {};
         if (!("buffer" in setting.thumbnail))
           setting.thumbnail.buffer = anubis.decodeBuffer(global.thumb);
-        if (!("thumb" in setting.thumbnail)) setting.thumbnail.thumb = ''
+        if (!("thumb" in setting.thumbnail)) setting.thumbnail.thumb = false;
         if (!("type" in setting.thumbnail)) setting.thumbnail.type = "image";
 
         let others = anubis.db.data.others;

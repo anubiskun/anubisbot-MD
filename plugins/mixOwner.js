@@ -9,8 +9,8 @@ let cp = require('child_process')
 let { promisify } = require('util')
 let exec = promisify(cp.exec).bind(cp)
 
-module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, botNumber }) => {
-    switch(command){
+module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix, botNumber }) => {
+    switch (command) {
         case 'addnote':
         case 'an':
             {
@@ -33,7 +33,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, b
                 }
                 m.reply('note berhasil di simpan ngab!')
             }
-        break;
+            break;
         case 'delnote':
         case 'dn':
             {
@@ -43,7 +43,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, b
                 delete msgs[text.toLowerCase()];
                 m.reply('berhasil ngab!')
             }
-        break;
+            break;
         case 'rennote':
         case 'rn':
             {
@@ -57,7 +57,7 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, b
                 delete msgs[nama.toLowerCase()];
                 m.reply('berhasil ngab!')
             }
-        break;
+            break;
         case 'public':
             {
                 let public = botpublic
@@ -72,82 +72,82 @@ module.exports = anuplug = async(m, anubis, { text, command, args, usedPrefix, b
                 if (!text) return anubis.sendMessage(m.chat, buttonMessage, { quoted: m });
                 if (text == 'on') {
                     botpublic = true
-                    anubis.sendMessage(m.chat, {text: 'Bot sekarang bisa merespons semua orang!'}, {quoted: m})
+                    anubis.sendMessage(m.chat, { text: 'Bot sekarang bisa merespons semua orang!' }, { quoted: m })
                 } else if (text == 'off') {
                     botpublic = false
-                    anubis.sendMessage(m.chat, {text: 'Bot sekarang hanya merespons owner/admin!'}, {quoted: m})
+                    anubis.sendMessage(m.chat, { text: 'Bot sekarang hanya merespons owner/admin!' }, { quoted: m })
                 } else {
-                    anubis.sendMessage(m.chat, {text: 'Mau lu apa bangsad??!!'}, {quoted: m})
+                    anubis.sendMessage(m.chat, { text: 'Mau lu apa bangsad??!!' }, { quoted: m })
                 }
             }
-        break;
+            break;
         case 'setexif':
             {
                 if (!text) return m.reply(`Example : ${usedPrefix + command} stiker by anubiskun`);
                 global.packname = text;
                 m.reply(`Exif berhasil diubah menjadi\n\n🌀> Packname : ${global.packname}\n🌀> Author : ${global.author}`);
             }
-        break;
+            break;
         case 'setcookie': {
             if (!text) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
             const a = text.split('|')
             if (!a[0]) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
             if (!a[1]) return m.reply(`Example: ${usedPrefix + command} ig|cookienya`)
-            switch (a[0]){
+            switch (a[0]) {
                 case 'ig': {
                     anubis.db.data.settings[botNumber].igCookie = String(a[1]);
                     m.reply('Berhasil mereplace cookie ' + a[0])
                 }
-                break;
+                    break;
             }
         }
-        break;
+            break;
         case 'restart':
             {
                 anubis.db.data.database.lastRestart = true
-                const a = await anubis.sendMessage(m.chat, {text: 'Bot sedang di restart tunggu beberapa saat ngab!'}, {quoted: m})
+                const a = await anubis.sendMessage(m.chat, { text: 'Bot sedang di restart tunggu beberapa saat ngab!' }, { quoted: m })
                 if (a.status) {
                     await anubis.db.write()
                     process.send('restart')
                 }
             }
-        break;
+            break;
         case '$':
             {
                 if (!text) return
                 if (!anubis.user.id) return
                 let o
                 try {
-                o = await exec(text)
+                    o = await exec(text)
                 } catch (e) {
-                o = e
+                    o = e
                 } finally {
-                let { stdout, stderr } = o
-                if (stdout.trim()) m.reply(stdout)
-                if (stderr.trim()) m.reply(stderr)
+                    let { stdout, stderr } = o
+                    if (stdout.trim()) m.reply(stdout)
+                    if (stderr.trim()) m.reply(stderr)
                 }
             }
-        break;
+            break;
         case 'cthumb':
-        {
-            if (!/(webp|image|video)/.test(mime)) return m.reply('reply/send image ngab!')
-            const thumb = anubis.db.data.settings[botNumber].thumbnail
-            const thm = await anubis.downloadMediaMessage(qmsg)
-            const th = await anubis.genThumb(thm)
-            thumb.buffer =  anubis.decodeBuffer(thm)
-            thumb.type = th.type
-            thumb.thumb =  anubis.decodeBuffer(th.thumbnail)
-            await anubis.db.write()
-            if (th.type === 'image') {
-            anubis.sendMessage(m.chat, {image: anubis.encodeBuffer(thumb.buffer), caption: 'Berhasil mengganti Thumb Menu ngab!'}, {quoted: m})
-            } else {
-            anubis.sendMessage(m.chat, { video:  anubis.encodeBuffer(thumb.buffer), jpegThumbnail: anubis.encodeBuffer(thumb.thumb), gifPlayback: true, caption: 'Berhasil mengganti Thumb Menu ngab!'}, { quoted: m })
+            {
+                if (!/(webp|image|video)/.test(mime)) return m.reply('reply/send image ngab!')
+                const thumb = anubis.db.data.settings[botNumber].thumbnail
+                const thm = await anubis.downloadMediaMessage(qmsg)
+                const th = await anubis.genThumb(thm)
+                thumb.buffer = anubis.decodeBuffer(thm)
+                thumb.type = th.type
+                thumb.thumb = anubis.decodeBuffer(th.thumbnail)
+                await anubis.db.write()
+                if (th.type === 'image') {
+                    anubis.sendMessage(m.chat, { image: anubis.encodeBuffer(thumb.buffer), caption: 'Berhasil mengganti Thumb Menu ngab!' }, { quoted: m })
+                } else {
+                    anubis.sendMessage(m.chat, { video: anubis.encodeBuffer(thumb.buffer), jpegThumbnail: anubis.encodeBuffer(thumb.thumb), gifPlayback: true, caption: 'Berhasil mengganti Thumb Menu ngab!' }, { quoted: m })
+                }
             }
-        }
-        break;
+            break;
     }
 }
-anuplug.help = ['addnote','delnote','rennote','public','setexif','restart','$','insta','setcookie','cthumb']
+anuplug.help = ['addnote', 'delnote', 'rennote', 'public', 'setexif', 'restart', '$', 'insta', 'setcookie', 'cthumb']
 anuplug.tags = ['owner']
 anuplug.command = /^(addnote|an|delnote|dn|rennote|rn|public|setexif|restart|[$]|insta|setcookie|cthumb)$/i
 anuplug.isAnubis = true
