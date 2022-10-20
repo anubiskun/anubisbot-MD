@@ -83,9 +83,9 @@ global.reload = (_event, filename) => {
 async function reloadConnector() {
     let { anubisFunc, smsg } = require('./library/lib')
     const { version, error } = await fetchLatestWaWebVersion()
-    // const { state, anuCreds } = await jsonFileAuth(database.data.auth, global.sesName) // uncomment this line if you want to use database cloud
+    const { state, anuCreds } = await jsonFileAuth(database.data.auth, global.sesName) // uncomment this line if you want to use database cloud
     // const {state, anuCreds} = await jsonFileAuth(global.sesName + '.json') // uncomment this line if you want to use database local
-    const {state, anuCreds} = await useMultiFileAuthState(global.sesName) // uncomment this line if you want to use multi file auth state
+    // const {state, anuCreds} = await useMultiFileAuthState(global.sesName) // uncomment this line if you want to use multi file auth state
     await database.write()
     const anubis = WAConnection({
         version: (error) ? [2, 2234, 13] : version,
