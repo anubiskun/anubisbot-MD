@@ -30,11 +30,7 @@ const BodyForm = require("form-data");
 const util = require("util");
 const FileType = require("file-type");
 const { writeExifVid, writeExif } = require("./exif");
-const {
-  videoToWebp,
-  videoToThumb,
-  imageToThumb,
-} = require("./converter");
+const { videoToWebp, videoToThumb, imageToThumb } = require("./converter");
 
 const KEY_MAP = {
   "pre-key": "preKeys",
@@ -1664,11 +1660,17 @@ const getRandom = (ext = "") => {
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * 
- * @param {axiosConfig} options 
- * @returns 
+ *
+ * @param {uri} url
+ * @param {axiosConfig} options
+ * @returns
  */
-function anureq(options) {
+function anureq(url, options) {
+  if (typeof url === "object") {
+    options = url;
+  } else {
+    options.url = url;
+  }
   return new Promise((resolve, reject) => {
     axios({ ...options })
       .then(({ data }) => resolve(data))
@@ -2077,8 +2079,7 @@ function pinterest2(query) {
           query
         )}&rs=typed`,
         "X-Pinterest-PWS-Handler": "www/index.js",
-        cookie:
-          global.anuCookie.pinterest,
+        cookie: global.anuCookie.pinterest,
       },
       method: "GET",
     })
@@ -2779,7 +2780,8 @@ function slTiny(url) {
  *
  * @param {uri} url
  */
-async function shortlink(url) {
+async function shortlink(uri) {
+  const url = await anureq({ url: "https://ouo.io/api/cqZDr8PI?s=" + uri });
   return new Promise((resolve, reject) => {
     slBitly(url)
       .then((anu) => {
