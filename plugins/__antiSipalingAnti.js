@@ -10,25 +10,27 @@ module.exports = anuplug = {
         ...database.banUrl,
         ...chat.banUrl
       ]
-      let regx = new RegExp(`(?:(?:https?|ftp)\\:(?:[A-Za-z0-9\\/]+)?\\.?)?(${banUrls.map((v) => v).join('|')})(?:[A-Za-z0-9\\/\\-?=%.]+)?`, 'gi')
-      let isLink = m.text.match(regx)
-      if (!isBotAdmin) return global.dfail('isBotAdmin', m, anubis)
-      if (isLink) {
-        user.warn = user.warn + 1
-        const pes = `[ Antilink ]\n\nPesan mengandung link!\n${isLink.map((v) => '> ' + v).join('\n')}\nHai, @${m.sender.split('@')[0]} warning bertambah 1, max 3 warning\nJika Melebihi 3 maka akan di keluarkan dari group *${await anubis.getName(m.chat, true)}*\nTotal Warning anda : ${user.warn}`;
-        const pWarn = await anubis.sendMessage(m.chat, { text: pes, mentions: [m.sender] }, { quoted: m })
-        if (pWarn.status && user.warn > 3) {
-          let a = await anubis.sendImage(m.chat, 'https://i.pinimg.com/736x/c5/32/aa/c532aafc70f9b4e586e38bb7e0c71c7b.jpg', 'hayoo mau keluar di dalem atau di luar?', m)
-          if (a.status) {
-            setTimeout(() => {
-              if (isAdmin) {
-                anubis.sendImage(m.chat, 'https://64.media.tumblr.com/9fd00065505abbfcf5e54da7c195ea95/6e338d93859f114e-11/s640x960/824694309443f685756f445bc87ebab7f52331d8.png', 'Eee? gome onii-chan! 🤢', m)
-                user.warn = 0
-              } else {
-                m.gcParUp(m.sender, 'remove')
-                user.warn = 0
-              }
-            }, 3000)
+      if (typeof banUrls[0] === 'string') {
+        let regx = new RegExp(`(?:(?:https?|ftp)\\:(?:[A-Za-z0-9\\/]+)?\\.?)?(${banUrls.map((v) => v).join('|')})(?:[A-Za-z0-9\\/\\-?=%.]+)?`, 'gi')
+        let isLink = m.text.match(regx)
+        if (!isBotAdmin) return global.dfail('isBotAdmin', m, anubis)
+        if (isLink) {
+          user.warn = user.warn + 1
+          const pes = `[ Antilink ]\n\nPesan mengandung link!\n${isLink.map((v) => '> ' + v).join('\n')}\nHai, @${m.sender.split('@')[0]} warning bertambah 1, max 3 warning\nJika Melebihi 3 maka akan di keluarkan dari group *${await anubis.getName(m.chat, true)}*\nTotal Warning anda : ${user.warn}`;
+          const pWarn = await anubis.sendMessage(m.chat, { text: pes, mentions: [m.sender] }, { quoted: m })
+          if (pWarn.status && user.warn > 3) {
+            let a = await anubis.sendImage(m.chat, 'https://i.pinimg.com/736x/c5/32/aa/c532aafc70f9b4e586e38bb7e0c71c7b.jpg', 'hayoo mau keluar di dalem atau di luar?', m)
+            if (a.status) {
+              setTimeout(() => {
+                if (isAdmin) {
+                  anubis.sendImage(m.chat, 'https://64.media.tumblr.com/9fd00065505abbfcf5e54da7c195ea95/6e338d93859f114e-11/s640x960/824694309443f685756f445bc87ebab7f52331d8.png', 'Eee? gome onii-chan! 🤢', m)
+                  user.warn = 0
+                } else {
+                  m.gcParUp([m.sender], 'remove')
+                  user.warn = 0
+                }
+              }, 3000)
+            }
           }
         }
       }
@@ -44,7 +46,6 @@ module.exports = anuplug = {
       let words = database.banWords.map((v) => v).join('|')
       let regex = RegExp(`\\b(${words})\\b`, 'gi')
       let isBan = m.text.match(regex)
-      console.log(isBan)
       if (isBan && !isAdmin) {
         let a = await m.reply(`kata kasar *${isBan.map((v) => v).join(',')}* detected!`)
         if (a.status) {

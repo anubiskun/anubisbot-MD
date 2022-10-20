@@ -89,8 +89,8 @@ module.exports = {
         let database = anubis.db.data.database
         if (typeof database.note !== "object") database.note = {};
         if (!("lastRestart" in database)) database.lastRestart = false;
-        if (!("banUrl" in database)) database.banUrl = [];
-        if (!("banWords" in database)) database.banWords = [];
+        if (!("banUrl" in database)) database.banUrl = ['chat.whatsapp.com'];
+        if (!("banWords" in database)) database.banWords = ['kontol','memek','meki'];
 
         if (m.isGroup) {
           if (typeof database.note[m.chat] !== "object") database.note[m.chat] = {};
