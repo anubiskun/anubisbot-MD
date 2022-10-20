@@ -5,7 +5,7 @@
  * https://github.com/anubiskun
  */
 
-let fs = require("fs");
+let fs = require('fs')
 const {
   default: WAConnection,
   proto,
@@ -14,21 +14,21 @@ const {
   generateWAMessageFromContent,
   generateForwardMessageContent,
   getContentType,
-  extractImageThumb,
-} = require("@adiwajshing/baileys");
-const Path = require("path");
-const axios = require("axios").default;
-const { parsePhoneNumber } = require("awesome-phonenumber");
-const moment = require("moment-timezone");
-const { sizeFormatter } = require("human-readable");
-const cheerio = require("cheerio");
-const isUrl = require("is-url");
-const { startFollowing } = require("follow-redirect-url");
-const BodyForm = require("form-data");
-const util = require("util");
-const FileType = require("file-type");
-const { writeExifVid, writeExif } = require("./exif");
-const { videoToWebp, videoToThumb, imageToThumb } = require("./converter");
+  extractImageThumb
+} = require('@adiwajshing/baileys')
+const Path = require('path')
+const axios = require('axios').default
+const { parsePhoneNumber } = require('awesome-phonenumber')
+const moment = require('moment-timezone')
+const { sizeFormatter } = require('human-readable')
+const cheerio = require('cheerio')
+const isUrl = require('is-url')
+const { startFollowing } = require('follow-redirect-url')
+const BodyForm = require('form-data')
+const util = require('util')
+const FileType = require('file-type')
+const { writeExifVid, writeExif } = require('./exif')
+const { videoToWebp, videoToThumb, imageToThumb } = require('./converter')
 
 /**
  *
@@ -44,51 +44,51 @@ const anubisFunc = (conn, store) => {
      * @param {*} jid
      * @returns
      */
-    decodeJid(jid) {
-      if (!jid) return jid;
+    decodeJid (jid) {
+      if (!jid) return jid
       if (/:\d+@/gi.test(jid)) {
-        let decode = jidDecode(jid) || {};
+        let decode = jidDecode(jid) || {}
         return (
-          (decode.user && decode.server && decode.user + "@" + decode.server) ||
+          (decode.user && decode.server && decode.user + '@' + decode.server) ||
           jid
-        );
-      } else return jid;
+        )
+      } else return jid
     },
 
-    getName(jid, withoutContact = false) {
-      let id = this.decodeJid(jid);
-      withoutContact = this.withoutContact || withoutContact;
-      let v;
-      if (id.endsWith("@g.us"))
-        return new Promise(async (resolve) => {
-          v = store.contacts[id] || {};
-          if (!(v.name || v.subject)) v = (await this.groupMetadata(id)) || {};
+    getName (jid, withoutContact = false) {
+      let id = this.decodeJid(jid)
+      withoutContact = this.withoutContact || withoutContact
+      let v
+      if (id.endsWith('@g.us'))
+        return new Promise(async resolve => {
+          v = store.contacts[id] || {}
+          if (!(v.name || v.subject)) v = (await this.groupMetadata(id)) || {}
           resolve(
             v.name ||
-            v.subject ||
-            parsePhoneNumber("+" + id.replace(this.anubiskun, "")).getNumber(
-              "international"
-            )
-          );
-        });
+              v.subject ||
+              parsePhoneNumber('+' + id.replace(this.anubiskun, '')).getNumber(
+                'international'
+              )
+          )
+        })
       else
         v =
-          id === "0" + this.anubiskun
+          id === '0' + this.anubiskun
             ? {
-              id,
-              name: "WhatsApp",
-            }
+                id,
+                name: 'WhatsApp'
+              }
             : id === this.decodeJid(this.user.id)
-              ? this.user
-              : store.contacts[id] || {};
+            ? this.user
+            : store.contacts[id] || {}
       return (
-        (withoutContact ? "" : v.name) ||
+        (withoutContact ? '' : v.name) ||
         v.subject ||
         v.verifiedName ||
-        parsePhoneNumber("+" + jid.replace(this.anubiskun, "")).getNumber(
-          "international"
+        parsePhoneNumber('+' + jid.replace(this.anubiskun, '')).getNumber(
+          'international'
         )
-      );
+      )
     },
     /**
      *
@@ -97,28 +97,28 @@ const anubisFunc = (conn, store) => {
      * @param {m} quoted
      * @param {{}} opts
      */
-    async sendContact(jid, contact, quoted = "", opts = {}) {
-      let list = [];
-      contact = typeof contact == "string" ? contact.split(",") : contact;
+    async sendContact (jid, contact, quoted = '', opts = {}) {
+      let list = []
+      contact = typeof contact == 'string' ? contact.split(',') : contact
       for (let i of contact) {
-        i = /@/.test(i) ? i.split("@")[0] : i;
+        i = /@/.test(i) ? i.split('@')[0] : i
         list.push({
           displayName: await this.getName(i + this.anubiskun),
           vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${await this.getName(
             i + this.anubiskun
           )}\nFN:${await this.getName(
             i + this.anubiskun
-          )}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:anubiskun.xyz@gmail.com\nitem2.X-ABLabel:Email\nitem3.URL:https://instagram.com/anubiskun.xyz\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`,
-        });
+          )}\nitem1.TEL;waid=${i}:${i}\nitem1.X-ABLabel:Ponsel\nitem2.EMAIL;type=INTERNET:anubiskun.xyz@gmail.com\nitem2.X-ABLabel:Email\nitem3.URL:https://instagram.com/anubiskun.xyz\nitem3.X-ABLabel:Instagram\nitem4.ADR:;;Indonesia;;;;\nitem4.X-ABLabel:Region\nEND:VCARD`
+        })
       }
       return await this.sendMessage(
         jid,
         {
           contacts: { displayName: `${list.length} Contact`, contacts: list },
-          ...opts,
+          ...opts
         },
         { quoted }
-      );
+      )
     },
 
     /**
@@ -129,65 +129,65 @@ const anubisFunc = (conn, store) => {
      * @param {*} quoted
      * @param {*} options
      */
-    async sendFileUrl(jid, url, caption, quoted, options = {}) {
-      let mime = "";
-      let res = await axios.get(url);
-      mime = res.headers["content-type"];
-      if (mime.split("/")[1] === "gif") {
+    async sendFileUrl (jid, url, caption, quoted, options = {}) {
+      let mime = ''
+      let res = await axios.get(url)
+      mime = res.headers['content-type']
+      if (mime.split('/')[1] === 'gif') {
         return await this.sendMessage(
           jid,
           {
             video: await getBuffer(url),
             caption: caption,
             gifPlayback: true,
-            ...options,
+            ...options
           },
           { quoted: quoted, ...options }
-        );
+        )
       }
-      let type = mime.split("/")[0] + "Message";
-      if (mime === "application") {
+      let type = mime.split('/')[0] + 'Message'
+      if (mime === 'application') {
         return await this.sendMessage(
           jid,
           {
             document: await getBuffer(url),
-            mimetype: "application/pdf",
+            mimetype: 'application/pdf',
             caption: caption,
-            ...options,
+            ...options
           },
           { quoted: quoted, ...options }
-        );
+        )
       }
-      if (mime.split("/")[0] === "image") {
+      if (mime.split('/')[0] === 'image') {
         return await this.sendMessage(
           jid,
           { image: await getBuffer(url), caption: caption, ...options },
           { quoted: quoted, ...options }
-        );
+        )
       }
-      if (mime.split("/")[0] === "video") {
+      if (mime.split('/')[0] === 'video') {
         return await this.sendMessage(
           jid,
           {
             video: await getBuffer(url),
             caption: caption,
-            mimetype: "video/mp4",
-            ...options,
+            mimetype: 'video/mp4',
+            ...options
           },
           { quoted: quoted, ...options }
-        );
+        )
       }
-      if (mime.split("/")[0] === "audio") {
+      if (mime.split('/')[0] === 'audio') {
         return await this.sendMessage(
           jid,
           {
             audio: await getBuffer(url),
             caption: caption,
-            mimetype: "audio/mpeg",
-            ...options,
+            mimetype: 'audio/mpeg',
+            ...options
           },
           { quoted: quoted, ...options }
-        );
+        )
       }
     },
 
@@ -198,32 +198,32 @@ const anubisFunc = (conn, store) => {
      * @param {*} text
      * @param {Numeric} value
      */
-    sendPaymentMsg(jid, sender, text = "", value) {
+    sendPaymentMsg (jid, sender, text = '', value) {
       const payment = generateWAMessageFromContent(
         jid,
         {
           requestPaymentMessage: {
-            currencyCodeIso4217: "IDR",
+            currencyCodeIso4217: 'IDR',
             amount1000: value,
             requestFrom: sender,
             noteMessage: {
               extendedTextMessage: {
-                text: text,
-              },
+                text: text
+              }
             },
-            expiryTimestamp: "1660787819",
+            expiryTimestamp: '1660787819',
             amount: {
               value: value,
-              currencyCode: "IDR",
-            },
-          },
+              currencyCode: 'IDR'
+            }
+          }
         },
         { userJid: jid }
-      );
+      )
 
       return this.relayMessage(jid, payment.message, {
-        messageId: payment.key.id,
-      });
+        messageId: payment.key.id
+      })
     },
 
     /** Send Poll Message
@@ -232,19 +232,19 @@ const anubisFunc = (conn, store) => {
      * @param {*} name
      * @param [*] options
      */
-    sendPoll(jid, name = "", options = []) {
+    sendPoll (jid, name = '', options = []) {
       const poll = generateWAMessageFromContent(
         jid,
         proto.Message.fromObject({
           pollCreationMessage: {
             name: name,
             options: options,
-            selectableOptionsCount: options.length,
-          },
+            selectableOptionsCount: options.length
+          }
         }),
         { userJid: jid }
-      );
-      return this.relayMessage(jid, poll.message, { messageId: poll.key.id });
+      )
+      return this.relayMessage(jid, poll.message, { messageId: poll.key.id })
     },
 
     /** Send Simple Poll Message
@@ -252,21 +252,21 @@ const anubisFunc = (conn, store) => {
      * @param {*} jid
      * @param {*} name
      */
-    sendSimplePoll(jid, name = "") {
+    sendSimplePoll (jid, name = '') {
       const simplePoll = generateWAMessageFromContent(
         jid,
         proto.Message.fromObject({
           pollCreationMessage: {
             name: name,
-            options: [{ optionName: "Yes" }, { optionName: "No" }],
-            selectableOptionsCount: 2,
-          },
+            options: [{ optionName: 'Yes' }, { optionName: 'No' }],
+            selectableOptionsCount: 2
+          }
         }),
         { userJid: jid }
-      );
+      )
       return this.relayMessage(jid, simplePoll.message, {
-        messageId: simplePoll.key.id,
-      });
+        messageId: simplePoll.key.id
+      })
     },
 
     /** Send Order Message
@@ -281,15 +281,15 @@ const anubisFunc = (conn, store) => {
      * @param {*} tokens
      * @param {Numeric} amount
      */
-    sendOrder(
+    sendOrder (
       jid,
-      text = "",
-      orid = "",
+      text = '',
+      orid = '',
       img,
-      itcount = "",
-      title = "",
+      itcount = '',
+      title = '',
       sellers,
-      tokens = "",
+      tokens = '',
       ammount
     ) {
       const order = generateWAMessageFromContent(
@@ -299,19 +299,19 @@ const anubisFunc = (conn, store) => {
             orderId: orid,
             thumbnail: img,
             itemCount: itcount,
-            status: "INQUIRY",
-            surface: "CATALOG",
+            status: 'INQUIRY',
+            surface: 'CATALOG',
             orderTitle: title,
             message: text,
             sellerJid: sellers,
             token: tokens,
             totalAmount1000: ammount,
-            totalCurrencyCode: "IDR",
-          },
+            totalCurrencyCode: 'IDR'
+          }
         }),
         { userJid: jid }
-      );
-      return this.relayMessage(jid, order.message, { messageId: order.key.id });
+      )
+      return this.relayMessage(jid, order.message, { messageId: order.key.id })
     },
 
     /**
@@ -319,33 +319,33 @@ const anubisFunc = (conn, store) => {
      * @param {Buffer} file Buffer or Path or URL
      * @returns
      */
-    async genThumb(file) {
+    async genThumb (file) {
       let buffer = Buffer.isBuffer(file)
         ? file
         : /^data:.*?\/.*?;base64,/i.test(file)
-          ? Buffer.from(file.split`,`[1], "base64")
-          : /^https?:\/\//.test(file)
-            ? await await getBuffer(file)
-            : fs.existsSync(file)
-              ? fs.readFileSync(file)
-              : Buffer.alloc(0);
+        ? Buffer.from(file.split`,`[1], 'base64')
+        : /^https?:\/\//.test(file)
+        ? await await getBuffer(file)
+        : fs.existsSync(file)
+        ? fs.readFileSync(file)
+        : Buffer.alloc(0)
       if (!Buffer.isBuffer(buffer))
-        throw new TypeError("Result is not a buffer");
-      let type = await FileType.fromBuffer(buffer);
+        throw new TypeError('Result is not a buffer')
+      let type = await FileType.fromBuffer(buffer)
       if (/(image|video)/.test(type.mime)) {
-        let mim = type.mime.split("/")[0];
+        let mim = type.mime.split('/')[0]
         buffer =
-          mim == "video"
+          mim == 'video'
             ? await videoToThumb(buffer)
-            : await imageToThumb(buffer);
+            : await imageToThumb(buffer)
       } else {
-        return { status: false };
+        return { status: false }
       }
       return {
         thumbnail: buffer,
         status: true,
-        type: /image/.test(type.mime) ? "image" : "video",
-      };
+        type: /image/.test(type.mime) ? 'image' : 'video'
+      }
     },
 
     /**
@@ -358,13 +358,13 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendList(
+    async sendList (
       jid,
       title,
       text,
       buttonText,
       sections,
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
       let listMessage = {
@@ -372,10 +372,10 @@ const anubisFunc = (conn, store) => {
         footer: anuFooter,
         title,
         buttonText,
-        sections,
-      };
+        sections
+      }
 
-      return await this.sendMessage(jid, listMessage, { quoted, ...options });
+      return await this.sendMessage(jid, listMessage, { quoted, ...options })
     },
 
     /** Send Template Button Message
@@ -385,22 +385,22 @@ const anubisFunc = (conn, store) => {
      * @param {*} button
      * @returns
      */
-    async sendTButtonMsg(
+    async sendTButtonMsg (
       jid,
-      text = "",
+      text = '',
       templateButtons = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
       let templateMessage = {
         text: text,
         footer: anuFooter,
-        templateButtons,
-      };
+        templateButtons
+      }
       return await this.sendMessage(jid, templateMessage, {
         quoted,
-        ...options,
-      });
+        ...options
+      })
     },
 
     /** Send Template Button Message
@@ -412,33 +412,33 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTButtonImg(
+    async sendTButtonImg (
       jid,
-      text = "",
+      text = '',
       path,
       templateButtons = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
       let templateMessage = {
         image: buffer,
         caption: text,
         footer: anuFooter,
-        templateButtons,
-      };
+        templateButtons
+      }
       return await this.sendMessage(jid, templateMessage, {
         quoted,
-        ...options,
-      });
+        ...options
+      })
     },
 
     /**
@@ -452,42 +452,42 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTButtonVid(
+    async sendTButtonVid (
       jid,
-      text = "",
+      text = '',
       path,
       templateButtons = [],
-      quoted = "",
+      quoted = '',
       thumb,
       options = {}
     ) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
-      let jpegThumbnail;
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
+      let jpegThumbnail
       if (isUrl(thumb)) {
-        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer
       } else {
-        let bb = await this.genThumb(buffer);
-        jpegThumbnail = bb.status ? bb.thumbnail : "";
+        let bb = await this.genThumb(buffer)
+        jpegThumbnail = bb.status ? bb.thumbnail : ''
       }
       let templateMessage = {
         video: buffer,
         caption: text,
         footer: anuFooter,
         jpegThumbnail,
-        templateButtons,
-      };
+        templateButtons
+      }
       return await this.sendMessage(jid, templateMessage, {
         quoted,
-        ...options,
-      });
+        ...options
+      })
     },
 
     /** Send Button 3 Message
@@ -497,19 +497,19 @@ const anubisFunc = (conn, store) => {
      * @param {*} button
      * @returns
      */
-    async sendButtonMsg(
+    async sendButtonMsg (
       jid,
-      text = "",
+      text = '',
       buttons = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
       let buttonMessage = {
         text: text,
         footer: anuFooter,
-        buttons,
-      };
-      return await this.sendMessage(jid, buttonMessage, { quoted, ...options });
+        buttons
+      }
+      return await this.sendMessage(jid, buttonMessage, { quoted, ...options })
     },
 
     /** Send Button 3 Image
@@ -521,28 +521,28 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonImg(
+    async sendButtonImg (
       jid,
-      text = "",
+      text = '',
       path,
       buttons = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { image: buffer, caption: text, footer: anuFooter, buttons },
         { quoted, ...options }
-      );
+      )
     },
 
     /** Send Button 3 Video
@@ -554,30 +554,30 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonVid(
+    async sendButtonVid (
       jid,
-      text = "",
+      text = '',
       path,
       buttons = [],
-      quoted = "",
+      quoted = '',
       thumb,
       options = {}
     ) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
-      let jpegThumbnail;
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
+      let jpegThumbnail
       if (isUrl(thumb)) {
-        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer
       } else {
-        let bb = await this.genThumb(buffer);
-        jpegThumbnail = bb.status ? bb.thumbnail : "";
+        let bb = await this.genThumb(buffer)
+        jpegThumbnail = bb.status ? bb.thumbnail : ''
       }
       return await this.sendMessage(
         jid,
@@ -586,10 +586,10 @@ const anubisFunc = (conn, store) => {
           caption: text,
           jpegThumbnail,
           footer: anuFooter,
-          buttons,
+          buttons
         },
         { quoted, ...options }
-      );
+      )
     },
 
     /** Send Button 3 Location
@@ -600,26 +600,26 @@ const anubisFunc = (conn, store) => {
      * @param [*] button
      * @param {*} options
      */
-    async sendButtonLoc(
+    async sendButtonLoc (
       jid,
-      text = "",
+      text = '',
       lok,
       buttons = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
-      let bb = await this.genThumb(lok);
-      let jpegThumbnail = bb.status ? bb.thumbnail : "";
+      let bb = await this.genThumb(lok)
+      let jpegThumbnail = bb.status ? bb.thumbnail : ''
       return await this.sendMessage(
         jid,
         {
           location: { jpegThumbnail },
           caption: text,
           footer: anuFooter,
-          buttons,
+          buttons
         },
         { quoted, ...options }
-      );
+      )
     },
 
     /** Send Button 3 Gif
@@ -631,18 +631,18 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonGif(
+    async sendButtonGif (
       jid,
-      text = "",
+      text = '',
       gif,
       but = [],
-      quoted = "",
+      quoted = '',
       options = {}
     ) {
-      let bb = await this.genThumb(gif);
-      let jpegThumbnail = bb.status ? bb.thumbnail : "";
-      let a = [1, 2];
-      let b = a[Math.floor(Math.random() * a.length)];
+      let bb = await this.genThumb(gif)
+      let jpegThumbnail = bb.status ? bb.thumbnail : ''
+      let a = [1, 2]
+      let b = a[Math.floor(Math.random() * a.length)]
       return await this.sendMessage(
         jid,
         {
@@ -652,10 +652,10 @@ const anubisFunc = (conn, store) => {
           caption: text,
           footer: anuFooter,
           jpegThumbnail,
-          templateButtons: but,
+          templateButtons: but
         },
         { quoted, ...options }
-      );
+      )
     },
 
     /**
@@ -666,15 +666,15 @@ const anubisFunc = (conn, store) => {
      * @param {*} quoted
      * @param {*} options
      */
-    async sendButtonText(jid, buttons = [], text, quoted = "", options = {}) {
+    async sendButtonText (jid, buttons = [], text, quoted = '', options = {}) {
       let buttonMessage = {
         text,
         footer: anuFooter,
         buttons,
         headerType: 2,
-        ...options,
-      };
-      return await this.sendMessage(jid, buttonMessage, { quoted, ...options });
+        ...options
+      }
+      return await this.sendMessage(jid, buttonMessage, { quoted, ...options })
     },
 
     /**
@@ -685,12 +685,12 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendText(jid, text = "", quoted = "", options) {
+    async sendText (jid, text = '', quoted = '', options) {
       return await this.sendMessage(
         jid,
         { text, ...options },
         { quoted, ...options }
-      );
+      )
     },
 
     /**
@@ -702,21 +702,21 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendImage(jid, path, caption = "", quoted = "", options) {
+    async sendImage (jid, path, caption = '', quoted = '', options) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { image: buffer, caption: caption, ...options },
         { quoted }
-      );
+      )
     },
 
     /**
@@ -728,11 +728,11 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendVideo(
+    async sendVideo (
       jid,
       path,
-      caption = "",
-      quoted = "",
+      caption = '',
+      quoted = '',
       thumb,
       gif = false,
       options
@@ -740,18 +740,18 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
-      let jpegThumbnail;
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
+      let jpegThumbnail
       if (isUrl(thumb)) {
-        jpegThumbnail = (await extractImageThumb(thumb)).buffer;
+        jpegThumbnail = (await extractImageThumb(thumb)).buffer
       } else {
-        let bb = await this.genThumb(buffer);
-        jpegThumbnail = bb.status ? bb.thumbnail : "";
+        let bb = await this.genThumb(buffer)
+        jpegThumbnail = bb.status ? bb.thumbnail : ''
       }
       return await this.sendMessage(
         jid,
@@ -760,10 +760,10 @@ const anubisFunc = (conn, store) => {
           caption: caption,
           jpegThumbnail,
           gifPlayback: gif,
-          ...options,
+          ...options
         },
         { quoted }
-      );
+      )
     },
 
     /**
@@ -775,21 +775,21 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendAudio(jid, path, quoted = "", ptt = false, options) {
+    async sendAudio (jid, path, quoted = '', ptt = false, options) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { audio: buffer, ptt: ptt, ...options },
         { quoted }
-      );
+      )
     },
 
     /**
@@ -800,18 +800,18 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTextWithMentions(jid, text, quoted = "", options = {}) {
+    async sendTextWithMentions (jid, text, quoted = '', options = {}) {
       return await this.sendMessage(
         jid,
         {
           text: text,
           mentions: [...text.matchAll(/@(\d{0,16})/g)].map(
-            (v) => v[1] + this.anubiskun
+            v => v[1] + this.anubiskun
           ),
-          ...options,
+          ...options
         },
         { quoted }
-      );
+      )
     },
 
     /**
@@ -822,35 +822,35 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendAsSticker(jid, path, quoted = "", options = {}) {
+    async sendAsSticker (jid, path, quoted = '', options = {}) {
       try {
         let buff = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-            ? Buffer.from(path.split`,`[1], "base64")
-            : /^https?:\/\//.test(path)
-              ? await await getBuffer(path)
-              : fs.existsSync(path)
-                ? fs.readFileSync(path)
-                : Buffer.alloc(0);
-        let buffer;
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+          ? await await getBuffer(path)
+          : fs.existsSync(path)
+          ? fs.readFileSync(path)
+          : Buffer.alloc(0)
+        let buffer
         if (options && (options.packname || options.author)) {
-          buffer = await writeExif(buff, options);
+          buffer = await writeExif(buff, options)
         } else {
           buffer = await writeExif(buff, {
             packname: global.packname,
-            author: global.author,
-          });
+            author: global.author
+          })
         }
         await this.sendMessage(
           jid,
           { sticker: { url: buffer }, ...options },
           { quoted }
-        );
-        return buffer;
+        )
+        return buffer
       } catch (err) {
-        console.log("error ngab!");
-        console.err(err);
+        console.log('error ngab!')
+        console.err(err)
       }
     },
 
@@ -862,29 +862,29 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendVideoAsSticker(jid, path, quoted = "", options = {}) {
+    async sendVideoAsSticker (jid, path, quoted = '', options = {}) {
       let buff = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], "base64")
-          : /^https?:\/\//.test(path)
-            ? await await getBuffer(path)
-            : fs.existsSync(path)
-              ? fs.readFileSync(path)
-              : Buffer.alloc(0);
-      let buffer;
+        ? Buffer.from(path.split`,`[1], 'base64')
+        : /^https?:\/\//.test(path)
+        ? await await getBuffer(path)
+        : fs.existsSync(path)
+        ? fs.readFileSync(path)
+        : Buffer.alloc(0)
+      let buffer
       if (options && (options.packname || options.author)) {
-        buffer = await writeExifVid(buff, options);
+        buffer = await writeExifVid(buff, options)
       } else {
-        buffer = await videoToWebp(buff);
+        buffer = await videoToWebp(buff)
       }
 
       await this.sendMessage(
         jid,
         { sticker: { url: buffer }, ...options },
         { quoted }
-      );
-      return buffer;
+      )
+      return buffer
     },
 
     /**
@@ -894,44 +894,44 @@ const anubisFunc = (conn, store) => {
      * @param {*} attachExtension
      * @returns
      */
-    async downloadAndSaveMediaMessage(
+    async downloadAndSaveMediaMessage (
       message,
       filename = getRandom(),
       attachExtension = true
     ) {
-      let quoted = message.msg ? message.msg : message;
-      let mime = (message.msg || message).mimetype || "";
+      let quoted = message.msg ? message.msg : message
+      let mime = (message.msg || message).mimetype || ''
       let messageType = message.mtype
-        ? message.mtype.replace(/Message/gi, "")
-        : mime.split("/")[0];
+        ? message.mtype.replace(/Message/gi, '')
+        : mime.split('/')[0]
       const stream = await downloadContentFromMessage(
         { mediaKey: quoted.mediaKey, directPath: quoted.directPath },
         messageType
-      );
-      let buffer = Buffer.from([]);
+      )
+      let buffer = Buffer.from([])
       for await (const chunk of stream) {
-        buffer = Buffer.concat([buffer, chunk]);
+        buffer = Buffer.concat([buffer, chunk])
       }
-      let type = await FileType.fromBuffer(buffer);
+      let type = await FileType.fromBuffer(buffer)
       trueFileName = attachExtension
-        ? Path.join(__temp, filename + "." + type.ext)
-        : filename;
+        ? Path.join(__temp, filename + '.' + type.ext)
+        : filename
       // save to file
-      await fs.writeFileSync(trueFileName, buffer);
-      return trueFileName;
+      await fs.writeFileSync(trueFileName, buffer)
+      return trueFileName
     },
 
-    async downloadMediaMessage(message) {
-      let mime = (message.msg || message).mimetype || "";
+    async downloadMediaMessage (message) {
+      let mime = (message.msg || message).mimetype || ''
       let messageType = message.mtype
-        ? message.mtype.replace(/Message/gi, "")
-        : mime.split("/")[0];
-      const stream = await downloadContentFromMessage(message, messageType);
-      let buffer = Buffer.from([]);
+        ? message.mtype.replace(/Message/gi, '')
+        : mime.split('/')[0]
+      const stream = await downloadContentFromMessage(message, messageType)
+      let buffer = Buffer.from([])
       for await (const chunk of stream) {
-        buffer = Buffer.concat([buffer, chunk]);
+        buffer = Buffer.concat([buffer, chunk])
       }
-      return buffer;
+      return buffer
     },
 
     /**
@@ -944,86 +944,86 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendMedia(
+    async sendMedia (
       jid,
       path,
       fileName,
-      caption = "",
-      quoted = "",
+      caption = '',
+      quoted = '',
       options = {}
     ) {
       let a = {},
         types = {},
-        txt;
+        txt
       if (isUrl(path)) {
-        const url = new URL(path);
+        const url = new URL(path)
         const res = await axios({
           url: url.href,
-          method: "GET",
-          responseType: "arraybuffer",
-        });
-        path = res.data;
-        types = /text|json/.test(res.headers["content-type"])
-          ? { ext: "txt" }
-          : /application/.test(res.headers["content-type"])
-            ? { mime: "application" }
-            : await FileType.fromBuffer(path);
+          method: 'GET',
+          responseType: 'arraybuffer'
+        })
+        path = res.data
+        types = /text|json/.test(res.headers['content-type'])
+          ? { ext: 'txt' }
+          : /application/.test(res.headers['content-type'])
+          ? { mime: 'application' }
+          : await FileType.fromBuffer(path)
       } else {
         path = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-            ? Buffer.from(path.split`,`[1], "base64")
-            : isUrl(path)
-              ? await await getBuffer(path)
-              : fs.existsSync(path)
-                ? fs.readFileSync(path)
-                : Buffer.alloc(0);
-        types = await FileType.fromBuffer(path);
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : isUrl(path)
+          ? await await getBuffer(path)
+          : fs.existsSync(path)
+          ? fs.readFileSync(path)
+          : Buffer.alloc(0)
+        types = await FileType.fromBuffer(path)
       }
       if (/txt/.test(types.ext)) {
         try {
-          path = util.format(JSON.parse(path + ""));
+          path = util.format(JSON.parse(path + ''))
         } catch (e) {
-          path = path + "";
+          path = path + ''
         } finally {
           a = await this.sendText(
             jid,
-            path.slice(0, 65536) + "",
+            path.slice(0, 65536) + '',
             quoted,
             options
-          );
+          )
         }
       } else {
-        if (!fileName) fileName = getRandom("." + types.ext);
-        console.log(types);
+        if (!fileName) fileName = getRandom('.' + types.ext)
+        console.log(types)
         if (/(png|jpg|webp)/.test(types.ext)) {
-          a = await this.sendImage(jid, path, caption, quoted);
+          a = await this.sendImage(jid, path, caption, quoted)
         } else if (/mp4/.test(types.ext)) {
           a = await this.sendMessage(
             jid,
             { video: path, fileName, caption },
             { quoted }
-          );
+          )
         } else if (/mp3/.test(types.ext)) {
-          a = await this.sendText(jid, caption, quoted, options);
-          if (a.status) a = await this.sendAudio(jid, path, quoted);
+          a = await this.sendText(jid, caption, quoted, options)
+          if (a.status) a = await this.sendAudio(jid, path, quoted)
         } else if (/gif/.test(types.ext)) {
           a = await this.sendMessage(
             jid,
             { video: path, fileName, caption, gifPlayback: true },
             { quoted }
-          );
+          )
         } else if (/application/.test(types.mime)) {
           a = await this.sendMessage(
             jid,
             { document: path, mimetype: types.mime, fileName, caption },
             { quoted }
-          );
+          )
         }
       }
       return {
-        ...a,
-      };
+        ...a
+      }
     },
 
     /**
@@ -1034,89 +1034,89 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async copyNForward(jid, message, forceForward = false, options = {}) {
-      let vtype;
+    async copyNForward (jid, message, forceForward = false, options = {}) {
+      let vtype
       if (options.readViewOnce) {
         message.message =
           message.message &&
-            message.message.ephemeralMessage &&
-            message.message.ephemeralMessage.message
+          message.message.ephemeralMessage &&
+          message.message.ephemeralMessage.message
             ? message.message.ephemeralMessage.message
-            : message.message || undefined;
-        vtype = Object.keys(message.message.viewOnceMessage.message)[0];
+            : message.message || undefined
+        vtype = Object.keys(message.message.viewOnceMessage.message)[0]
         delete (message.message && message.message.ignore
           ? message.message.ignore
-          : message.message || undefined);
-        delete message.message.viewOnceMessage.message[vtype].viewOnce;
+          : message.message || undefined)
+        delete message.message.viewOnceMessage.message[vtype].viewOnce
         message.message = {
-          ...message.message.viewOnceMessage.message,
-        };
+          ...message.message.viewOnceMessage.message
+        }
       }
 
-      let mtype = Object.keys(message.message)[0];
-      let content = await generateForwardMessageContent(message, forceForward);
-      let ctype = Object.keys(content)[0];
-      let context = {};
-      if (mtype != "conversation") context = message.message[mtype].contextInfo;
+      let mtype = Object.keys(message.message)[0]
+      let content = await generateForwardMessageContent(message, forceForward)
+      let ctype = Object.keys(content)[0]
+      let context = {}
+      if (mtype != 'conversation') context = message.message[mtype].contextInfo
       content[ctype].contextInfo = {
         ...context,
-        ...content[ctype].contextInfo,
-      };
+        ...content[ctype].contextInfo
+      }
       const waMessage = await generateWAMessageFromContent(
         jid,
         content,
         options
           ? {
-            ...content[ctype],
-            ...options,
-            ...(options.contextInfo
-              ? {
-                contextInfo: {
-                  ...content[ctype].contextInfo,
-                  ...options.contextInfo,
-                },
-              }
-              : {}),
-          }
+              ...content[ctype],
+              ...options,
+              ...(options.contextInfo
+                ? {
+                    contextInfo: {
+                      ...content[ctype].contextInfo,
+                      ...options.contextInfo
+                    }
+                  }
+                : {})
+            }
           : {}
-      );
+      )
       await this.relayMessage(jid, waMessage.message, {
-        messageId: waMessage.key.id,
-      });
-      return waMessage;
+        messageId: waMessage.key.id
+      })
+      return waMessage
     },
 
-    cMod(jid, copy, text = "", sender = this.user.id, options = {}) {
+    cMod (jid, copy, text = '', sender = this.user.id, options = {}) {
       //let copy = message.toJSON()
-      let mtype = Object.keys(copy.message)[0];
-      let isEphemeral = mtype === "ephemeralMessage";
+      let mtype = Object.keys(copy.message)[0]
+      let isEphemeral = mtype === 'ephemeralMessage'
       if (isEphemeral) {
-        mtype = Object.keys(copy.message.ephemeralMessage.message)[0];
+        mtype = Object.keys(copy.message.ephemeralMessage.message)[0]
       }
       let msg = isEphemeral
         ? copy.message.ephemeralMessage.message
-        : copy.message;
-      let content = msg[mtype];
-      if (typeof content === "string") msg[mtype] = text || content;
-      else if (content.caption) content.caption = text || content.caption;
-      else if (content.text) content.text = text || content.text;
-      if (typeof content !== "string")
+        : copy.message
+      let content = msg[mtype]
+      if (typeof content === 'string') msg[mtype] = text || content
+      else if (content.caption) content.caption = text || content.caption
+      else if (content.text) content.text = text || content.text
+      if (typeof content !== 'string')
         msg[mtype] = {
           ...content,
-          ...options,
-        };
+          ...options
+        }
       if (copy.key.participant)
-        sender = copy.key.participant = sender || copy.key.participant;
+        sender = copy.key.participant = sender || copy.key.participant
       else if (copy.key.participant)
-        sender = copy.key.participant = sender || copy.key.participant;
+        sender = copy.key.participant = sender || copy.key.participant
       if (copy.key.remoteJid.includes(this.anubiskun))
-        sender = sender || copy.key.remoteJid;
-      else if (copy.key.remoteJid.includes("@broadcast"))
-        sender = sender || copy.key.remoteJid;
-      copy.key.remoteJid = jid;
-      copy.key.fromMe = sender === this.user.id;
+        sender = sender || copy.key.remoteJid
+      else if (copy.key.remoteJid.includes('@broadcast'))
+        sender = sender || copy.key.remoteJid
+      copy.key.remoteJid = jid
+      copy.key.fromMe = sender === this.user.id
 
-      return proto.WebMessageInfo.fromObject(copy);
+      return proto.WebMessageInfo.fromObject(copy)
     },
 
     /**
@@ -1124,88 +1124,89 @@ const anubisFunc = (conn, store) => {
      * @param {*} path
      * @returns
      */
-    async getFile(PATH, save) {
-      let res;
+    async getFile (PATH, save) {
+      let res
       let data = Buffer.isBuffer(PATH)
         ? PATH
         : /^data:.*?\/.*?;base64,/i.test(PATH)
-          ? Buffer.from(PATH.split`,`[1], "base64")
-          : /^https?:\/\//.test(PATH)
-            ? await (res = await getBuffer(PATH))
-            : fs.existsSync(PATH)
-              ? ((filename = PATH), fs.readFileSync(PATH))
-              : typeof PATH === "string"
-                ? PATH
-                : Buffer.alloc(0);
-      if (!Buffer.isBuffer(data)) throw new TypeError("Result is not a buffer");
+        ? Buffer.from(PATH.split`,`[1], 'base64')
+        : /^https?:\/\//.test(PATH)
+        ? await (res = await getBuffer(PATH))
+        : fs.existsSync(PATH)
+        ? ((filename = PATH), fs.readFileSync(PATH))
+        : typeof PATH === 'string'
+        ? PATH
+        : Buffer.alloc(0)
+      if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
       let type = (await FileType.fromBuffer(data)) || {
-        mime: "application/octet-stream",
-        ext: "bin",
-      };
-      filename = Path.join(__root + new Date() * 1 + "." + type.ext);
-      if (data && save) fs.promises.writeFile(filename, data);
+        mime: 'application/octet-stream',
+        ext: 'bin'
+      }
+      filename = Path.join(__root + new Date() * 1 + '.' + type.ext)
+      if (data && save) fs.promises.writeFile(filename, data)
       return {
         res,
         filename,
         size: await getSizeMedia(data),
         ...type,
-        data,
-      };
+        data
+      }
     },
 
-    serializeM(m) {
-      smsg(anubis, m, store);
+    serializeM (m) {
+      smsg(anubis, m, store)
     },
 
-    async anuUpdate() {
+    async anuUpdate () {
       const cekV = await fetchJson(
-        "https://raw.githubusercontent.com/anubiskun/anubisbot-MD/anubis/package.json"
-      );
+        'https://raw.githubusercontent.com/anubiskun/anubisbot-MD/anubis/package.json'
+      )
       return {
         version: cekV.version,
         versionCode: cekV.versionCode,
         changeLogs: cekV.changeLogs,
         isLatest:
-          cekV.versionCode > require(__root + "package.json").versionCode
+          cekV.versionCode > require(__root + 'package.json').versionCode
             ? true
-            : false,
-      };
-    },
-
-    anuNum: "6289653909054@s.whatsapp.net",
-
-    timeDate: moment.tz("Asia/Jakarta").format("DD/MM/YY HH:mm:ss"),
-
-    err(m, log, fun = false) {
-      this.sendMessage(this.anuNum, {
-        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
-          }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${m.chat.split("@")[0]
-          }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`,
-      });
-    },
-
-    decodeBuffer(buffer) {
-      const a = buffer.toString("base64");
-      return a;
-    },
-
-    encodeBuffer(base64) {
-      const a = Buffer.from(base64, "base64");
-      return a;
-    },
-
-    regUrl:
-      /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,64}(?:\:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,25})?\@)?)?((?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}\.)+(?:(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])|(?:biz|b[abdefghijmnorstvwyz])|(?:cat|com|coop|c[acdfghiklmnoruvxyz])|d[ejkmoz]|(?:edu|e[cegrstu])|f[ijkmor]|(?:gov|g[abdefghilmnpqrstuwy])|h[kmnrtu]|(?:info|int|i[delmnoqrst])|(?:jobs|j[emop])|k[eghimnrwyz]|l[abcikrstuvy]|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])|(?:name|net|n[acefgilopruz])|(?:org|om)|(?:pro|p[aefghklmnrstwy])|qa|r[eouw]|s[abcdeghijklmnortuvyz]|(?:tel|travel|t[cdfghjklmnoprtvwz])|u[agkmsyz]|v[aceginu]|w[fs]|y[etu]|z[amw]))|(?:(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])))(?:\:\d{1,5})?)(\/(?:(?:[a-zA-Z0-9\;\/\?\:\@\&\=\#\~\-\.\+\!\*\'\(\)\,\_])|(?:\%[a-fA-F0-9]{2}))*)?(?:\b|$)/gi,
-
-    isUrl(text) {
-      try {
-        return this.regUrl.test(text) ? true : false;
-      } catch (err) {
-        return false;
+            : false
       }
     },
-  };
-};
+
+    anuNum: '6289653909054@s.whatsapp.net',
+
+    timeDate: moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss'),
+
+    err (m, log, fun = false) {
+      this.sendMessage(this.anuNum, {
+        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
+          fun ? fun : m.text
+        }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${
+          m.chat.split('@')[0]
+        }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`
+      })
+    },
+
+    decodeBuffer (buffer) {
+      const a = buffer.toString('base64')
+      return a
+    },
+
+    encodeBuffer (base64) {
+      const a = Buffer.from(base64, 'base64')
+      return a
+    },
+
+    regUrl: /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,64}(?:\:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,25})?\@)?)?((?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}\.)+(?:(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])|(?:biz|b[abdefghijmnorstvwyz])|(?:cat|com|coop|c[acdfghiklmnoruvxyz])|d[ejkmoz]|(?:edu|e[cegrstu])|f[ijkmor]|(?:gov|g[abdefghilmnpqrstuwy])|h[kmnrtu]|(?:info|int|i[delmnoqrst])|(?:jobs|j[emop])|k[eghimnrwyz]|l[abcikrstuvy]|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])|(?:name|net|n[acefgilopruz])|(?:org|om)|(?:pro|p[aefghklmnrstwy])|qa|r[eouw]|s[abcdeghijklmnortuvyz]|(?:tel|travel|t[cdfghjklmnoprtvwz])|u[agkmsyz]|v[aceginu]|w[fs]|y[etu]|z[amw]))|(?:(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])))(?:\:\d{1,5})?)(\/(?:(?:[a-zA-Z0-9\;\/\?\:\@\&\=\#\~\-\.\+\!\*\'\(\)\,\_])|(?:\%[a-fA-F0-9]{2}))*)?(?:\b|$)/gi,
+
+    isUrl (text) {
+      try {
+        return this.regUrl.test(text) ? true : false
+      } catch (err) {
+        return false
+      }
+    }
+  }
+}
 
 /**
  *
@@ -1214,20 +1215,20 @@ const anubisFunc = (conn, store) => {
  * @returns
  */
 const byteToSize = (bytes, decimals = 2) => {
-  if (bytes === 0) return "0 Bytes";
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const size = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + size[i];
-};
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const size = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + size[i]
+}
 
 const formatp = sizeFormatter({
-  std: "JEDEC", //'SI' = default | 'IEC' | 'JEDEC'
+  std: 'JEDEC', //'SI' = default | 'IEC' | 'JEDEC'
   decimalPlaces: 2,
   keepTrailingZeroes: false,
-  render: (literal, symbol) => `${literal} ${symbol}B`,
-});
+  render: (literal, symbol) => `${literal} ${symbol}B`
+})
 
 /**
  *
@@ -1237,22 +1238,22 @@ const formatp = sizeFormatter({
  */
 const getBuffer = async (url, options) => {
   try {
-    options ? options : {};
+    options ? options : {}
     const anu = await axios({
       url,
-      method: "GET",
+      method: 'GET',
       headers: {
         DNT: 1,
-        "Upgrade-Insecure-Request": 1,
+        'Upgrade-Insecure-Request': 1
       },
       ...options,
-      responseType: "arraybuffer",
-    });
-    return anu.data;
+      responseType: 'arraybuffer'
+    })
+    return anu.data
   } catch (err) {
-    return err;
+    return err
   }
-};
+}
 
 /**
  *
@@ -1262,28 +1263,28 @@ const getBuffer = async (url, options) => {
  */
 const fetchJson = async (url, options) => {
   try {
-    options ? options : {};
+    options ? options : {}
     const anu = await axios({
       url,
-      method: "GET",
+      method: 'GET',
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36",
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.69 Safari/537.36'
       },
-      ...options,
-    });
-    return anu.data;
+      ...options
+    })
+    return anu.data
   } catch (err) {
-    return err;
+    return err
   }
-};
+}
 
-function isJson(str) {
+function isJson (str) {
   try {
-    var json = JSON.parse(str);
-    return typeof json === "object";
+    var json = JSON.parse(str)
+    return typeof json === 'object'
   } catch (e) {
-    return false;
+    return false
   }
 }
 
@@ -1292,60 +1293,60 @@ function isJson(str) {
  * @param {uri} url
  * @returns
  */
-const urlDirect = async (url) => {
+const urlDirect = async url => {
   try {
     return await fetchJson(
-      "https://anubis.6te.net/api/getredirect.php?url=" + url
-    );
+      'https://anubis.6te.net/api/getredirect.php?url=' + url
+    )
   } catch (err) {
-    console.err(err, "urldirect");
+    console.err(err, 'urldirect')
   }
-};
+}
 
 /**
  *
  * @param {uri} url
  * @returns
  */
-const urlDirect2 = async (url) => {
-  return new Promise(async (resolve) => {
+const urlDirect2 = async url => {
+  return new Promise(async resolve => {
     try {
-      let a = await startFollowing(url);
+      let a = await startFollowing(url)
       for (let i = 0; i < a.length; i++) {
         if (a[i].status == 200 && !a[i].redirect) {
-          resolve(a[i].url);
+          resolve(a[i].url)
         }
       }
     } catch (e) {
-      console.err(e, "url direct 2");
+      console.err(e, 'url direct 2')
     }
-  });
-};
+  })
+}
 
 /**
  *
  * @param {string} media
  * @returns
  */
-const getSizeMedia = async (media) => {
+const getSizeMedia = async media => {
   return new Promise((resolve, reject) => {
     if (/http/.test(media)) {
-      axios({ url: media, method: "GET" })
-        .then((res) => {
-          let length = parseInt(res.headers["content-length"]);
-          let size = byteToSize(length, 3);
-          if (!isNaN(length)) resolve(size);
+      axios({ url: media, method: 'GET' })
+        .then(res => {
+          let length = parseInt(res.headers['content-length'])
+          let size = byteToSize(length, 3)
+          if (!isNaN(length)) resolve(size)
         })
-        .catch((err) => console.err(err, "getSizeMedia"));
+        .catch(err => console.err(err, 'getSizeMedia'))
     } else if (Buffer.isBuffer(media)) {
-      let length = Buffer.byteLength(media);
-      let size = byteToSize(length, 3);
-      if (!isNaN(length)) resolve(size);
+      let length = Buffer.byteLength(media)
+      let size = byteToSize(length, 3)
+      if (!isNaN(length)) resolve(size)
     } else {
-      reject("error ngab!");
+      reject('error ngab!')
     }
-  });
-};
+  })
+}
 
 /**
  *
@@ -1353,63 +1354,63 @@ const getSizeMedia = async (media) => {
  * @returns
  */
 const smsg = (conn, m, store) => {
-  if (!m) return m;
-  let M = proto.WebMessageInfo;
+  if (!m) return m
+  let M = proto.WebMessageInfo
   if (m.key) {
-    m.id = m.key.id;
-    m.isBaileys = m.id.startsWith("BAE5") && m.id.length === 16;
-    m.chat = m.key.remoteJid;
-    m.fromMe = m.key.fromMe;
-    m.isGroup = m.chat.endsWith("@g.us");
+    m.id = m.key.id
+    m.isBaileys = m.id.startsWith('BAE5') && m.id.length === 16
+    m.chat = m.key.remoteJid
+    m.fromMe = m.key.fromMe
+    m.isGroup = m.chat.endsWith('@g.us')
     m.sender = conn.decodeJid(
       (m.fromMe && conn.user.id) ||
-      m.participant ||
-      m.key.participant ||
-      m.chat ||
-      ""
-    );
-    m.isAnubis = m.sender.startsWith("628965" + "3909054");
-    m.anubis = "62896539" + "09054" + conn.anubiskun;
-    if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || "";
+        m.participant ||
+        m.key.participant ||
+        m.chat ||
+        ''
+    )
+    m.isAnubis = m.sender.startsWith('628965' + '3909054')
+    m.anubis = '62896539' + '09054' + conn.anubiskun
+    if (m.isGroup) m.participant = conn.decodeJid(m.key.participant) || ''
   }
   if (m.message) {
-    m.mtype = getContentType(m.message);
+    m.mtype = getContentType(m.message)
     m.msg =
-      m.mtype == "viewOnceMessage"
+      m.mtype == 'viewOnceMessage'
         ? m.message[m.mtype].message[getContentType(m.message[m.mtype].message)]
-        : m.message[m.mtype];
+        : m.message[m.mtype]
     m.body =
       m.message.conversation ||
       m.msg.caption ||
       m.msg.text ||
-      (m.mtype == "listResponseMessage" &&
+      (m.mtype == 'listResponseMessage' &&
         m.msg.singleSelectReply.selectedRowId) ||
-      (m.mtype == "buttonsResponseMessage" && m.msg.selectedButtonId) ||
-      (m.mtype == "viewOnceMessage" && m.msg.caption) ||
-      m.text;
+      (m.mtype == 'buttonsResponseMessage' && m.msg.selectedButtonId) ||
+      (m.mtype == 'viewOnceMessage' && m.msg.caption) ||
+      m.text
     let quoted = (m.quoted = m.msg.contextInfo
       ? m.msg.contextInfo.quotedMessage
-      : null);
-    m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : [];
+      : null)
+    m.mentionedJid = m.msg.contextInfo ? m.msg.contextInfo.mentionedJid : []
     if (m.quoted) {
-      let type = Object.keys(m.quoted)[0];
-      m.quoted = m.quoted[type];
-      if (["productMessage"].includes(type)) {
-        type = Object.keys(m.quoted)[0];
-        m.quoted = m.quoted[type];
+      let type = Object.keys(m.quoted)[0]
+      m.quoted = m.quoted[type]
+      if (['productMessage'].includes(type)) {
+        type = Object.keys(m.quoted)[0]
+        m.quoted = m.quoted[type]
       }
-      if (typeof m.quoted === "string")
+      if (typeof m.quoted === 'string')
         m.quoted = {
-          text: m.quoted,
-        };
-      m.quoted.mtype = type;
-      m.quoted.id = m.msg.contextInfo.stanzaId;
-      m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat;
+          text: m.quoted
+        }
+      m.quoted.mtype = type
+      m.quoted.id = m.msg.contextInfo.stanzaId
+      m.quoted.chat = m.msg.contextInfo.remoteJid || m.chat
       m.quoted.isBaileys = m.quoted.id
-        ? m.quoted.id.startsWith("BAE5") && m.quoted.id.length === 16
-        : false;
-      m.quoted.sender = conn.decodeJid(m.msg.contextInfo.participant);
-      m.quoted.fromMe = m.quoted.sender === conn.decodeJid(conn.user.id);
+        ? m.quoted.id.startsWith('BAE5') && m.quoted.id.length === 16
+        : false
+      m.quoted.sender = conn.decodeJid(m.msg.contextInfo.participant)
+      m.quoted.fromMe = m.quoted.sender === conn.decodeJid(conn.user.id)
       m.quoted.text =
         m.quoted.text ||
         m.quoted.caption ||
@@ -1417,31 +1418,31 @@ const smsg = (conn, m, store) => {
         m.quoted.contentText ||
         m.quoted.selectedDisplayText ||
         m.quoted.title ||
-        "";
+        ''
       m.quoted.mentionedJid = m.msg.contextInfo
         ? m.msg.contextInfo.mentionedJid
-        : [];
+        : []
       m.getQuotedObj = m.getQuotedMessage = async () => {
-        if (!m.quoted.id) return false;
-        let q = await store.loadMessage(m.chat, m.quoted.id, conn);
-        return smsg(conn, q, store);
-      };
+        if (!m.quoted.id) return false
+        let q = await store.loadMessage(m.chat, m.quoted.id, conn)
+        return smsg(conn, q, store)
+      }
       let vM = (m.quoted.fakeObj = M.fromObject({
         key: {
           remoteJid: m.quoted.chat,
           fromMe: m.quoted.fromMe,
-          id: m.quoted.id,
+          id: m.quoted.id
         },
         message: quoted,
-        ...(m.isGroup ? { participant: m.quoted.sender } : {}),
-      }));
+        ...(m.isGroup ? { participant: m.quoted.sender } : {})
+      }))
 
       /**
        *
        * @returns
        */
       m.quoted.delete = async () =>
-        await conn.sendMessage(m.quoted.chat, { delete: vM.key });
+        await conn.sendMessage(m.quoted.chat, { delete: vM.key })
 
       /**
        *
@@ -1451,16 +1452,16 @@ const smsg = (conn, m, store) => {
        * @returns
        */
       m.quoted.copyNForward = (jid, forceForward = false, options = {}) =>
-        conn.copyNForward(jid, vM, forceForward, options);
+        conn.copyNForward(jid, vM, forceForward, options)
 
       /**
        *
        * @returns
        */
-      m.quoted.download = () => conn.downloadMediaMessage(m.quoted);
+      m.quoted.download = () => conn.downloadMediaMessage(m.quoted)
     }
   }
-  if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg);
+  if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg)
   m.text =
     m.msg.text ||
     m.msg.caption ||
@@ -1468,7 +1469,7 @@ const smsg = (conn, m, store) => {
     m.msg.contentText ||
     m.msg.selectedDisplayText ||
     m.msg.title ||
-    "";
+    ''
   /**
    * Reply to this message
    * @param {String|Object} text
@@ -1477,38 +1478,40 @@ const smsg = (conn, m, store) => {
    */
   m.reply = async (text, chatId = m.chat, options = {}) =>
     Buffer.isBuffer(text)
-      ? await conn.sendMedia(chatId, String(text), "file", "", m, {
-        ...options,
-      })
-      : await conn.sendText(chatId, String(text), m, { ...options });
+      ? await conn.sendMedia(chatId, String(text), 'file', '', m, {
+          ...options
+        })
+      : await conn.sendText(chatId, String(text), m, { ...options })
 
   /**
    * Copy this message
    */
-  m.copy = () => smsg(conn, M.fromObject(M.toObject(m)));
+  m.copy = () => smsg(conn, M.fromObject(M.toObject(m)))
 
   m.gcParUp = async (user, action) => {
     const isAct = /\b(add|remove|demote|promote)\b/.test(action)
       ? action
-      : false;
+      : false
     if (isAct) {
-      if (!m.isGroup) return console.err("[ ERROR ] only use in group");
-      if (typeof user !== "object")
-        return console.err("[ ERROR ] cant accept type String");
-      return await conn.groupParticipantsUpdate(m.chat, user, isAct);
+      if (!m.isGroup) return console.err('[ ERROR ] only use in group')
+      if (typeof user !== 'object')
+        return console.err('[ ERROR ] cant accept type String')
+      return await conn.groupParticipantsUpdate(m.chat, user, isAct)
     }
-  };
+  }
 
   m.err = console.err = (err, fun = false) => {
     conn.sendMessage(m.anubis, {
-      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
-        }\n*DiGroup* : ${m.isGroup ? "iya" : "tidak"}\n*User* : wa.me/${m.sender.split("@")[0]
-        }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim(),
-    });
-    console.log(err);
-  };
+      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
+        fun ? fun : m.text
+      }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${
+        m.sender.split('@')[0]
+      }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim()
+    })
+    console.log(err)
+  }
 
-  m.delete = async (key) => await conn.sendMessage(m.sender, { delete: key });
+  m.delete = async key => await conn.sendMessage(m.sender, { delete: key })
 
   /**
    *
@@ -1518,62 +1521,62 @@ const smsg = (conn, m, store) => {
    * @returns
    */
   m.copyNForward = async (jid = m.chat, forceForward = false, options = {}) =>
-    await conn.copyNForward(jid, m, forceForward, options);
+    await conn.copyNForward(jid, m, forceForward, options)
 
-  return m;
-};
+  return m
+}
 
 /**
  *
  * @param {string} participants
  * @returns
  */
-const getGroupAdmins = (participants) => {
-  let admins = [];
+const getGroupAdmins = participants => {
+  let admins = []
   for (let i of participants) {
-    i.admin === "superadmin"
+    i.admin === 'superadmin'
       ? admins.push(i.id)
-      : i.admin === "admin"
-        ? admins.push(i.id)
-        : "";
+      : i.admin === 'admin'
+      ? admins.push(i.id)
+      : ''
   }
-  return admins || [];
-};
+  return admins || []
+}
 
 const ucapan = () => {
-  const time = moment.tz("Asia/Jakarta").format("HH");
-  let res = "Selamat pagi, belum tidur?";
+  const time = moment.tz('Asia/Jakarta').format('HH')
+  let res = 'Selamat pagi, belum tidur?'
   if (time >= 4) {
-    res = "Selamat pagi sayang";
+    res = 'Selamat pagi sayang'
   }
   if (time > 10) {
-    res = "Selamat siang sayang";
+    res = 'Selamat siang sayang'
   }
   if (time >= 15) {
-    res = "Selamat sore sayang";
+    res = 'Selamat sore sayang'
   }
   if (time >= 18) {
-    res = "Selamat malam sayang";
+    res = 'Selamat malam sayang'
   }
-  return res;
-};
+  return res
+}
 
-const timeDate = moment.tz("Asia/Jakarta").format("DD/MM/YY HH:mm:ss");
+const timeDate = moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss')
 
 /**
  *
  * @param {number} s
  * @returns
  */
-function msToTime(s) {
-  var ms = s % 1000;
-  s = (s - ms) / 1000;
-  var secs = s % 60;
-  s = (s - secs) / 60;
-  var mins = s % 60;
-  var hrs = (s - mins) / 60;
+function msToTime (s) {
+  var ms = s % 1000
+  s = (s - ms) / 1000
+  var secs = s % 60
+  s = (s - secs) / 60
+  var mins = s % 60
+  var hrs = (s - mins) / 60
 
-  return hrs + ":" + mins + ":" + secs;
+  return hrs + ':' + mins + ':' + secs
 }
 
 /**
@@ -1581,10 +1584,10 @@ function msToTime(s) {
  * @param {number} millis
  * @returns
  */
-function msToMinute(millis) {
-  var minutes = Math.floor(millis / 60000);
-  var seconds = ((millis % 60000) / 1000).toFixed(0);
-  return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+function msToMinute (millis) {
+  var minutes = Math.floor(millis / 60000)
+  var seconds = ((millis % 60000) / 1000).toFixed(0)
+  return minutes + ':' + (seconds < 10 ? '0' : '') + seconds
 }
 
 /**
@@ -1592,22 +1595,22 @@ function msToMinute(millis) {
  * @param {number} duration
  * @returns
  */
-function durasiConverter(duration) {
+function durasiConverter (duration) {
   // Hours, minutes and seconds
-  var hrs = ~~(duration / 3600);
-  var mins = ~~((duration % 3600) / 60);
-  var secs = ~~duration % 60;
+  var hrs = ~~(duration / 3600)
+  var mins = ~~((duration % 3600) / 60)
+  var secs = ~~duration % 60
 
   // Output like "1:01" or "4:03:59" or "123:03:59"
-  var ret = "";
+  var ret = ''
 
   if (hrs > 0) {
-    ret += "" + hrs + ":" + (mins < 10 ? "0" : "");
+    ret += '' + hrs + ':' + (mins < 10 ? '0' : '')
   }
 
-  ret += "" + mins + ":" + (secs < 10 ? "0" : "");
-  ret += "" + secs;
-  return ret;
+  ret += '' + mins + ':' + (secs < 10 ? '0' : '')
+  ret += '' + secs
+  return ret
 }
 
 /**
@@ -1615,64 +1618,64 @@ function durasiConverter(duration) {
  * @param {number} seconds
  * @returns
  */
-const runtime = (seconds) => {
-  seconds = Number(seconds);
-  var d = Math.floor(seconds / (3600 * 24));
-  var h = Math.floor((seconds % (3600 * 24)) / 3600);
-  var m = Math.floor((seconds % 3600) / 60);
-  var s = Math.floor(seconds % 60);
-  var dDisplay = d > 0 ? d + (d == 1 ? " day, " : " days, ") : "";
-  var hDisplay = h > 0 ? h + (h == 1 ? " hour, " : " hours, ") : "";
-  var mDisplay = m > 0 ? m + (m == 1 ? " minute, " : " minutes, ") : "";
-  var sDisplay = s > 0 ? s + (s == 1 ? " second" : " seconds") : "";
-  return dDisplay + hDisplay + mDisplay + sDisplay;
-};
+const runtime = seconds => {
+  seconds = Number(seconds)
+  var d = Math.floor(seconds / (3600 * 24))
+  var h = Math.floor((seconds % (3600 * 24)) / 3600)
+  var m = Math.floor((seconds % 3600) / 60)
+  var s = Math.floor(seconds % 60)
+  var dDisplay = d > 0 ? d + (d == 1 ? ' day, ' : ' days, ') : ''
+  var hDisplay = h > 0 ? h + (h == 1 ? ' hour, ' : ' hours, ') : ''
+  var mDisplay = m > 0 ? m + (m == 1 ? ' minute, ' : ' minutes, ') : ''
+  var sDisplay = s > 0 ? s + (s == 1 ? ' second' : ' seconds') : ''
+  return dDisplay + hDisplay + mDisplay + sDisplay
+}
 
 /**
  *
  * @param {string} id youtube id
  * @returns
  */
-const ytDislike = (id) => {
+const ytDislike = id => {
   return new Promise(async (resolve, reject) => {
     const ax = await axios
-      .get("https://returnyoutubedislikeapi.com/votes?videoId=" + id)
-      .catch((err) => {
-        console.err(err, "ytdislike");
-      });
-    resolve(ax.data);
-  });
-};
+      .get('https://returnyoutubedislikeapi.com/votes?videoId=' + id)
+      .catch(err => {
+        console.err(err, 'ytdislike')
+      })
+    resolve(ax.data)
+  })
+}
 
 /**
  *
  * @param {string} ext extension like `.jpg/.mp4/.png`
  * @returns
  */
-const getRandom = (ext = "") => {
-  return `anubis-BOT_${Math.floor(Math.random() * 10000)}${ext}`;
-};
+const getRandom = (ext = '') => {
+  return `anubis-BOT_${Math.floor(Math.random() * 10000)}${ext}`
+}
 
 /**
  *
  * @param {number} ms
  * @returns
  */
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-function anureq(url, options) {
-  if (typeof url === "object") {
-    options = url;
+function anureq (url, options = {}) {
+  if (typeof url === 'object') {
+    options = url
   } else {
-    options.url = url;
+    options.url = url
   }
   return new Promise((resolve, reject) => {
     axios({ ...options })
       .then(({ data }) => resolve(data))
-      .catch((e) => {
-        console.err(e, "anureq error");
-      });
-  });
+      .catch(e => {
+        console.err(e, 'anureq error')
+      })
+  })
 }
 
 /**
@@ -1680,59 +1683,59 @@ function anureq(url, options) {
  * @param {number} id
  * @returns
  */
-function igjson(id) {
+function igjson (id) {
   return new Promise((resolve, reject) => {
-    let hasil = [];
-    let user = {};
-    let post = {};
-    let media = [];
+    let hasil = []
+    let user = {}
+    let post = {}
+    let media = []
     anureq({
       url: `https://i.instagram.com/api/v1/media/${id}/info/`,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
         cookie: anuCookie.ig,
-        "x-ig-app-id": 936619743392459,
-        "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
-        referer: "https://www.instagram.com/atrisna477769",
+        'x-ig-app-id': 936619743392459,
+        'x-csrftoken': /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+        referer: 'https://www.instagram.com/atrisna477769'
       },
-      method: "GET",
+      method: 'GET'
     })
-      .then((data) => {
-        let j = data.items[0];
+      .then(data => {
+        let j = data.items[0]
         if (j.carousel_media) {
           for (var i = 0; i < j.carousel_media.length; i++) {
-            let jj = j.carousel_media[i];
+            let jj = j.carousel_media[i]
             if (jj.video_versions) {
               media.push({
                 url: jj.video_versions[0].url,
                 thumb: jj.image_versions2.candidates[0].url,
-                type: "mp4",
-              });
+                type: 'mp4'
+              })
             } else {
               media.push({
                 url: jj.image_versions2.candidates[0].url,
-                type: "jpg",
-              });
+                type: 'jpg'
+              })
             }
           }
         } else if (j.video_versions) {
           media.push({
             url: j.video_versions[0].url,
             thumb: j.image_versions2.candidates[0].url,
-            type: "mp4",
-          });
+            type: 'mp4'
+          })
         } else {
           media.push({
             url: j.image_versions2.candidates[0].url,
-            type: "jpg",
-          });
+            type: 'jpg'
+          })
         }
-        let cap;
+        let cap
         if (j.caption == null) {
-          cap = "";
+          cap = ''
         } else {
-          cap = j.caption.text;
+          cap = j.caption.text
         }
         user = {
           username: j.user.username,
@@ -1740,8 +1743,8 @@ function igjson(id) {
           is_private: j.user.is_private,
           is_verified: j.user.is_verified,
           profile_pic_url: j.user.profile_pic_url,
-          id: j.user.pk,
-        };
+          id: j.user.pk
+        }
 
         if (j.taken_at) {
           post = {
@@ -1753,26 +1756,26 @@ function igjson(id) {
             video_duration: j.video_duration,
             view_count: j.view_count,
             play_count: j.play_count,
-            has_audio: j.has_audio,
-          };
+            has_audio: j.has_audio
+          }
         }
 
         hasil.push({
           user: user,
           post: post,
-          media: media,
-        });
+          media: media
+        })
 
         resolve({
-          creator: "anubis-bot",
+          creator: 'anubis-bot',
           status: true,
-          data: hasil,
-        });
+          data: hasil
+        })
       })
-      .catch((err) => {
-        console.err(err, "igjson");
-      });
-  });
+      .catch(err => {
+        console.err(err, 'igjson')
+      })
+  })
 }
 
 /**
@@ -1780,85 +1783,84 @@ function igjson(id) {
  * @param {string} shortcode
  * @returns
  */
-const iggetid = (shortcode) => {
+const iggetid = shortcode => {
   return new Promise(async (resolve, reject) => {
     anureq({
       url: `https://www.instagram.com/graphql/query/?query_hash=d4e8ae69cb68f66329dcebe82fb69f6d&variables={"shortcode":"${shortcode}"}`,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
         cookie: anuCookie.ig,
-        "x-ig-app-id": 936619743392459,
-        "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
-        referer: "https://www.instagram.com/atrisna477769",
+        'x-ig-app-id': 936619743392459,
+        'x-csrftoken': /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+        referer: 'https://www.instagram.com/atrisna477769'
       },
-      method: "GET",
+      method: 'GET'
     })
-      .then((data) => {
-        resolve({ status: true, id: data.data.shortcode_media.id });
+      .then(data => {
+        resolve({ status: true, id: data.data.shortcode_media.id })
       })
-      .catch((err) => {
-        console.err(err, "iggetid failed get id");
-        resolve({ status: false });
-      });
-  });
-};
+      .catch(err => {
+        console.err(err, 'iggetid failed get id')
+        resolve({ status: false })
+      })
+  })
+}
 
 /**
  *
  * @param {uri} urlnya
  * @returns
  */
-const igstory = (urlnya) => {
+const igstory = urlnya => {
   return new Promise(async (resolve, reject) => {
-    let igPreg =
-      /(?:https?:\/\/)?(?:www.)?instagram.com\/?(?:[a-zA-Z0-9\.\_\-]+)?\/((?:[p]+)?(?:[reel]+)?(?:[tv]+)?(?:[stories]+)?)\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g;
-    let urll = new URL(urlnya);
-    let url = await urlDirect2(urll.href);
-    let regx = igPreg.exec(url);
-    let media = [];
-    let anubis = {};
-    let user = {};
-    if (regx[2] == "highlights") {
+    let igPreg = /(?:https?:\/\/)?(?:www.)?instagram.com\/?(?:[a-zA-Z0-9\.\_\-]+)?\/((?:[p]+)?(?:[reel]+)?(?:[tv]+)?(?:[stories]+)?)\/([a-zA-Z0-9\-\_\.]+)\/?([0-9]+)?/g
+    let urll = new URL(urlnya)
+    let url = await urlDirect2(urll.href)
+    let regx = igPreg.exec(url)
+    let media = []
+    let anubis = {}
+    let user = {}
+    if (regx[2] == 'highlights') {
       anureq({
         url: `https://i.instagram.com/api/v1/feed/reels_media/?reel_ids=highlight:${regx[3]}`,
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36',
           cookie: anuCookie.ig,
-          "x-ig-app-id": 936619743392459,
-          "x-csrftoken": /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
-          referer: "https://www.instagram.com/atrisna477769",
+          'x-ig-app-id': 936619743392459,
+          'x-csrftoken': /csrftoken=([a-zA-Z0-9]*)\;/.exec(anuCookie.ig)[1],
+          referer: 'https://www.instagram.com/atrisna477769'
         },
-        method: "GET",
+        method: 'GET'
       })
-        .then((data) => {
-          let j = data.reels_media[0];
+        .then(data => {
+          let j = data.reels_media[0]
           for (var i = 0; i < j.items.length; i++) {
-            let jj = j.items[i];
-            let cap;
+            let jj = j.items[i]
+            let cap
             if (jj.caption == null) {
-              cap = "";
+              cap = ''
             } else {
-              cap = jj.caption.text;
+              cap = jj.caption.text
             }
             if (jj.video_versions) {
               media.push({
                 id: jj.id,
                 url: jj.video_versions[0].url,
                 thumb: jj.image_versions2.candidates[0].url,
-                type: "mp4",
+                type: 'mp4',
                 caption: cap,
-                taken_at: jj.taken_at,
-              });
+                taken_at: jj.taken_at
+              })
             } else {
               media.push({
                 id: jj.id,
                 url: jj.image_versions2.candidates[0].url,
-                type: "jpg",
+                type: 'jpg',
                 caption: cap,
-                taken_at: jj.taken_at,
-              });
+                taken_at: jj.taken_at
+              })
             }
           }
           user = {
@@ -1866,21 +1868,21 @@ const igstory = (urlnya) => {
             full_name: j.user.full_name,
             is_private: j.user.is_private,
             is_verified: j.user.is_verified,
-            profile_pic_url: j.user.profile_pic_url,
-          };
-          if (urll.searchParams.get("story_media_id")) {
+            profile_pic_url: j.user.profile_pic_url
+          }
+          if (urll.searchParams.get('story_media_id')) {
             for (let i = 0; i < media.length; i++) {
               if (
                 media[i].id ==
-                urll.searchParams.get("story_mediaconsole.log_id")
+                urll.searchParams.get('story_mediaconsole.log_id')
               ) {
                 anubis = {
                   id: media[i].id,
                   url: media[i].url,
                   type: media[i].type,
                   caption: media[i].caption,
-                  taken_at: media[i].taken_at,
-                };
+                  taken_at: media[i].taken_at
+                }
               }
             }
           }
@@ -1888,72 +1890,72 @@ const igstory = (urlnya) => {
             status: true,
             user,
             media,
-            anubis,
-          });
+            anubis
+          })
         })
-        .catch((err) => console.err(err, "igstory"));
+        .catch(err => console.err(err, 'igstory'))
     }
-  });
-};
+  })
+}
 
 /**
  *
  * @param {uri} url
  * @returns
  */
-function tiktok(url) {
+function tiktok (url) {
   return new Promise(async (resolve, reject) => {
     axios
-      .get("https://musicaldown.com/id")
-      .then((res) => {
-        const $ = cheerio.load(res.data);
-        const url_name = $("#link_url").attr("name");
-        const token_name = $("#submit-form > div")
-          .find("div:nth-child(1) > input[type=hidden]:nth-child(2)")
-          .attr("name");
-        const token_ = $("#submit-form > div")
-          .find("div:nth-child(1) > input[type=hidden]:nth-child(2)")
-          .attr("value");
-        const verify = $("#submit-form > div")
-          .find("div:nth-child(1) > input[type=hidden]:nth-child(3)")
-          .attr("value");
+      .get('https://musicaldown.com/id')
+      .then(res => {
+        const $ = cheerio.load(res.data)
+        const url_name = $('#link_url').attr('name')
+        const token_name = $('#submit-form > div')
+          .find('div:nth-child(1) > input[type=hidden]:nth-child(2)')
+          .attr('name')
+        const token_ = $('#submit-form > div')
+          .find('div:nth-child(1) > input[type=hidden]:nth-child(2)')
+          .attr('value')
+        const verify = $('#submit-form > div')
+          .find('div:nth-child(1) > input[type=hidden]:nth-child(3)')
+          .attr('value')
         let data = {
           [`${url_name}`]: url,
           [`${token_name}`]: token_,
-          verify: verify,
-        };
+          verify: verify
+        }
         return axios({
-          url: "https://musicaldown.com/id/download",
-          method: "post",
+          url: 'https://musicaldown.com/id/download',
+          method: 'post',
           data: new URLSearchParams(Object.entries(data)),
           headers: {
-            cookie: res.headers["set-cookie"],
-          },
-        });
+            cookie: res.headers['set-cookie']
+          }
+        })
       })
-      .then((respon) => {
-        const ch = cheerio.load(respon.data);
+      .then(respon => {
+        const ch = cheerio.load(respon.data)
         const tts = ch(
-          "body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l8 > a"
-        );
-        const links = [];
+          'body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l8 > a'
+        )
+        const links = []
         const thumb = ch(
-          "body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4 > img"
-        ).attr("src");
+          'body > div.welcome.section > div > div:nth-child(2) > div.col.s12.l4 > img'
+        ).attr('src')
         for (let i = 0; i < tts.length; i++) {
-          const t = ch(tts[i]);
-          const tx = t.text();
-          const txx = tx.replace(/arrow_downward/, "");
-          if (t.attr("href")) links.push({ url: t.attr("href"), text: txx });
+          const t = ch(tts[i])
+          const tx = t.text()
+          const txx = tx.replace(/arrow_downward/, '')
+          if (t.attr('href')) links.push({ url: t.attr('href'), text: txx })
         }
         resolve({
           status: true,
           thumb,
-          nowm: links,
-        });
+          nowm: links
+        })
       })
-      .catch((err) => console.err(err, "tiktok"));
-  });
+      .catch(err => console.err(err, 'tiktok'))
+  })
 }
 
 /**
@@ -1961,64 +1963,64 @@ function tiktok(url) {
  * @param {uri} Url
  * @returns
  */
-async function tiktok2(Url) {
+async function tiktok2 (Url) {
   return new Promise(async (resolve, reject) => {
-    let uri = await urlDirect2(Url);
+    let uri = await urlDirect2(Url)
     await axios
       .request({
-        url: "https://ttdownloader.com/",
-        method: "GET",
+        url: 'https://ttdownloader.com/',
+        method: 'GET',
         headers: {
           accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,/;q=0.8,application/signed-exchange;v=b3;q=0.9",
-          "accept-language": "en-US,en;q=0.9,id;q=0.8",
-          "user-agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,/;q=0.8,application/signed-exchange;v=b3;q=0.9',
+          'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+          'user-agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
           cookie:
-            "_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934",
-        },
+            '_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934'
+        }
       })
-      .then((respon) => {
-        const $ = cheerio.load(respon.data);
-        const token = $("#token").attr("value");
+      .then(respon => {
+        const $ = cheerio.load(respon.data)
+        const token = $('#token').attr('value')
         axios({
-          url: "https://ttdownloader.com/search/",
-          method: "POST",
+          url: 'https://ttdownloader.com/search/',
+          method: 'POST',
           data: new URLSearchParams(
-            Object.entries({ url: uri, format: "", token: token })
+            Object.entries({ url: uri, format: '', token: token })
           ),
           headers: {
-            accept: "/",
-            "accept-language": "en-US,en;q=0.9,id;q=0.8",
-            "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "user-agent":
-              "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36",
+            accept: '/',
+            'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'user-agent':
+              'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
             cookie:
-              "_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934",
-          },
+              '_ga=GA1.2.1240046717.1620835673; PHPSESSID=i14curq5t8omcljj1hlle52762; popCookie=1; _gid=GA1.2.1936694796.1623913934'
+          }
         })
-          .then((res) => {
-            const ch = cheerio.load(res.data);
+          .then(res => {
+            const ch = cheerio.load(res.data)
             resolve({
-              videoUrl: ch("#results-list > div:nth-child(3)")
-                .find("div.download > a")
-                .attr("href"),
-              nowatermark: ch("#results-list > div:nth-child(2)")
-                .find("div.download > a")
-                .attr("href"),
-              music: ch("#results-list > div:nth-child(4)")
-                .find("div.download > a")
-                .attr("href"),
-            });
+              videoUrl: ch('#results-list > div:nth-child(3)')
+                .find('div.download > a')
+                .attr('href'),
+              nowatermark: ch('#results-list > div:nth-child(2)')
+                .find('div.download > a')
+                .attr('href'),
+              music: ch('#results-list > div:nth-child(4)')
+                .find('div.download > a')
+                .attr('href')
+            })
           })
-          .catch((e) => {
-            console.err(e, "tiktok 2");
-          });
+          .catch(e => {
+            console.err(e, 'tiktok 2')
+          })
       })
-      .catch((e) => {
-        console.err(e, "tiktok 2");
-      });
-  });
+      .catch(e => {
+        console.err(e, 'tiktok 2')
+      })
+  })
 }
 
 /**
@@ -2026,34 +2028,36 @@ async function tiktok2(Url) {
  * @param {string} querry
  * @returns
  */
-function pinterest(querry) {
+function pinterest (querry) {
   return new Promise(async (resolve, reject) => {
     axios
-      .get("https://id.pinterest.com/search/pins/?autologin=true&q=" + querry, {
+      .get('https://id.pinterest.com/search/pins/?autologin=true&q=' + querry, {
         headers: {
           cookie:
-            '_auth=1; _b="AVna7S1p7l1C5I9u0+nR3YzijpvXOPc6d09SyCzO+DcwpersQH36SmGiYfymBKhZcGg="; _pinterest_sess=TWc9PSZHamJOZ0JobUFiSEpSN3Z4a2NsMk9wZ3gxL1NSc2k2NkFLaUw5bVY5cXR5alZHR0gxY2h2MVZDZlNQalNpUUJFRVR5L3NlYy9JZkthekp3bHo5bXFuaFZzVHJFMnkrR3lTbm56U3YvQXBBTW96VUgzVUhuK1Z4VURGKzczUi9hNHdDeTJ5Y2pBTmxhc2owZ2hkSGlDemtUSnYvVXh5dDNkaDN3TjZCTk8ycTdHRHVsOFg2b2NQWCtpOWxqeDNjNkk3cS85MkhhSklSb0hwTnZvZVFyZmJEUllwbG9UVnpCYVNTRzZxOXNJcmduOVc4aURtM3NtRFo3STlmWjJvSjlWTU5ITzg0VUg1NGhOTEZzME9SNFNhVWJRWjRJK3pGMFA4Q3UvcHBnWHdaYXZpa2FUNkx6Z3RNQjEzTFJEOHZoaHRvazc1c1UrYlRuUmdKcDg3ZEY4cjNtZlBLRTRBZjNYK0lPTXZJTzQ5dU8ybDdVS015bWJKT0tjTWYyRlBzclpiamdsNmtpeUZnRjlwVGJXUmdOMXdTUkFHRWloVjBMR0JlTE5YcmhxVHdoNzFHbDZ0YmFHZ1VLQXU1QnpkM1FqUTNMTnhYb3VKeDVGbnhNSkdkNXFSMXQybjRGL3pyZXRLR0ZTc0xHZ0JvbTJCNnAzQzE0cW1WTndIK0trY05HV1gxS09NRktadnFCSDR2YzBoWmRiUGZiWXFQNjcwWmZhaDZQRm1UbzNxc21pV1p5WDlabm1UWGQzanc1SGlrZXB1bDVDWXQvUis3elN2SVFDbm1DSVE5Z0d4YW1sa2hsSkZJb1h0MTFpck5BdDR0d0lZOW1Pa2RDVzNySWpXWmUwOUFhQmFSVUpaOFQ3WlhOQldNMkExeDIvMjZHeXdnNjdMYWdiQUhUSEFBUlhUVTdBMThRRmh1ekJMYWZ2YTJkNlg0cmFCdnU2WEpwcXlPOVZYcGNhNkZDd051S3lGZmo0eHV0ZE42NW8xRm5aRWpoQnNKNnNlSGFad1MzOHNkdWtER0xQTFN5Z3lmRERsZnZWWE5CZEJneVRlMDd2VmNPMjloK0g5eCswZUVJTS9CRkFweHc5RUh6K1JocGN6clc1JmZtL3JhRE1sc0NMTFlpMVErRGtPcllvTGdldz0=; _ir=0',
-        },
+            '_auth=1; _b="AVna7S1p7l1C5I9u0+nR3YzijpvXOPc6d09SyCzO+DcwpersQH36SmGiYfymBKhZcGg="; _pinterest_sess=TWc9PSZHamJOZ0JobUFiSEpSN3Z4a2NsMk9wZ3gxL1NSc2k2NkFLaUw5bVY5cXR5alZHR0gxY2h2MVZDZlNQalNpUUJFRVR5L3NlYy9JZkthekp3bHo5bXFuaFZzVHJFMnkrR3lTbm56U3YvQXBBTW96VUgzVUhuK1Z4VURGKzczUi9hNHdDeTJ5Y2pBTmxhc2owZ2hkSGlDemtUSnYvVXh5dDNkaDN3TjZCTk8ycTdHRHVsOFg2b2NQWCtpOWxqeDNjNkk3cS85MkhhSklSb0hwTnZvZVFyZmJEUllwbG9UVnpCYVNTRzZxOXNJcmduOVc4aURtM3NtRFo3STlmWjJvSjlWTU5ITzg0VUg1NGhOTEZzME9SNFNhVWJRWjRJK3pGMFA4Q3UvcHBnWHdaYXZpa2FUNkx6Z3RNQjEzTFJEOHZoaHRvazc1c1UrYlRuUmdKcDg3ZEY4cjNtZlBLRTRBZjNYK0lPTXZJTzQ5dU8ybDdVS015bWJKT0tjTWYyRlBzclpiamdsNmtpeUZnRjlwVGJXUmdOMXdTUkFHRWloVjBMR0JlTE5YcmhxVHdoNzFHbDZ0YmFHZ1VLQXU1QnpkM1FqUTNMTnhYb3VKeDVGbnhNSkdkNXFSMXQybjRGL3pyZXRLR0ZTc0xHZ0JvbTJCNnAzQzE0cW1WTndIK0trY05HV1gxS09NRktadnFCSDR2YzBoWmRiUGZiWXFQNjcwWmZhaDZQRm1UbzNxc21pV1p5WDlabm1UWGQzanc1SGlrZXB1bDVDWXQvUis3elN2SVFDbm1DSVE5Z0d4YW1sa2hsSkZJb1h0MTFpck5BdDR0d0lZOW1Pa2RDVzNySWpXWmUwOUFhQmFSVUpaOFQ3WlhOQldNMkExeDIvMjZHeXdnNjdMYWdiQUhUSEFBUlhUVTdBMThRRmh1ekJMYWZ2YTJkNlg0cmFCdnU2WEpwcXlPOVZYcGNhNkZDd051S3lGZmo0eHV0ZE42NW8xRm5aRWpoQnNKNnNlSGFad1MzOHNkdWtER0xQTFN5Z3lmRERsZnZWWE5CZEJneVRlMDd2VmNPMjloK0g5eCswZUVJTS9CRkFweHc5RUh6K1JocGN6clc1JmZtL3JhRE1sc0NMTFlpMVErRGtPcllvTGdldz0=; _ir=0'
+        }
       })
       .then(({ data }) => {
-        const $ = cheerio.load(data);
-        const result = [];
-        const hasil = [];
-        $("div > a")
+        const $ = cheerio.load(data)
+        const result = []
+        const hasil = []
+        $('div > a')
           .get()
-          .map((b) => {
-            const link = $(b).find("img").attr("src");
-            result.push(link);
-          });
-        result.forEach((v) => {
-          if (v == undefined) return;
-          hasil.push(v.replace(/236/g, "736"));
-        });
-        hasil.shift();
-        resolve(hasil);
+          .map(b => {
+            const link = $(b)
+              .find('img')
+              .attr('src')
+            result.push(link)
+          })
+        result.forEach(v => {
+          if (v == undefined) return
+          hasil.push(v.replace(/236/g, '736'))
+        })
+        hasil.shift()
+        resolve(hasil)
       })
-      .catch((err) => console.err(err, "pinterest"));
-  });
+      .catch(err => console.err(err, 'pinterest'))
+  })
 }
 
 /**
@@ -2061,49 +2065,49 @@ function pinterest(querry) {
  * @param {String} query
  * @returns
  */
-function pinterest2(query) {
+function pinterest2 (query) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${encodeURIComponent(
         query
       )}&rs=typed&data={"options":{"article":null,"applied_filters":null,"appliedProductFilters":"---","auto_correction_disabled":false,"corpus":null,"customized_rerank_type":null,"filters":null,"query":"${query}","query_pin_sigs":null,"redux_normalize_feed":true,"rs":"typed","scope":"pins","source_id":null,"no_fetch_context_on_resource":false},"context":{}}&_=1665811633913`,
       headers: {
-        "X-Requested-With": "XMLHttpRequest",
-        Accept: "application/json, text/javascript, */*, q=0.01",
-        "X-Pinterest-Source-Url": `/search/pins/?q=${encodeURIComponent(
+        'X-Requested-With': 'XMLHttpRequest',
+        Accept: 'application/json, text/javascript, */*, q=0.01',
+        'X-Pinterest-Source-Url': `/search/pins/?q=${encodeURIComponent(
           query
         )}&rs=typed`,
-        "X-Pinterest-PWS-Handler": "www/index.js",
+        'X-Pinterest-PWS-Handler': 'www/index.js',
         cookie:
-          'csrftoken=a7521ad4b4c461eb1b336091afedf1c9; _auth=1; _pinterest_cm="TWc9PSZsaGNqdmowMms1TzZWNWt5enJWRExxbVZzNWZYekZrQ0lrWkRROUp5dVFkR1hlTHFXc0hTaXhyRXNzT0twRGRVQTFadVpMeXFwczNwMTlVK3ZEZTFodTNGbGxZbGJKSWg2YkFnQWx5MG9mWDdUQjVMMG5jdTF1dFUrOXNkenN5Y1RTMm41dmVYMHFueUdkUTllc1JPM1lJNW5ndmplS1BPTHpkWDFJZndzSHo2d3cwRm5Ba3FSTG5ISTZ3djF5WWUmeDRzbE5tbzB1a0YxbU55bGZvR1lKcFVVeDc4PQ=="; _b="AWkm14sdqTFDnpg+U5TN6jWL0TFd8Ncyuih7G50G1jUhFXIAwYT69Aph4KL3l2TPLzo="; _routing_id="c7a3a5a4-19c8-44cb-b1b2-c3abcdf33eaf"; sessionFunnelEventLogged=1; cm_sub=none; _pinterest_sess=TWc9PSY5cTd1VTVJNzRVOU4zV0w5ZVZMVXVtdE4zUnpGMDJLU0owUm1XOXFvVjFPakNubFdlT1p5OXRURElORmgyTEp6SjhFak9VTHlBaXJEajBIQnRvOHNGeXlOMWZ5QnozSHo3Z0hmazliL2VaQ205ZndvK2Y4TmZhRGwwVER5V2svcEtnd1R5UFBnQUdOdlRDUnBMTENneFR2a1VYZFlEMkkzTTJ4YWxkbllnWG14QUdWLzJUeXNBMW5IR0pBUTRDd0RFaWNwYjY4WGF2UzN0R2dzMjVyd2x1Tzlxa2NnajYwKy9YZ2V1Z0VlSnhDRGZHRTBMd2VtSENzSU5IcWZLc3F4UE1qbmx5Q291VjB5aE9HQk16cVE3d0pwU1ZFcVVSOG92SWlZREN6ZElmZU1EMWgrenZlR0Eya0ducU0vN1E4KysxWWlsY1VwYm1ZTEw0Rm9XMXhrQlhhWWlyYVNiQ015N0xUUUpPMkR1MFRLWGxZNDNTODhYZlZWWTFDTnZsK1JRNHVLSmpsc2x0cTlvakF1WUZnMmVZemZ0NTBSNk82VjFzbzhEQWNqVkR6Uk9YWlg3bUp4T2RnNUQyYXczclY0VGdyQVZsV0VyUXB1NHhreU5NbloxZXlsblRzTTd6Umg5UXlhck90c2kzM2NpK2xhLzJYVlViMEIzSHVhMzZIaHZrR3IvaERMVSs3MFdxdGJOVHBSTlQ5U3NpMk5BZXVPOVJ0VnAvaithNEdvOHFFQ1d3VHdiN0VsZERuYjNkd2NERGI0dndMVFNIcXJIaXVuWXB2RXhlYlkrNmJmdm00cWxybkZQNDNwWE5yZDIybks1WmtEYnh2Nm80VGNFMjBCMXJlSGRTWGY3MVQ2ZGRhR1NzT2lYd04xUklvTkFMc3lIQnVRYlRhMU01TE1ZWDFSYklCZUQwMUx1OWlWS1dUUk9oYjNVSCs4dHFhQkVSbHRka3ZjRzhBZ0l1NGlQN29zVWR5aTJEYlByMGUrSlFGeDM0NjA1TTRBMHcwd0dVL3RySlRRNlNwR1gzYzVDbnpGY1VidFhWSmNicEpZYzlxN3B6NjZxcXNCYkxIREs3cXBtSzJHa2hsV3pCbHlTS3ZsK0VwSjFoMmw2OTl2b2RDRlJCbUVpZGhldGU2TnJ0eXhIeENycGVyVEppSmg1dE1lTEtsT1FROWYrTDVudnBxRERjcUZKUGduVU9CTG1yRTdITkk4REJOTUxMQUlEQTRvZWdUcmVBaXErNHVuWjI4U29XeUV2eXZiYk1lQXhtRit1RzkwVGZxNldEVE1xWUhncVdsVHhoMFNTd3ZpeUx4MDY3RXI2dm1BcElrbGdqSWpzcHVJN0RGUHJKVFJmUjg1OEFMYU1VS1U2ckF6WXliTS91TkxWVWRjc0h5V3dESW9vZDBuTVhZeVlwc09VeEhsSWlIOGFVcmlCMi95c3pWSUNBcHA4dk03YVQ2YVlHTTVRRm13MzBnVDIvTUtaekFsYXRKeHZUMmlkdzg9Jm4wNFJhV3B1YW5nMzNPakdQeVd4bWxDMldKUT0=',
+          'csrftoken=a7521ad4b4c461eb1b336091afedf1c9; _auth=1; _pinterest_cm="TWc9PSZsaGNqdmowMms1TzZWNWt5enJWRExxbVZzNWZYekZrQ0lrWkRROUp5dVFkR1hlTHFXc0hTaXhyRXNzT0twRGRVQTFadVpMeXFwczNwMTlVK3ZEZTFodTNGbGxZbGJKSWg2YkFnQWx5MG9mWDdUQjVMMG5jdTF1dFUrOXNkenN5Y1RTMm41dmVYMHFueUdkUTllc1JPM1lJNW5ndmplS1BPTHpkWDFJZndzSHo2d3cwRm5Ba3FSTG5ISTZ3djF5WWUmeDRzbE5tbzB1a0YxbU55bGZvR1lKcFVVeDc4PQ=="; _b="AWkm14sdqTFDnpg+U5TN6jWL0TFd8Ncyuih7G50G1jUhFXIAwYT69Aph4KL3l2TPLzo="; _routing_id="c7a3a5a4-19c8-44cb-b1b2-c3abcdf33eaf"; sessionFunnelEventLogged=1; cm_sub=none; _pinterest_sess=TWc9PSY5cTd1VTVJNzRVOU4zV0w5ZVZMVXVtdE4zUnpGMDJLU0owUm1XOXFvVjFPakNubFdlT1p5OXRURElORmgyTEp6SjhFak9VTHlBaXJEajBIQnRvOHNGeXlOMWZ5QnozSHo3Z0hmazliL2VaQ205ZndvK2Y4TmZhRGwwVER5V2svcEtnd1R5UFBnQUdOdlRDUnBMTENneFR2a1VYZFlEMkkzTTJ4YWxkbllnWG14QUdWLzJUeXNBMW5IR0pBUTRDd0RFaWNwYjY4WGF2UzN0R2dzMjVyd2x1Tzlxa2NnajYwKy9YZ2V1Z0VlSnhDRGZHRTBMd2VtSENzSU5IcWZLc3F4UE1qbmx5Q291VjB5aE9HQk16cVE3d0pwU1ZFcVVSOG92SWlZREN6ZElmZU1EMWgrenZlR0Eya0ducU0vN1E4KysxWWlsY1VwYm1ZTEw0Rm9XMXhrQlhhWWlyYVNiQ015N0xUUUpPMkR1MFRLWGxZNDNTODhYZlZWWTFDTnZsK1JRNHVLSmpsc2x0cTlvakF1WUZnMmVZemZ0NTBSNk82VjFzbzhEQWNqVkR6Uk9YWlg3bUp4T2RnNUQyYXczclY0VGdyQVZsV0VyUXB1NHhreU5NbloxZXlsblRzTTd6Umg5UXlhck90c2kzM2NpK2xhLzJYVlViMEIzSHVhMzZIaHZrR3IvaERMVSs3MFdxdGJOVHBSTlQ5U3NpMk5BZXVPOVJ0VnAvaithNEdvOHFFQ1d3VHdiN0VsZERuYjNkd2NERGI0dndMVFNIcXJIaXVuWXB2RXhlYlkrNmJmdm00cWxybkZQNDNwWE5yZDIybks1WmtEYnh2Nm80VGNFMjBCMXJlSGRTWGY3MVQ2ZGRhR1NzT2lYd04xUklvTkFMc3lIQnVRYlRhMU01TE1ZWDFSYklCZUQwMUx1OWlWS1dUUk9oYjNVSCs4dHFhQkVSbHRka3ZjRzhBZ0l1NGlQN29zVWR5aTJEYlByMGUrSlFGeDM0NjA1TTRBMHcwd0dVL3RySlRRNlNwR1gzYzVDbnpGY1VidFhWSmNicEpZYzlxN3B6NjZxcXNCYkxIREs3cXBtSzJHa2hsV3pCbHlTS3ZsK0VwSjFoMmw2OTl2b2RDRlJCbUVpZGhldGU2TnJ0eXhIeENycGVyVEppSmg1dE1lTEtsT1FROWYrTDVudnBxRERjcUZKUGduVU9CTG1yRTdITkk4REJOTUxMQUlEQTRvZWdUcmVBaXErNHVuWjI4U29XeUV2eXZiYk1lQXhtRit1RzkwVGZxNldEVE1xWUhncVdsVHhoMFNTd3ZpeUx4MDY3RXI2dm1BcElrbGdqSWpzcHVJN0RGUHJKVFJmUjg1OEFMYU1VS1U2ckF6WXliTS91TkxWVWRjc0h5V3dESW9vZDBuTVhZeVlwc09VeEhsSWlIOGFVcmlCMi95c3pWSUNBcHA4dk03YVQ2YVlHTTVRRm13MzBnVDIvTUtaekFsYXRKeHZUMmlkdzg9Jm4wNFJhV3B1YW5nMzNPakdQeVd4bWxDMldKUT0='
       },
-      method: "GET",
+      method: 'GET'
     })
-      .then((data) => {
-        let res = [];
+      .then(data => {
+        let res = []
         for (let img of data.resource_response.data.results) {
-          if (!img.images) continue;
-          if (!img.images.orig) continue;
-          let owner = {};
-          let id = img.id;
-          let type = img.type;
-          let title = img.title;
-          let image = img.images.orig;
-          let desc = img.description;
-          let alt = img.alt_text;
+          if (!img.images) continue
+          if (!img.images.orig) continue
+          let owner = {}
+          let id = img.id
+          let type = img.type
+          let title = img.title
+          let image = img.images.orig
+          let desc = img.description
+          let alt = img.alt_text
           let video =
             img.videos == null
               ? null
               : img.videos.video_list.V_EXP7
-                ? img.videos.video_list.V_EXP7
-                : null;
-          let img_sign = img.image_signature;
-          let created = img.created_at.split("+")[0];
-          owner.profile = img.pinner.image_large_url;
-          owner.id = img.pinner.id;
-          owner.username = img.pinner.username;
-          owner.full_name = img.pinner.full_name;
-          owner.follower = img.pinner.follower_count;
+              ? img.videos.video_list.V_EXP7
+              : null
+          let img_sign = img.image_signature
+          let created = img.created_at.split('+')[0]
+          owner.profile = img.pinner.image_large_url
+          owner.id = img.pinner.id
+          owner.username = img.pinner.username
+          owner.full_name = img.pinner.full_name
+          owner.follower = img.pinner.follower_count
           res.push({
             id,
             type,
@@ -2114,17 +2118,17 @@ function pinterest2(query) {
             video,
             img_sign,
             created,
-            owner,
-          });
+            owner
+          })
         }
-        arrayMix(res);
-        resolve({ status: true, anubis: res });
+        arrayMix(res)
+        resolve({ status: true, anubis: res })
       })
-      .catch((err) => {
-        console.err(err, "pinterest");
-        resolve({ status: false });
-      });
-  });
+      .catch(err => {
+        console.err(err, 'pinterest')
+        resolve({ status: false })
+      })
+  })
 }
 
 /**
@@ -2132,34 +2136,34 @@ function pinterest2(query) {
  * @param {uri} url
  * @returns
  */
-function hagodl(url) {
+function hagodl (url) {
   return new Promise(async (resolve, reject) => {
-    let media = [];
+    let media = []
     axios
       .get(url)
       .then(({ request }) => {
-        let regx = /postId\=([0-9]*)\&/i;
-        let preg = regx.exec(request.res.responseUrl);
-        return preg[1];
+        let regx = /postId\=([0-9]*)\&/i
+        let preg = regx.exec(request.res.responseUrl)
+        return preg[1]
       })
-      .then((postId) => {
+      .then(postId => {
         return axios.get(
           `https://i-863.ihago.net/bbs/get_post_info?data={"post_id":"${postId}","lang":"id"}`
-        );
+        )
       })
       .then(({ data }) => {
-        if (data.code !== 1) return resolve({ status: false });
+        if (data.code !== 1) return resolve({ status: false })
         if (data.data.info.video) {
-          let video = [data.data.info.video];
+          let video = [data.data.info.video]
           media.push({
             url: video,
-            type: "mp4",
-          });
+            type: 'mp4'
+          })
         } else {
           media.push({
             url: data.data.info.images,
-            type: "jpg",
-          });
+            type: 'jpg'
+          })
         }
         return resolve({
           status: true,
@@ -2172,11 +2176,11 @@ function hagodl(url) {
           text: data.data.info.text,
           media: media,
           likes: data.data.info.likes,
-          replys: data.data.info.replys || "",
-        });
+          replys: data.data.info.replys || ''
+        })
       })
-      .catch((err) => console.err(err, "hagodl"));
-  });
+      .catch(err => console.err(err, 'hagodl'))
+  })
 }
 
 /**
@@ -2184,35 +2188,45 @@ function hagodl(url) {
  * @param {uri} url
  * @returns
  */
-function subFinder(url) {
-  return new Promise(async (resolve) => {
+function subFinder (url) {
+  return new Promise(async resolve => {
     axios({
-      url: "https://opentunnel.net/subdomain-finder",
+      url: 'https://opentunnel.net/subdomain-finder',
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        Accept: "*/*",
-        "X-Requested-With": "XMLHttpRequest",
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        Accept: '*/*',
+        'X-Requested-With': 'XMLHttpRequest'
       },
       data:
         `g-recaptcha-response=03ANYolqsVi0vgOx8zJdI4bfM-6Q_7Rw-e7-mpsnDOo0O18lEUk2LUi33fgXbT0jvPFPHXzb2o3W7goQBqJk8Dd7IbutnoXyr1vJFUr8lle1sgU7A_zHUf76Bz-TxDf71fmX88johua53qHzlZy0ADE9PU2ogciIOOFPvWK5HO1zP4r2rvfum_pXzdatjjLvQohYteWZj2xNKWnaL__qLkFp0g-48bal7NuDs-Tc_EAH41iKumQsGiMcdyvziJgGJHpvNVPllfvghWxdNr1DtX-E7mLTbV1OKnfG6UMB3AUYY499Jvi5_q1DFntNOZSxS1FbHdHFvmGy0iKNdN_hspXgIgQFug_Bx-ZNiMyGHfci5IXtyms48544ce3IKArnxWBDP8k6pDFCxGayTjthgUCE8HUU4M9O9knEayGmQ6tA-uRj1dLudMVXE-Fj-ILdAeXlqbsGoAO8ED3JY1vbmQ0uJAvZTLgLI-5M-CUQmO-o77NtP7w8OUdLebgtpN9UoB8sFUw8CCQcqQqRviQheIkJAC7w7PB2c4Qw&action=validate_captcha&domain=` +
         url,
-      method: "POST",
+      method: 'POST'
     })
       .then(({ data }) => {
-        let out = [];
-        const $ = cheerio.load(data);
-        const a = $("div.table-responsive > table > tbody > tr");
+        let out = []
+        const $ = cheerio.load(data)
+        const a = $('div.table-responsive > table > tbody > tr')
         for (let i = 0; i < a.length; i++) {
-          const cf = $(a[i]).find("td:nth-child(1) > img").attr("alt");
-          const subdom = $(a[i]).find("td:nth-child(2) > a").text();
-          const ip = $(a[i]).find("td:nth-child(3) > a").text();
-          const country = $(a[i]).find("td:nth-child(4) > img").attr("alt");
-          const isp = $(a[i]).find("td:nth-child(5)").text();
-          let clf;
-          if (cf == "cloudflare_on") {
-            clf = true;
+          const cf = $(a[i])
+            .find('td:nth-child(1) > img')
+            .attr('alt')
+          const subdom = $(a[i])
+            .find('td:nth-child(2) > a')
+            .text()
+          const ip = $(a[i])
+            .find('td:nth-child(3) > a')
+            .text()
+          const country = $(a[i])
+            .find('td:nth-child(4) > img')
+            .attr('alt')
+          const isp = $(a[i])
+            .find('td:nth-child(5)')
+            .text()
+          let clf
+          if (cf == 'cloudflare_on') {
+            clf = true
           } else {
-            clf = false;
+            clf = false
           }
 
           out.push({
@@ -2220,92 +2234,91 @@ function subFinder(url) {
             subdomain: subdom,
             ip: ip,
             country: country,
-            isp: isp,
-          });
+            isp: isp
+          })
         }
-        if (out.cloudflare == "") return resolve({ status: false });
-        resolve({ status: true, data: out });
+        if (out.cloudflare == '') return resolve({ status: false })
+        resolve({ status: true, data: out })
       })
-      .catch((err) => console.err(err, "subfinder"));
-  });
+      .catch(err => console.err(err, 'subfinder'))
+  })
 }
 
-const ytUrlRegex =
-  /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/i;
+const ytUrlRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\=))|youtu\.be\/)([a-zA-Z0-9_-]{6,11})/i
 
 /**
  *
  * @param {string} id // youtube id / url
  * @returns
  */
-function ytdlr(id) {
-  let ytId;
+function ytdlr (id) {
+  let ytId
   if (isUrl(id)) {
-    let getid = ytUrlRegex.exec(id);
-    ytId = getid[1];
+    let getid = ytUrlRegex.exec(id)
+    ytId = getid[1]
   } else {
-    ytId = id;
+    ytId = id
   }
-  return new Promise(async (resolve) => {
-    let mp3 = [];
-    let mp4 = [];
+  return new Promise(async resolve => {
+    let mp3 = []
+    let mp4 = []
     axios({
       url: `https://api.btclod.com/v1/youtube/extract-infos/?detail=${ytId}&video=1`,
       headers: {
-        Accept: "application/json, text/plain, */*",
-        authorization: "",
+        Accept: 'application/json, text/plain, */*',
+        authorization: ''
       },
-      method: "GET",
+      method: 'GET'
     })
       .then(({ data }) => {
-        if (data.code !== 200) return resolve({ status: false });
-        let ytdl = data.data;
+        if (data.code !== 200) return resolve({ status: false })
+        let ytdl = data.data
         for (let i = 0; i < ytdl.audios.length; i++) {
-          if (ytdl.audios[i].extension == "mp3") {
-            let anu = ytdl.audios[i];
+          if (ytdl.audios[i].extension == 'mp3') {
+            let anu = ytdl.audios[i]
             if (anu.file_size !== null) {
-              let cek = false;
+              let cek = false
               for (let resl in mp3) {
                 if (mp3[resl].reso == anu.format_note) {
-                  cek = true;
+                  cek = true
                 } else {
-                  cek = false;
+                  cek = false
                 }
               }
               if (!cek) {
-                let size = anu.file_size;
-                let reso = anu.format_note;
-                let urldir = "https://api.btclod.com" + anu.url;
+                let size = anu.file_size
+                let reso = anu.format_note
+                let urldir = 'https://api.btclod.com' + anu.url
                 mp3.push({
                   urldir,
                   size,
-                  reso,
-                });
+                  reso
+                })
               }
             }
           }
         }
         for (let i = 0; i < ytdl.videos.length; i++) {
-          if (ytdl.videos[i].extension == "mp4") {
-            let anu = ytdl.videos[i];
+          if (ytdl.videos[i].extension == 'mp4') {
+            let anu = ytdl.videos[i]
             if (anu.file_size !== null) {
-              let cek = false;
+              let cek = false
               for (let resl in mp4) {
                 if (mp4[resl].reso == anu.format_note) {
-                  cek = true;
+                  cek = true
                 } else {
-                  cek = false;
+                  cek = false
                 }
               }
               if (!cek) {
-                let size = anu.file_size;
-                let reso = anu.format_note;
-                let urldir = "https://api.btclod.com" + anu.url;
+                let size = anu.file_size
+                let reso = anu.format_note
+                let urldir = 'https://api.btclod.com' + anu.url
                 mp4.push({
                   urldir,
                   size,
-                  reso,
-                });
+                  reso
+                })
               }
             }
           }
@@ -2321,11 +2334,11 @@ function ytdlr(id) {
           publish: ytdl.detail.extra_data.publishedAt,
           view: ytdl.detail.extra_data.viewCount,
           mp3,
-          mp4,
-        });
+          mp4
+        })
       })
-      .catch((err) => console.err(err, "ytdlr"));
-  });
+      .catch(err => console.err(err, 'ytdlr'))
+  })
 }
 
 /**
@@ -2333,171 +2346,205 @@ function ytdlr(id) {
  * @param {uri} url
  * @returns
  */
-function y2mate(url) {
-  return new Promise(async (resolve) => {
+function y2mate (url) {
+  return new Promise(async resolve => {
     const post = (url, formdata) => {
       return axios({
         url,
-        method: "POST",
+        method: 'POST',
         headers: {
-          accept: "*/*",
-          "accept-language": "en-US,en;q=0.9",
-          "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+          accept: '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+          'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
         },
-        data: new URLSearchParams(Object.entries(formdata)),
-      }).catch((err) => console.err(err, "y2mate"));
-    };
-    let ytId = ytUrlRegex.exec(url);
-    let { likes, dislikes, rating, viewCount } = await ytDislike(ytId[1]);
-    url = "https://youtu.be/" + ytId[1];
+        data: new URLSearchParams(Object.entries(formdata))
+      }).catch(err => console.err(err, 'y2mate'))
+    }
+    let ytId = ytUrlRegex.exec(url)
+    let { likes, dislikes, rating, viewCount } = await ytDislike(ytId[1])
+    url = 'https://youtu.be/' + ytId[1]
     let { data } = await post(
       `https://www.y2mate.com/mates/en154/analyze/ajax`,
       { url, q_auto: 0, ajax: 1 }
-    );
-    if (typeof data.result == "undefined") await y2mate(url);
-    let $ = cheerio.load(data.result);
-    let video = [];
-    let audio = [];
-    let page = $("div.tabs");
-    let mp4 = $(page).find("#mp4 > table > tbody > tr");
-    let mp3 = $(page).find("#mp3 > table > tbody > tr");
+    )
+    if (typeof data.result == 'undefined') await y2mate(url)
+    let $ = cheerio.load(data.result)
+    let video = []
+    let audio = []
+    let page = $('div.tabs')
+    let mp4 = $(page).find('#mp4 > table > tbody > tr')
+    let mp3 = $(page).find('#mp3 > table > tbody > tr')
     for (let i = 0; i < mp4.length; i++) {
-      let list = $(mp4)[i];
+      let list = $(mp4)[i]
       video.push({
         title: $(page)
           .find(
-            "div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b"
+            'div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b'
           )
           .text(),
         thumb: $(page)
           .find(
-            "div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img"
+            'div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img'
           )
-          .attr("src"),
-        resText: $(list).find("td:nth-child(1)").text(),
-        size: $(list).find("td:nth-child(2)").text(),
+          .attr('src'),
+        resText: $(list)
+          .find('td:nth-child(1)')
+          .text(),
+        size: $(list)
+          .find('td:nth-child(2)')
+          .text(),
         sizeByte:
-          parseFloat($(list).find("td:nth-child(2)").text()) *
-          (1000000 * /MB$/.test($(list).find("td:nth-child(2)").text())),
-        type: $(list).find("td.txt-center > a").attr("data-ftype"),
-        quality: $(list).find("td.txt-center > a").attr("data-fquality"),
-        id: /var k__id = "(.*?)"/.exec($("script").text())[1],
+          parseFloat(
+            $(list)
+              .find('td:nth-child(2)')
+              .text()
+          ) *
+          (1000000 *
+            /MB$/.test(
+              $(list)
+                .find('td:nth-child(2)')
+                .text()
+            )),
+        type: $(list)
+          .find('td.txt-center > a')
+          .attr('data-ftype'),
+        quality: $(list)
+          .find('td.txt-center > a')
+          .attr('data-fquality'),
+        id: /var k__id = "(.*?)"/.exec($('script').text())[1],
         ytid: ytId[1],
         likes,
         dislikes,
         rating,
-        viewCount,
-      });
+        viewCount
+      })
     }
     for (let i = 0; i < mp3.length; i++) {
-      let list = $(mp3)[i];
+      let list = $(mp3)[i]
       audio.push({
         title: $(page)
           .find(
-            "div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b"
+            'div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b'
           )
           .text(),
         thumb: $(page)
           .find(
-            "div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img"
+            'div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > a > img'
           )
-          .attr("src"),
-        resText: $(list).find("td:nth-child(1)").text(),
-        size: $(list).find("td:nth-child(2)").text(),
+          .attr('src'),
+        resText: $(list)
+          .find('td:nth-child(1)')
+          .text(),
+        size: $(list)
+          .find('td:nth-child(2)')
+          .text(),
         sizeByte:
-          parseFloat($(list).find("td:nth-child(2)").text()) *
-          (1000000 * /MB$/.test($(list).find("td:nth-child(2)").text())),
-        type: $(list).find("td.txt-center > a").attr("data-ftype"),
-        quality: $(list).find("td.txt-center > a").attr("data-fquality"),
-        id: /var k__id = "(.*?)"/.exec($("script").text())[1],
+          parseFloat(
+            $(list)
+              .find('td:nth-child(2)')
+              .text()
+          ) *
+          (1000000 *
+            /MB$/.test(
+              $(list)
+                .find('td:nth-child(2)')
+                .text()
+            )),
+        type: $(list)
+          .find('td.txt-center > a')
+          .attr('data-ftype'),
+        quality: $(list)
+          .find('td.txt-center > a')
+          .attr('data-fquality'),
+        id: /var k__id = "(.*?)"/.exec($('script').text())[1],
         ytid: ytId[1],
         likes,
         dislikes,
         rating,
-        viewCount,
-      });
+        viewCount
+      })
     }
     resolve({
       status: true,
       title: $(page)
-        .find("div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b")
+        .find('div.col-xs-12.col-sm-5.col-md-5 > div.thumbnail.cover > div > b')
         .text(),
       audio,
-      video,
-    });
-  });
+      video
+    })
+  })
 }
 
-function y2mateConvert(id, ytid, type, quality) {
-  return new Promise(async (resolve) => {
+function y2mateConvert (id, ytid, type, quality) {
+  return new Promise(async resolve => {
     let formdata = {
-      type: "youtube",
+      type: 'youtube',
       _id: id,
       v_id: ytid,
       ajax: 1,
-      token: "",
+      token: '',
       ftype: type,
-      fquality: quality,
-    };
+      fquality: quality
+    }
     axios({
-      url: "https://www.y2mate.com/mates/convert",
-      method: "POST",
+      url: 'https://www.y2mate.com/mates/convert',
+      method: 'POST',
       headers: {
-        accept: "*/*",
-        "accept-language": "en-US,en;q=0.9",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        accept: '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
       },
-      data: new URLSearchParams(Object.entries(formdata)),
+      data: new URLSearchParams(Object.entries(formdata))
     })
       .then(async ({ data }) => {
-        if (typeof data.result == "undefined") {
-          let a = y2mateConvert(id, ytid, type, quality);
-          return resolve({ a });
+        if (typeof data.result == 'undefined') {
+          let a = y2mateConvert(id, ytid, type, quality)
+          return resolve({ a })
         }
-        const $ = cheerio.load(data.result);
-        const url = $("a").attr("href");
-        resolve({ url });
+        const $ = cheerio.load(data.result)
+        const url = $('a').attr('href')
+        resolve({ url })
       })
-      .catch((err) => console.err(err, "y2mateConverter"));
-  });
+      .catch(err => console.err(err, 'y2mateConverter'))
+  })
 }
 
-function ytdlr3(url) {
+function ytdlr3 (url) {
   return new Promise(async (resolve, reject) => {
     axios
-      .get("https://a2converter.com/youtube-downloader/")
+      .get('https://a2converter.com/youtube-downloader/')
       .then(({ data }) => {
-        const $ = cheerio.load(data);
-        const token = $("#token").attr("value");
-        const form = new BodyForm();
-        form.append("url", url);
-        form.append("token", token);
+        const $ = cheerio.load(data)
+        const token = $('#token').attr('value')
+        const form = new BodyForm()
+        form.append('url', url)
+        form.append('token', token)
         return axios({
-          url: "https://a2converter.com/wp-json/aio-dl/video-data/",
+          url: 'https://a2converter.com/wp-json/aio-dl/video-data/',
           headers: {
-            accept: "*/*",
-            "accept-language": "en-US,en;q=0.9,id;q=0.8",
-            "content-type": "application/x-www-form-urlencoded",
-            "sec-ch-ua":
+            accept: '*/*',
+            'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+            'content-type': 'application/x-www-form-urlencoded',
+            'sec-ch-ua':
               '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            cookie: "pll_language=en",
-            Referer: "https://a2converter.com/youtube-downloader/",
-            "Referrer-Policy": "no-referrer-when-downgrade",
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            cookie: 'pll_language=en',
+            Referer: 'https://a2converter.com/youtube-downloader/',
+            'Referrer-Policy': 'no-referrer-when-downgrade'
           },
           data: form,
-          method: "POST",
-        });
+          method: 'POST'
+        })
       })
       .then(({ data }) => {
-        let audio = [];
-        let video = [];
+        let audio = []
+        let video = []
         for (let i = 0; i < data.medias.length; i++) {
-          let media = data.medias[i];
+          let media = data.medias[i]
           if (media.audioAvailable) {
             if (media.videoAvailable) {
               video.push({
@@ -2508,10 +2555,10 @@ function ytdlr3(url) {
                 quality: media.quality,
                 extension: media.extension,
                 size: media.size,
-                formattedSize: media.formattedSize,
-              });
+                formattedSize: media.formattedSize
+              })
             } else {
-              if (media.extension == "mp3") {
+              if (media.extension == 'mp3') {
                 audio.push({
                   title: data.title,
                   duration: data.duration,
@@ -2520,8 +2567,8 @@ function ytdlr3(url) {
                   quality: media.quality,
                   extension: media.extension,
                   size: media.size,
-                  formattedSize: media.formattedSize,
-                });
+                  formattedSize: media.formattedSize
+                })
               }
             }
           }
@@ -2532,11 +2579,11 @@ function ytdlr3(url) {
           duration: data.duration,
           thumb: data.thumbnail,
           video,
-          audio,
-        });
+          audio
+        })
       })
-      .catch((err) => console.err(err, "ytdlr3"));
-  });
+      .catch(err => console.err(err, 'ytdlr3'))
+  })
 }
 
 /**
@@ -2544,54 +2591,54 @@ function ytdlr3(url) {
  * @param {string} query
  * @returns
  */
-function jooxSearch(query) {
-  let Query = query.replace(" ", "-");
-  let tracks = [];
+function jooxSearch (query) {
+  let Query = query.replace(' ', '-')
+  let tracks = []
   return new Promise(async (resolve, reject) => {
     axios({
       url: `https://api-jooxtt.sanook.com/openjoox/v2/search_type?country=id&lang=id&key=${Query}&type=0`,
       headers: {
-        accept: "application/json, text/plain, */*",
-        "accept-language": "en-US,en;q=0.9,id;q=0.8",
-        "sec-ch-ua":
+        accept: 'application/json, text/plain, */*',
+        'accept-language': 'en-US,en;q=0.9,id;q=0.8',
+        'sec-ch-ua':
           '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-        "sec-ch-ua-mobile": "?1",
-        "sec-ch-ua-platform": '"Android"',
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "cross-site",
-        Referer: "https://www.joox.com/",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
+        'sec-ch-ua-mobile': '?1',
+        'sec-ch-ua-platform': '"Android"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'cross-site',
+        Referer: 'https://www.joox.com/',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
       },
       data: null,
-      method: "GET",
+      method: 'GET'
     })
       .then(({ data }) => {
-        if (data.error_code !== 0) return resolve({ status: false });
+        if (data.error_code !== 0) return resolve({ status: false })
         for (let i = 0; i < data.tracks.length; i++) {
-          let track = data.tracks[i][0];
-          let artis_list = "";
+          let track = data.tracks[i][0]
+          let artis_list = ''
           for (let j = 0; j < track.artist_list.length; j++) {
-            artis_list += track.artist_list[j].name;
-            artis_list += ", ";
+            artis_list += track.artist_list[j].name
+            artis_list += ', '
           }
-          if (typeof track.images[1] === "undefined") continue;
+          if (typeof track.images[1] === 'undefined') continue
           if (track.is_playable) {
-            let duration = durasiConverter(track.play_duration);
+            let duration = durasiConverter(track.play_duration)
             tracks.push({
               id: track.id,
               name: track.name,
               album_name: track.album_name,
               artis_list,
               duration,
-              thumb: track.images ? track.images[1].url : undefined,
-            });
+              thumb: track.images ? track.images[1].url : undefined
+            })
           }
         }
-        resolve({ status: true, anubis: tracks });
+        resolve({ status: true, anubis: tracks })
       })
-      .catch((err) => console.err(err, "jooxsearch"));
-  });
+      .catch(err => console.err(err, 'jooxsearch'))
+  })
 }
 
 /**
@@ -2599,22 +2646,22 @@ function jooxSearch(query) {
  * @param {string} id
  * @returns
  */
-function jooxDownloader(id) {
-  return new Promise(async (resolve) => {
+function jooxDownloader (id) {
+  return new Promise(async resolve => {
     axios({
-      url: "http://api.joox.com/web-fcgi-bin/web_get_songinfo?songid=" + id,
+      url: 'http://api.joox.com/web-fcgi-bin/web_get_songinfo?songid=' + id,
       headers: {
-        "X-Forwarded-For": "36.73.34.109",
-        Cookie: anuCookie.joox,
+        'X-Forwarded-For': '36.73.34.109',
+        Cookie: anuCookie.joox
       },
       data: null,
-      method: "GET",
+      method: 'GET'
     })
       .then(({ data }) => {
         const res = JSON.parse(
-          data.replace("MusicInfoCallback(", "").replace("\n)", "")
-        );
-        if (res.code !== 0) return resolve({ status: false });
+          data.replace('MusicInfoCallback(', '').replace('\n)', '')
+        )
+        if (res.code !== 0) return resolve({ status: false })
         let hasil = {
           msong: res.msong,
           malbum: res.malbum,
@@ -2624,12 +2671,12 @@ function jooxDownloader(id) {
           mp3Url: res.mp3Url,
           duration: durasiConverter(res.minterval),
           sizeByte: res.size128,
-          size: byteToSize(res.size128),
-        };
-        resolve({ status: true, anubis: hasil });
+          size: byteToSize(res.size128)
+        }
+        resolve({ status: true, anubis: hasil })
       })
-      .catch((err) => console.err(err, "jooxDownloader"));
-  });
+      .catch(err => console.err(err, 'jooxDownloader'))
+  })
 }
 
 /**
@@ -2637,30 +2684,30 @@ function jooxDownloader(id) {
  * @param {string} id
  * @returns
  */
-function jooxLyric(id) {
-  return new Promise(async (resolve) => {
+function jooxLyric (id) {
+  return new Promise(async resolve => {
     axios({
-      url: "http://api.joox.com/web-fcgi-bin/web_lyric?musicid=" + id,
+      url: 'http://api.joox.com/web-fcgi-bin/web_lyric?musicid=' + id,
       headers: {
-        "X-Forwarded-For": "36.73.34.109",
-        Cookie: anuCookie.joox,
+        'X-Forwarded-For': '36.73.34.109',
+        Cookie: anuCookie.joox
       },
       data: null,
-      method: "GET",
+      method: 'GET'
     })
       .then(({ data }) => {
         const res = JSON.parse(
-          data.replace("MusicJsonCallback(", "").replace("\n)", "")
-        );
-        if (res.code !== 0) return resolve({ status: false });
-        const lir = Buffer.from(res.lyric, "base64").toString("utf8");
+          data.replace('MusicJsonCallback(', '').replace('\n)', '')
+        )
+        if (res.code !== 0) return resolve({ status: false })
+        const lir = Buffer.from(res.lyric, 'base64').toString('utf8')
         const lirik = lir
-          .replace(/[[0-9]+\:[0-9]+\.[0-9]+\]/g, "")
-          .replace(/\n(\*\*\*(.)+\*\*\*)/g, "\n\n***By anubisbot-MD***");
-        resolve({ status: true, anubis: lirik });
+          .replace(/[[0-9]+\:[0-9]+\.[0-9]+\]/g, '')
+          .replace(/\n(\*\*\*(.)+\*\*\*)/g, '\n\n***By anubisbot-MD***')
+        resolve({ status: true, anubis: lirik })
       })
-      .catch((err) => console.err(err, "jooxLyric"));
-  });
+      .catch(err => console.err(err, 'jooxLyric'))
+  })
 }
 
 /**
@@ -2668,40 +2715,40 @@ function jooxLyric(id) {
  * @param {string} query
  * @returns
  */
-function soundcloud(query) {
-  let search = encodeURIComponent(query);
-  let hasil = [];
+function soundcloud (query) {
+  let search = encodeURIComponent(query)
+  let hasil = []
   let headers = {
-    accept: "application/json, text/javascript, */*; q=0.1",
-    "accept-language": "en-US,en;q=0.9",
-    "content-type": "application/json",
-    "sec-ch-ua":
+    accept: 'application/json, text/javascript, */*; q=0.1',
+    'accept-language': 'en-US,en;q=0.9',
+    'content-type': 'application/json',
+    'sec-ch-ua':
       '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-    "sec-ch-ua-mobile": "?1",
-    "sec-ch-ua-platform": '"Android"',
-    "sec-fetch-dest": "empty",
-    "sec-fetch-mode": "cors",
-    "sec-fetch-site": "same-site",
-    Referer: "https://m.soundcloud.com/",
-    "Referrer-Policy": "origin",
-    "X-Forwarded-For": "13.227.231.38:443",
-  };
-  return new Promise(async (resolve) => {
+    'sec-ch-ua-mobile': '?1',
+    'sec-ch-ua-platform': '"Android"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-site',
+    Referer: 'https://m.soundcloud.com/',
+    'Referrer-Policy': 'origin',
+    'X-Forwarded-For': '13.227.231.38:443'
+  }
+  return new Promise(async resolve => {
     const res = await axios
       .get(
         `https://api-mobi.soundcloud.com/search/tracks?q=${search}&client_id=${anuCookie.soundcloud}&stage=`,
         { headers }
       )
-      .catch((err) => console.err(err, "soundcloud"));
+      .catch(err => console.err(err, 'soundcloud'))
     try {
-      if (typeof res.data.collection !== "object")
-        return resolve({ status: false });
+      if (typeof res.data.collection !== 'object')
+        return resolve({ status: false })
       for (let i = 0; i < 5; i++) {
-        let json = res.data.collection[i];
+        let json = res.data.collection[i]
         const getLagu = await axios.get(
           `${json.media.transcodings[1].url}?client_id=${anuCookie.soundcloud}&track_authorization=${json.track_authorization}`,
           { headers }
-        );
+        )
 
         hasil.push({
           artwork_url: json.artwork_url,
@@ -2719,97 +2766,97 @@ function soundcloud(query) {
           likes_count: json.likes_count,
           reposts_count: json.reposts_count,
           id: json.id,
-          urlmp3: getLagu.data.url,
-        });
+          urlmp3: getLagu.data.url
+        })
       }
-      resolve({ status: true, anubis: hasil });
+      resolve({ status: true, anubis: hasil })
     } catch (err) {
-      console.err(err, "soundcloud");
+      console.err(err, 'soundcloud')
     }
-  });
+  })
 }
 
-function slBitly(url) {
+function slBitly (url) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://bitly.com/data/anon_shorten`,
       headers: {
-        "x-requested-with": "XMLHttpRequest",
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "x-xsrftoken": "9f377bfe66074af3830a5328d3ff5108",
+        'x-requested-with': 'XMLHttpRequest',
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'x-xsrftoken': '9f377bfe66074af3830a5328d3ff5108',
         cookie:
-          "_xsrf=9f377bfe66074af3830a5328d3ff5108; anon_u=cHN1X18zZjNjMGRjZC04MWE1LTRhZjMtODdjNi1kNTA0MzBhYWRhNjc=|1665818550|8d3b7544ca7629f38edff458f52116a270bfbd3f; cookie_banner=1; wow-modal-id-12=yes",
+          '_xsrf=9f377bfe66074af3830a5328d3ff5108; anon_u=cHN1X18zZjNjMGRjZC04MWE1LTRhZjMtODdjNi1kNTA0MzBhYWRhNjc=|1665818550|8d3b7544ca7629f38edff458f52116a270bfbd3f; cookie_banner=1; wow-modal-id-12=yes'
       },
       data: `url=${encodeURIComponent(url)}`,
-      method: "POST",
+      method: 'POST'
     })
-      .then((data) => {
-        if (data.status_code !== 200) return resolve({ status: false });
-        resolve({ status: true, url: data.data.link });
+      .then(data => {
+        if (data.status_code !== 200) return resolve({ status: false })
+        resolve({ status: true, url: data.data.link })
       })
-      .catch((e) => {
-        resolve({ status: false });
-      });
-  });
+      .catch(e => {
+        resolve({ status: false })
+      })
+  })
 }
 
-function slTiny(url) {
+function slTiny (url) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
       headers: {
-        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
       },
-      method: "GET",
+      method: 'GET'
     })
-      .then((data) => {
-        if (!isUrl(data)) return resolve({ status: false });
-        resolve({ status: true, url: data });
+      .then(data => {
+        if (!isUrl(data)) return resolve({ status: false })
+        resolve({ status: true, url: data })
       })
-      .catch((e) => {
-        resolve({ status: false });
-      });
-  });
+      .catch(e => {
+        resolve({ status: false })
+      })
+  })
 }
 
 /**
  *
  * @param {uri} url
  */
-async function shortlink(uri) {
-  const url = await anureq({ url: "https://ouo.io/api/cqZDr8PI?s=" + uri });
+async function shortlink (uri) {
+  const url = 'http://ouo.io/qs/cqZDr8PI?s=' + uri
   return new Promise((resolve, reject) => {
     slBitly(url)
-      .then((anu) => {
-        if (anu.status) return resolve(anu.url);
+      .then(anu => {
+        if (anu.status) return resolve(anu.url)
       })
-      .catch((e) => {
-        return slTiny(url);
+      .catch(e => {
+        return slTiny(url)
       })
-      .then((anu) => {
-        if (anu.status) return resolve(anu.url);
+      .then(anu => {
+        if (anu.status) return resolve(anu.url)
       })
-      .catch((e) => { });
-  });
+      .catch(e => {})
+  })
 }
 
-const isNum = (x) => typeof x === "number" && !isNaN(x);
+const isNum = x => typeof x === 'number' && !isNaN(x)
 
-function arrayMix(array) {
+function arrayMix (array) {
   let currentIndex = array.length,
-    randomIndex;
+    randomIndex
 
   while (currentIndex != 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex--
 
-    [array[currentIndex], array[randomIndex]] = [
+    ;[array[currentIndex], array[randomIndex]] = [
       array[randomIndex],
-      array[currentIndex],
-    ];
+      array[currentIndex]
+    ]
   }
 
-  return array;
+  return array
 }
 
 module.exports = {
@@ -2853,5 +2900,5 @@ module.exports = {
   shortlink,
   isNum,
   anureq,
-  arrayMix,
-};
+  arrayMix
+}
