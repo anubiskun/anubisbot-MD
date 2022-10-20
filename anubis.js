@@ -7,7 +7,7 @@
 
 require('./conf')
 const opts = new Object(require('yargs/yargs')(process.argv.slice(2)).exitProcess(false).parse())
-const { default: WAConnection, DisconnectReason, useMultiFileAuthState, fetchLatestWaWebVersion, S_WHATSAPP_NET, makeInMemoryStore } = require('@adiwajshing/baileys')
+const { default: WAConnection, DisconnectReason, useMultiFileAuthState, fetchLatestWaWebVersion, S_WHATSAPP_NET, makeInMemoryStore, jsonFileAuth } = require('@adiwajshing/baileys')
 const { Boom } = require('@hapi/boom')
 const fs = require('fs')
 const Path = require('path')
@@ -163,7 +163,7 @@ async function reloadConnector() {
         anuCreds();
         await database.write()
     })
-    if (opts['server']) (!server) ? require(__root + 'server.js')(anubis, store) : server = true
+    // if (opts['server']) (!server) ? require(__root + 'server.js')(anubis, store) : server = true
     return true
 }
 

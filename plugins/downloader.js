@@ -285,6 +285,7 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix, 
                 try {
                     let anu = await pinterest2(text);
                     let result = anu.anubis[Math.floor(Math.random() * anu.anubis.length)];
+                    if (typeof result !== 'object') return m.reply('Pencarian tidak di temukan!')
                     let pes = `*「 PINTEREST SEARCH 」*\n\n`
                     pes += `*Query* : ${text}\n`
                     pes += `*Title* : ${(result.title ? result.title : '')}\n`
