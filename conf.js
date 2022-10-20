@@ -35,6 +35,7 @@ global.pingWeb = 'google.com'
 global.anuFooter = 'made with ❤️ by anubis' //footer text
 global.packname = 'gabut banh maknya bikin stiker!' // exif sticker package name
 global.author = '6289653909054 • anubis-bot' //exif sticker author
+global.server = false
 global.apirnobg = [
     "bru3EGkeVy8QnFMfyhSBjp5U",
     "Wu6eovAy7DeVFz1v2yuzYKJb",

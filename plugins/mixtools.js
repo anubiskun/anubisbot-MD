@@ -11,7 +11,7 @@ const remobg = require("remove.bg");
 const isUrl = require('is-url')
 const util = require('util')
 const { tmpfiles, telegraphUp } = require('../library/upload');
-const { shortlink, getRandom, byteToSize, fetchJson, isNum } = require('../library/lib')
+const { shortlink, getRandom, byteToSize, fetchJson } = require('../library/lib')
 const { toAudio, toPTT } = require('../library/converter')
 const FileType = require('file-type');
 const ggleit = 'google-it';
@@ -195,21 +195,9 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }
             anubis.sendImage(m.chat, anu.results[0].url, await shortlink(anu.results[0].url), m)
         }
             break;
-        case 'ttp': {
-            if (!text) return m.reply(`Example: ${usedPrefix + command} 1/2/3/4/5/6 anubiskun`);
-            let [ttp, teks] = args
-            if (!isNum(Number(ttp))) return m.reply(`Example: ${usedPrefix + command} 1/2/3/4/5/6 anubiskun`);
-            if (ttp === '1') {
-                ttp = command
-            } else {
-                ttp = command + ttp
-            }
-            await anubis.sendImage(m.chat, `https://api.lolhuman.xyz/api/${ttp}?apikey=${lolkey}&text=${encodeURIComponent(teks)}`, '', m)
-        }
-            break;
     }
 }
-anuplug.help = ['fetch', 'google', 'removebg', 'tomp3', 'tourl', 'tovn', 'emix2', 'ttp']
+anuplug.help = ['fetch', 'google', 'removebg', 'tomp3', 'tourl', 'tovn', 'emix2']
 anuplug.tags = ['tools']
-anuplug.command = /^(fetch|google|rmbg|removebg|to(mp3|url|vn)|emix2|ttp)$/i
+anuplug.command = /^(fetch|google|rmbg|removebg|to(mp3|url|vn)|emix2)$/i
 anuplug.isPremium = true
