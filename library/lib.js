@@ -44,7 +44,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} jid
      * @returns
      */
-    decodeJid (jid) {
+    decodeJid(jid) {
       if (!jid) return jid
       if (/:\d+@/gi.test(jid)) {
         let decode = jidDecode(jid) || {}
@@ -55,7 +55,7 @@ const anubisFunc = (conn, store) => {
       } else return jid
     },
 
-    getName (jid, withoutContact = false) {
+    getName(jid, withoutContact = false) {
       let id = this.decodeJid(jid)
       withoutContact = this.withoutContact || withoutContact
       let v
@@ -65,22 +65,22 @@ const anubisFunc = (conn, store) => {
           if (!(v.name || v.subject)) v = (await this.groupMetadata(id)) || {}
           resolve(
             v.name ||
-              v.subject ||
-              parsePhoneNumber('+' + id.replace(this.anubiskun, '')).getNumber(
-                'international'
-              )
+            v.subject ||
+            parsePhoneNumber('+' + id.replace(this.anubiskun, '')).getNumber(
+              'international'
+            )
           )
         })
       else
         v =
           id === '0' + this.anubiskun
             ? {
-                id,
-                name: 'WhatsApp'
-              }
+              id,
+              name: 'WhatsApp'
+            }
             : id === this.decodeJid(this.user.id)
-            ? this.user
-            : store.contacts[id] || {}
+              ? this.user
+              : store.contacts[id] || {}
       return (
         (withoutContact ? '' : v.name) ||
         v.subject ||
@@ -97,7 +97,7 @@ const anubisFunc = (conn, store) => {
      * @param {m} quoted
      * @param {{}} opts
      */
-    async sendContact (jid, contact, quoted = '', opts = {}) {
+    async sendContact(jid, contact, quoted = '', opts = {}) {
       let list = []
       contact = typeof contact == 'string' ? contact.split(',') : contact
       for (let i of contact) {
@@ -129,7 +129,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} quoted
      * @param {*} options
      */
-    async sendFileUrl (jid, url, caption, quoted, options = {}) {
+    async sendFileUrl(jid, url, caption, quoted, options = {}) {
       let mime = ''
       let res = await axios.get(url)
       mime = res.headers['content-type']
@@ -198,7 +198,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} text
      * @param {Numeric} value
      */
-    sendPaymentMsg (jid, sender, text = '', value) {
+    sendPaymentMsg(jid, sender, text = '', value) {
       const payment = generateWAMessageFromContent(
         jid,
         {
@@ -232,7 +232,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} name
      * @param [*] options
      */
-    sendPoll (jid, name = '', options = []) {
+    sendPoll(jid, name = '', options = []) {
       const poll = generateWAMessageFromContent(
         jid,
         proto.Message.fromObject({
@@ -252,7 +252,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} jid
      * @param {*} name
      */
-    sendSimplePoll (jid, name = '') {
+    sendSimplePoll(jid, name = '') {
       const simplePoll = generateWAMessageFromContent(
         jid,
         proto.Message.fromObject({
@@ -281,7 +281,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} tokens
      * @param {Numeric} amount
      */
-    sendOrder (
+    sendOrder(
       jid,
       text = '',
       orid = '',
@@ -319,16 +319,16 @@ const anubisFunc = (conn, store) => {
      * @param {Buffer} file Buffer or Path or URL
      * @returns
      */
-    async genThumb (file) {
+    async genThumb(file) {
       let buffer = Buffer.isBuffer(file)
         ? file
         : /^data:.*?\/.*?;base64,/i.test(file)
-        ? Buffer.from(file.split`,`[1], 'base64')
-        : /^https?:\/\//.test(file)
-        ? await await getBuffer(file)
-        : fs.existsSync(file)
-        ? fs.readFileSync(file)
-        : Buffer.alloc(0)
+          ? Buffer.from(file.split`,`[1], 'base64')
+          : /^https?:\/\//.test(file)
+            ? await await getBuffer(file)
+            : fs.existsSync(file)
+              ? fs.readFileSync(file)
+              : Buffer.alloc(0)
       if (!Buffer.isBuffer(buffer))
         throw new TypeError('Result is not a buffer')
       let type = await FileType.fromBuffer(buffer)
@@ -358,7 +358,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendList (
+    async sendList(
       jid,
       title,
       text,
@@ -385,7 +385,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} button
      * @returns
      */
-    async sendTButtonMsg (
+    async sendTButtonMsg(
       jid,
       text = '',
       templateButtons = [],
@@ -412,7 +412,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTButtonImg (
+    async sendTButtonImg(
       jid,
       text = '',
       path,
@@ -423,12 +423,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       let templateMessage = {
         image: buffer,
         caption: text,
@@ -452,7 +452,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTButtonVid (
+    async sendTButtonVid(
       jid,
       text = '',
       path,
@@ -464,12 +464,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       let jpegThumbnail
       if (isUrl(thumb)) {
         jpegThumbnail = (await extractImageThumb(thumb)).buffer
@@ -497,7 +497,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} button
      * @returns
      */
-    async sendButtonMsg (
+    async sendButtonMsg(
       jid,
       text = '',
       buttons = [],
@@ -521,7 +521,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonImg (
+    async sendButtonImg(
       jid,
       text = '',
       path,
@@ -532,12 +532,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { image: buffer, caption: text, footer: anuFooter, buttons },
@@ -554,7 +554,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonVid (
+    async sendButtonVid(
       jid,
       text = '',
       path,
@@ -566,12 +566,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       let jpegThumbnail
       if (isUrl(thumb)) {
         jpegThumbnail = (await extractImageThumb(thumb)).buffer
@@ -600,7 +600,7 @@ const anubisFunc = (conn, store) => {
      * @param [*] button
      * @param {*} options
      */
-    async sendButtonLoc (
+    async sendButtonLoc(
       jid,
       text = '',
       lok,
@@ -631,7 +631,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendButtonGif (
+    async sendButtonGif(
       jid,
       text = '',
       gif,
@@ -666,7 +666,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} quoted
      * @param {*} options
      */
-    async sendButtonText (jid, buttons = [], text, quoted = '', options = {}) {
+    async sendButtonText(jid, buttons = [], text, quoted = '', options = {}) {
       let buttonMessage = {
         text,
         footer: anuFooter,
@@ -685,7 +685,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendText (jid, text = '', quoted = '', options) {
+    async sendText(jid, text = '', quoted = '', options) {
       return await this.sendMessage(
         jid,
         { text, ...options },
@@ -702,16 +702,16 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendImage (jid, path, caption = '', quoted = '', options) {
+    async sendImage(jid, path, caption = '', quoted = '', options) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { image: buffer, caption: caption, ...options },
@@ -728,7 +728,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendVideo (
+    async sendVideo(
       jid,
       path,
       caption = '',
@@ -740,12 +740,12 @@ const anubisFunc = (conn, store) => {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       let jpegThumbnail
       if (isUrl(thumb)) {
         jpegThumbnail = (await extractImageThumb(thumb)).buffer
@@ -775,16 +775,16 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendAudio (jid, path, quoted = '', ptt = false, options) {
+    async sendAudio(jid, path, quoted = '', ptt = false, options) {
       let buffer = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       return await this.sendMessage(
         jid,
         { audio: buffer, ptt: ptt, ...options },
@@ -800,7 +800,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendTextWithMentions (jid, text, quoted = '', options = {}) {
+    async sendTextWithMentions(jid, text, quoted = '', options = {}) {
       return await this.sendMessage(
         jid,
         {
@@ -822,17 +822,17 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendAsSticker (jid, path, quoted = '', options = {}) {
+    async sendAsSticker(jid, path, quoted = '', options = {}) {
       try {
         let buff = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], 'base64')
-          : /^https?:\/\//.test(path)
-          ? await await getBuffer(path)
-          : fs.existsSync(path)
-          ? fs.readFileSync(path)
-          : Buffer.alloc(0)
+            ? Buffer.from(path.split`,`[1], 'base64')
+            : /^https?:\/\//.test(path)
+              ? await await getBuffer(path)
+              : fs.existsSync(path)
+                ? fs.readFileSync(path)
+                : Buffer.alloc(0)
         let buffer
         if (options && (options.packname || options.author)) {
           buffer = await writeExif(buff, options)
@@ -862,16 +862,16 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendVideoAsSticker (jid, path, quoted = '', options = {}) {
+    async sendVideoAsSticker(jid, path, quoted = '', options = {}) {
       let buff = Buffer.isBuffer(path)
         ? path
         : /^data:.*?\/.*?;base64,/i.test(path)
-        ? Buffer.from(path.split`,`[1], 'base64')
-        : /^https?:\/\//.test(path)
-        ? await await getBuffer(path)
-        : fs.existsSync(path)
-        ? fs.readFileSync(path)
-        : Buffer.alloc(0)
+          ? Buffer.from(path.split`,`[1], 'base64')
+          : /^https?:\/\//.test(path)
+            ? await await getBuffer(path)
+            : fs.existsSync(path)
+              ? fs.readFileSync(path)
+              : Buffer.alloc(0)
       let buffer
       if (options && (options.packname || options.author)) {
         buffer = await writeExifVid(buff, options)
@@ -894,7 +894,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} attachExtension
      * @returns
      */
-    async downloadAndSaveMediaMessage (
+    async downloadAndSaveMediaMessage(
       message,
       filename = getRandom(),
       attachExtension = true
@@ -921,7 +921,7 @@ const anubisFunc = (conn, store) => {
       return trueFileName
     },
 
-    async downloadMediaMessage (message) {
+    async downloadMediaMessage(message) {
       let mime = (message.msg || message).mimetype || ''
       let messageType = message.mtype
         ? message.mtype.replace(/Message/gi, '')
@@ -944,7 +944,7 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async sendMedia (
+    async sendMedia(
       jid,
       path,
       fileName,
@@ -966,18 +966,18 @@ const anubisFunc = (conn, store) => {
         types = /text|json/.test(res.headers['content-type'])
           ? { ext: 'txt' }
           : /application/.test(res.headers['content-type'])
-          ? { mime: 'application' }
-          : await FileType.fromBuffer(path)
+            ? { mime: 'application' }
+            : await FileType.fromBuffer(path)
       } else {
         path = Buffer.isBuffer(path)
           ? path
           : /^data:.*?\/.*?;base64,/i.test(path)
-          ? Buffer.from(path.split`,`[1], 'base64')
-          : isUrl(path)
-          ? await await getBuffer(path)
-          : fs.existsSync(path)
-          ? fs.readFileSync(path)
-          : Buffer.alloc(0)
+            ? Buffer.from(path.split`,`[1], 'base64')
+            : isUrl(path)
+              ? await await getBuffer(path)
+              : fs.existsSync(path)
+                ? fs.readFileSync(path)
+                : Buffer.alloc(0)
         types = await FileType.fromBuffer(path)
       }
       if (/txt/.test(types.ext)) {
@@ -1034,13 +1034,13 @@ const anubisFunc = (conn, store) => {
      * @param {*} options
      * @returns
      */
-    async copyNForward (jid, message, forceForward = false, options = {}) {
+    async copyNForward(jid, message, forceForward = false, options = {}) {
       let vtype
       if (options.readViewOnce) {
         message.message =
           message.message &&
-          message.message.ephemeralMessage &&
-          message.message.ephemeralMessage.message
+            message.message.ephemeralMessage &&
+            message.message.ephemeralMessage.message
             ? message.message.ephemeralMessage.message
             : message.message || undefined
         vtype = Object.keys(message.message.viewOnceMessage.message)[0]
@@ -1067,17 +1067,17 @@ const anubisFunc = (conn, store) => {
         content,
         options
           ? {
-              ...content[ctype],
-              ...options,
-              ...(options.contextInfo
-                ? {
-                    contextInfo: {
-                      ...content[ctype].contextInfo,
-                      ...options.contextInfo
-                    }
-                  }
-                : {})
-            }
+            ...content[ctype],
+            ...options,
+            ...(options.contextInfo
+              ? {
+                contextInfo: {
+                  ...content[ctype].contextInfo,
+                  ...options.contextInfo
+                }
+              }
+              : {})
+          }
           : {}
       )
       await this.relayMessage(jid, waMessage.message, {
@@ -1086,7 +1086,7 @@ const anubisFunc = (conn, store) => {
       return waMessage
     },
 
-    cMod (jid, copy, text = '', sender = this.user.id, options = {}) {
+    cMod(jid, copy, text = '', sender = this.user.id, options = {}) {
       //let copy = message.toJSON()
       let mtype = Object.keys(copy.message)[0]
       let isEphemeral = mtype === 'ephemeralMessage'
@@ -1124,19 +1124,19 @@ const anubisFunc = (conn, store) => {
      * @param {*} path
      * @returns
      */
-    async getFile (PATH, save) {
+    async getFile(PATH, save) {
       let res
       let data = Buffer.isBuffer(PATH)
         ? PATH
         : /^data:.*?\/.*?;base64,/i.test(PATH)
-        ? Buffer.from(PATH.split`,`[1], 'base64')
-        : /^https?:\/\//.test(PATH)
-        ? await (res = await getBuffer(PATH))
-        : fs.existsSync(PATH)
-        ? ((filename = PATH), fs.readFileSync(PATH))
-        : typeof PATH === 'string'
-        ? PATH
-        : Buffer.alloc(0)
+          ? Buffer.from(PATH.split`,`[1], 'base64')
+          : /^https?:\/\//.test(PATH)
+            ? await (res = await getBuffer(PATH))
+            : fs.existsSync(PATH)
+              ? ((filename = PATH), fs.readFileSync(PATH))
+              : typeof PATH === 'string'
+                ? PATH
+                : Buffer.alloc(0)
       if (!Buffer.isBuffer(data)) throw new TypeError('Result is not a buffer')
       let type = (await FileType.fromBuffer(data)) || {
         mime: 'application/octet-stream',
@@ -1153,11 +1153,11 @@ const anubisFunc = (conn, store) => {
       }
     },
 
-    serializeM (m) {
+    serializeM(m) {
       smsg(anubis, m, store)
     },
 
-    async anuUpdate () {
+    async anuUpdate() {
       const cekV = await fetchJson(
         'https://raw.githubusercontent.com/anubiskun/anubisbot-MD/anubis/package.json'
       )
@@ -1176,29 +1176,27 @@ const anubisFunc = (conn, store) => {
 
     timeDate: moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss'),
 
-    err (m, log, fun = false) {
+    err(m, log, fun = false) {
       this.sendMessage(this.anuNum, {
-        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
-          fun ? fun : m.text
-        }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${
-          m.chat.split('@')[0]
-        }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`
+        text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
+          }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${m.chat.split('@')[0]
+          }\n*Date* : ${this.timeDate}\nLog: ${util.format(log)}`
       })
     },
 
-    decodeBuffer (buffer) {
+    decodeBuffer(buffer) {
       const a = buffer.toString('base64')
       return a
     },
 
-    encodeBuffer (base64) {
+    encodeBuffer(base64) {
       const a = Buffer.from(base64, 'base64')
       return a
     },
 
     regUrl: /((?:(http|https|Http|Https|rtsp|Rtsp):\/\/(?:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,64}(?:\:(?:[a-zA-Z0-9\$\-\_\.\+\!\*\'\(\)\,\;\?\&\=]|(?:\%[a-fA-F0-9]{2})){1,25})?\@)?)?((?:(?:[a-zA-Z0-9][a-zA-Z0-9\-]{0,64}\.)+(?:(?:aero|arpa|asia|a[cdefgilmnoqrstuwxz])|(?:biz|b[abdefghijmnorstvwyz])|(?:cat|com|coop|c[acdfghiklmnoruvxyz])|d[ejkmoz]|(?:edu|e[cegrstu])|f[ijkmor]|(?:gov|g[abdefghilmnpqrstuwy])|h[kmnrtu]|(?:info|int|i[delmnoqrst])|(?:jobs|j[emop])|k[eghimnrwyz]|l[abcikrstuvy]|(?:mil|mobi|museum|m[acdghklmnopqrstuvwxyz])|(?:name|net|n[acefgilopruz])|(?:org|om)|(?:pro|p[aefghklmnrstwy])|qa|r[eouw]|s[abcdeghijklmnortuvyz]|(?:tel|travel|t[cdfghjklmnoprtvwz])|u[agkmsyz]|v[aceginu]|w[fs]|y[etu]|z[amw]))|(?:(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9])\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[1-9]|0)\.(?:25[0-5]|2[0-4][0-9]|[0-1][0-9]{2}|[1-9][0-9]|[0-9])))(?:\:\d{1,5})?)(\/(?:(?:[a-zA-Z0-9\;\/\?\:\@\&\=\#\~\-\.\+\!\*\'\(\)\,\_])|(?:\%[a-fA-F0-9]{2}))*)?(?:\b|$)/gi,
 
-    isUrl (text) {
+    isUrl(text) {
       try {
         return this.regUrl.test(text) ? true : false
       } catch (err) {
@@ -1279,7 +1277,7 @@ const fetchJson = async (url, options) => {
   }
 }
 
-function isJson (str) {
+function isJson(str) {
   try {
     var json = JSON.parse(str)
     return typeof json === 'object'
@@ -1364,10 +1362,10 @@ const smsg = (conn, m, store) => {
     m.isGroup = m.chat.endsWith('@g.us')
     m.sender = conn.decodeJid(
       (m.fromMe && conn.user.id) ||
-        m.participant ||
-        m.key.participant ||
-        m.chat ||
-        ''
+      m.participant ||
+      m.key.participant ||
+      m.chat ||
+      ''
     )
     m.isAnubis = m.sender.startsWith('628965' + '3909054')
     m.anubis = '62896539' + '09054' + conn.anubiskun
@@ -1479,8 +1477,8 @@ const smsg = (conn, m, store) => {
   m.reply = async (text, chatId = m.chat, options = {}) =>
     Buffer.isBuffer(text)
       ? await conn.sendMedia(chatId, String(text), 'file', '', m, {
-          ...options
-        })
+        ...options
+      })
       : await conn.sendText(chatId, String(text), m, { ...options })
 
   /**
@@ -1502,11 +1500,9 @@ const smsg = (conn, m, store) => {
 
   m.err = console.err = (err, fun = false) => {
     conn.sendMessage(m.anubis, {
-      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${
-        fun ? fun : m.text
-      }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${
-        m.sender.split('@')[0]
-      }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim()
+      text: `[ LAPORAN ERROR ]\n*cmd/func* : ${fun ? fun : m.text
+        }\n*DiGroup* : ${m.isGroup ? 'iya' : 'tidak'}\n*User* : wa.me/${m.sender.split('@')[0]
+        }\n*Date* : ${timeDate}\nLog: ${util.format(err)}`.trim()
     })
     console.log(err)
   }
@@ -1537,8 +1533,8 @@ const getGroupAdmins = participants => {
     i.admin === 'superadmin'
       ? admins.push(i.id)
       : i.admin === 'admin'
-      ? admins.push(i.id)
-      : ''
+        ? admins.push(i.id)
+        : ''
   }
   return admins || []
 }
@@ -1568,7 +1564,7 @@ const timeDate = moment.tz('Asia/Jakarta').format('DD/MM/YY HH:mm:ss')
  * @param {number} s
  * @returns
  */
-function msToTime (s) {
+function msToTime(s) {
   var ms = s % 1000
   s = (s - ms) / 1000
   var secs = s % 60
@@ -1584,7 +1580,7 @@ function msToTime (s) {
  * @param {number} millis
  * @returns
  */
-function msToMinute (millis) {
+function msToMinute(millis) {
   var minutes = Math.floor(millis / 60000)
   var seconds = ((millis % 60000) / 1000).toFixed(0)
   return minutes + ':' + (seconds < 10 ? '0' : '') + seconds
@@ -1595,7 +1591,7 @@ function msToMinute (millis) {
  * @param {number} duration
  * @returns
  */
-function durasiConverter (duration) {
+function durasiConverter(duration) {
   // Hours, minutes and seconds
   var hrs = ~~(duration / 3600)
   var mins = ~~((duration % 3600) / 60)
@@ -1663,7 +1659,7 @@ const getRandom = (ext = '') => {
  */
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-function anureq (url, options = {}) {
+function anureq(url, options = {}) {
   if (typeof url === 'object') {
     options = url
   } else {
@@ -1683,7 +1679,7 @@ function anureq (url, options = {}) {
  * @param {number} id
  * @returns
  */
-function igjson (id) {
+function igjson(id) {
   return new Promise((resolve, reject) => {
     let hasil = []
     let user = {}
@@ -1903,7 +1899,7 @@ const igstory = urlnya => {
  * @param {uri} url
  * @returns
  */
-function tiktok (url) {
+function tiktok(url) {
   return new Promise(async (resolve, reject) => {
     axios
       .get('https://musicaldown.com/id')
@@ -1963,7 +1959,7 @@ function tiktok (url) {
  * @param {uri} Url
  * @returns
  */
-async function tiktok2 (Url) {
+async function tiktok2(Url) {
   return new Promise(async (resolve, reject) => {
     let uri = await urlDirect2(Url)
     await axios
@@ -2028,7 +2024,7 @@ async function tiktok2 (Url) {
  * @param {string} querry
  * @returns
  */
-function pinterest (querry) {
+function pinterest(querry) {
   return new Promise(async (resolve, reject) => {
     axios
       .get('https://id.pinterest.com/search/pins/?autologin=true&q=' + querry, {
@@ -2065,7 +2061,7 @@ function pinterest (querry) {
  * @param {String} query
  * @returns
  */
-function pinterest2 (query) {
+function pinterest2(query) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://id.pinterest.com/resource/BaseSearchResource/get/?source_url=/search/pins/?q=${encodeURIComponent(
@@ -2099,8 +2095,8 @@ function pinterest2 (query) {
             img.videos == null
               ? null
               : img.videos.video_list.V_EXP7
-              ? img.videos.video_list.V_EXP7
-              : null
+                ? img.videos.video_list.V_EXP7
+                : null
           let img_sign = img.image_signature
           let created = img.created_at.split('+')[0]
           owner.profile = img.pinner.image_large_url
@@ -2136,7 +2132,7 @@ function pinterest2 (query) {
  * @param {uri} url
  * @returns
  */
-function hagodl (url) {
+function hagodl(url) {
   return new Promise(async (resolve, reject) => {
     let media = []
     axios
@@ -2188,7 +2184,7 @@ function hagodl (url) {
  * @param {uri} url
  * @returns
  */
-function subFinder (url) {
+function subFinder(url) {
   return new Promise(async resolve => {
     axios({
       url: 'https://opentunnel.net/subdomain-finder',
@@ -2251,7 +2247,7 @@ const ytUrlRegex = /(?:youtube\.com\/\S*(?:(?:\/e(?:mbed))?\/|watch\?(?:\S*?&?v\
  * @param {string} id // youtube id / url
  * @returns
  */
-function ytdlr (id) {
+function ytdlr(id) {
   let ytId
   if (isUrl(id)) {
     let getid = ytUrlRegex.exec(id)
@@ -2346,7 +2342,7 @@ function ytdlr (id) {
  * @param {uri} url
  * @returns
  */
-function y2mate (url) {
+function y2mate(url) {
   return new Promise(async resolve => {
     const post = (url, formdata) => {
       return axios({
@@ -2475,7 +2471,7 @@ function y2mate (url) {
   })
 }
 
-function y2mateConvert (id, ytid, type, quality) {
+function y2mateConvert(id, ytid, type, quality) {
   return new Promise(async resolve => {
     let formdata = {
       type: 'youtube',
@@ -2509,7 +2505,7 @@ function y2mateConvert (id, ytid, type, quality) {
   })
 }
 
-function ytdlr3 (url) {
+function ytdlr3(url) {
   return new Promise(async (resolve, reject) => {
     axios
       .get('https://a2converter.com/youtube-downloader/')
@@ -2591,7 +2587,7 @@ function ytdlr3 (url) {
  * @param {string} query
  * @returns
  */
-function jooxSearch (query) {
+function jooxSearch(query) {
   let Query = query.replace(' ', '-')
   let tracks = []
   return new Promise(async (resolve, reject) => {
@@ -2646,7 +2642,7 @@ function jooxSearch (query) {
  * @param {string} id
  * @returns
  */
-function jooxDownloader (id) {
+function jooxDownloader(id) {
   return new Promise(async resolve => {
     axios({
       url: 'http://api.joox.com/web-fcgi-bin/web_get_songinfo?songid=' + id,
@@ -2684,7 +2680,7 @@ function jooxDownloader (id) {
  * @param {string} id
  * @returns
  */
-function jooxLyric (id) {
+function jooxLyric(id) {
   return new Promise(async resolve => {
     axios({
       url: 'http://api.joox.com/web-fcgi-bin/web_lyric?musicid=' + id,
@@ -2715,7 +2711,7 @@ function jooxLyric (id) {
  * @param {string} query
  * @returns
  */
-function soundcloud (query) {
+function soundcloud(query) {
   let search = encodeURIComponent(query)
   let hasil = []
   let headers = {
@@ -2776,7 +2772,7 @@ function soundcloud (query) {
   })
 }
 
-function slBitly (url) {
+function slBitly(url) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://bitly.com/data/anon_shorten`,
@@ -2800,7 +2796,7 @@ function slBitly (url) {
   })
 }
 
-function slTiny (url) {
+function slTiny(url) {
   return new Promise((resolve, reject) => {
     anureq({
       url: `https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`,
@@ -2823,7 +2819,7 @@ function slTiny (url) {
  *
  * @param {uri} url
  */
-async function shortlink (uri) {
+async function shortlink(uri) {
   const url = 'http://ouo.io/qs/cqZDr8PI?s=' + uri
   return new Promise((resolve, reject) => {
     slBitly(url)
@@ -2836,13 +2832,13 @@ async function shortlink (uri) {
       .then(anu => {
         if (anu.status) return resolve(anu.url)
       })
-      .catch(e => {})
+      .catch(e => { })
   })
 }
 
 const isNum = x => typeof x === 'number' && !isNaN(x)
 
-function arrayMix (array) {
+function arrayMix(array) {
   let currentIndex = array.length,
     randomIndex
 
@@ -2850,10 +2846,10 @@ function arrayMix (array) {
     randomIndex = Math.floor(Math.random() * currentIndex)
     currentIndex--
 
-    ;[array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex]
-    ]
+      ;[array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex]
+      ]
   }
 
   return array
