@@ -203,7 +203,7 @@ async function videoToThumb(buffer) {
     file = buffer
   }
   return ffmpeg(file, [
-    '-ss', '00:01:00',
+    '-ss', '00:00:00',
     '-vf', 'scale=32:-1',
     '-vframes', '1',
     '-f', 'image2',

@@ -19,6 +19,7 @@ const mongoDB = require('./library/mongoDB')
 const database = new Low(opts['test'] ? new JSONFileSync(`database.json`) : new mongoDB(mongoUser))
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) })
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+let exec = require('util').promisify(require('child_process').exec).bind(require('child_process'))
 
 async function loadDatabase() {
     await database.read()
@@ -83,9 +84,9 @@ global.reload = (_event, filename) => {
 async function reloadConnector() {
     let { anubisFunc, smsg } = require('./library/lib')
     const { version, error } = await fetchLatestWaWebVersion()
-    const { state, anuCreds } = await jsonFileAuth(database.data.auth, global.sesName) // uncomment this line if you want to use database cloud
-    // const {state, anuCreds} = await jsonFileAuth(global.sesName + '.json') // uncomment this line if you want to use database local
-    // const {state, anuCreds} = await useMultiFileAuthState(global.sesName) // uncomment this line if you want to use multi file auth state
+    const { state, anuCreds, type } = jsonFileAuth(database.data.auth, global.sesName) // uncomment this line if you want to use database cloud
+    // const {state, anuCreds, type} = jsonFileAuth(global.sesName + '.json') // uncomment this line if you want to use database local
+    // const {state, anuCreds, type} = await useMultiFileAuthState(global.sesName) // uncomment this line if you want to use multi file auth state
     await database.write()
     const anubis = WAConnection({
         version: (error) ? [2, 2234, 13] : version,
@@ -99,6 +100,15 @@ async function reloadConnector() {
         connectTimeoutMs: 5000,
     })
     anubis.db = database
+    if (!type) {
+        let { stdout } = exec('npm i github:anubiskun/Baileys')
+        if (stdout){
+            return await reloadConnector();
+        } else {
+            return new Error('Please update anubiskun/Baileys manual')
+        }
+    }
+    anubis.type = type
     anubis.anubiskun = S_WHATSAPP_NET
     Object.freeze(global.reload)
     fs.watch(Path.join(__dirname, 'plugins'), global.reload)

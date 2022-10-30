@@ -5,9 +5,7 @@
  * https://github.com/anubiskun
  */
 
-let cp = require('child_process')
-let { promisify } = require('util')
-let exec = promisify(cp.exec).bind(cp)
+let exec = require('util').promisify(require('child_process').exec).bind(require('child_process'))
 
 module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix, botNumber }) => {
     switch (command) {

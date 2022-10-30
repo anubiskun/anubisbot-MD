@@ -10,23 +10,24 @@ let path = require('path')
 let moment = require('moment-timezone')
 const defaultMenu = {
   before: `
-╭──────〔 *%me* 〕
-│ Hai, %name! %prem
-│ Limit: %limit
-│ 
-│ Date: %date
-│ Time: *%time*
-│
-│ Uptime: *%uptime*
-│
-╰─────〔 *%me* 〕
-%readmore`.trimStart(),
+ ╭──────〔 *%me* 〕
+ │ Hai, %name! %prem
+ │ Limit: %limit
+ │ 
+ │ Date: %date
+ │ Time: *%time*
+ │
+ │ Uptime: *%uptime*
+ │ SC: https://bit.ly/3Doj2ZJ
+ │
+ ╰─────〔 *%me* 〕
+ %readmore`.trimStart(),
   header: '┌─〔 %category 〕',
   body: '├ %cmd',
   footer: '└────\n',
   after: `*%npmname@^%version*
-${'```%npmdesc```'}
-`,
+ ${'```%npmdesc```'}
+ `,
 }
 let anuplug = async (m, anubis, { usedPrefix, args, command, botNumber, pushname }) => {
   let tags

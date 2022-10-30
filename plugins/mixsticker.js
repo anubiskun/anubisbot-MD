@@ -9,6 +9,7 @@ const fs = require('fs')
 const { webpTopng } = require('../library/converter');
 const { webp2mp4File, tmpfiles } = require('../library/upload');
 const { fetchJson } = require('../library/lib');
+const util = require('util')
 
 module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }) => {
   const mquo = m.quoted || m;
@@ -109,6 +110,10 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }
         args = []
         args.push(text.split('|')[0], text.split('|')[1])
       }
+      if (/\+/.test(text)) {
+        args = []
+        args.push(text.split('+')[0], text.split('+')[1])
+      }
       let [emo1, emo2] = args
       if (!emo1) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍|😪\nExample: ${usedPrefix + command} 😍`)
       if (!emo2) emo2 = emo1
@@ -125,9 +130,58 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }
       }
     }
       break;
+    case 'stext': {
+      if (!m.quoted) return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+      if (typeof m.quoted.text !== 'string') return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+      const pesan = String(util.format(m.quoted.text))
+      const name = await anubis.getName(m.quoted.sender) || 'anubiskun'
+      m.reply(mess.wait);
+      try {
+        let encmedia = await anubis.sendAsSticker(m.chat, `https://api-anubiskun.herokuapp.com/api/fakewa?name=${name}&pesan=${pesan}`, m, {
+          packname: global.packname,
+          author: global.author,
+        });
+        if (encmedia) fs.unlinkSync(encmedia);
+      } catch (e) {
+        console.err(e)
+        m.reply('command lagi error ngab!')
+      }
+    }
+      break;
+    case 'stweet': {
+      if (!m.quoted) return m.reply(`- reply pesan text dengan caption ${usedPrefix + command}\n- reply pesan text dengan caption ${usedPrefix + command} username_twitter_anda|username_twitter_reply|caption_reply`)
+      const [username, replyusername, replycaption] = text.split('|')
+      if (typeof m.quoted.text !== 'string') return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+      const caption = String(util.format(m.quoted.text))
+      let option = ''
+      if (username) {
+        option += `username=${username}&caption=${caption}&replyusername=${replyusername}&replycaption=${replycaption}`
+      } else {
+        const name = await anubis.getName(m.quoted.sender) || 'anubiskun'
+        let pUser
+        try {
+          pUser = await anubis.profilePictureUrl(m.quoted.sender, 'image')
+        } catch (e) {
+          pUser = 'https://anubis.6te.net/api/thumb.png'
+        }
+        option += `pp=${encodeURIComponent(pUser)}&name=${name}&username=${name}&caption=${caption}`
+      }
+      m.reply(mess.wait);
+      try {
+        let encmedia = await anubis.sendAsSticker(m.chat, `https://api-anubiskun.herokuapp.com/api/faketweet?${option}`, m, {
+          packname: global.packname,
+          author: global.author,
+        });
+        if (encmedia) fs.unlinkSync(encmedia);
+      } catch (e) {
+        console.err(e)
+        m.reply('command lagi error ngab!')
+      }
+    }
+      break;
   }
 }
-anuplug.help = ['stickermeme', 'togif', 'toimg', 'topng', 'tomp4', 'emix']
+anuplug.help = ['stickermeme', 'togif', 'toimg', 'topng', 'tomp4', 'emix', 'stext', 'stweet']
 anuplug.tags = ['sticker']
-anuplug.command = /^(s(ticker|tiker)?(meme)|to(gif|img|png|mp4)|emix)$/i
+anuplug.command = /^(s(ticker|tiker)?(meme)|to(gif|img|png|mp4)|emix|stext|stweet)$/i
 anuplug.isPremium = true

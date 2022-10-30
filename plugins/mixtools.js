@@ -77,7 +77,7 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }
             break;
         case 'google':
             {
-                if (!text) throw `Example : ${usedPrefix + command} apakah bumi itu bulat?`
+                if (!text) return m.reply(`Example : ${usedPrefix + command} apakah bumi itu bulat?`)
                 m.reply(mess.wait)
                 try {
                     const google = await googleIt({ query: text })
@@ -182,22 +182,86 @@ module.exports = anuplug = async (m, anubis, { text, command, args, usedPrefix }
                 }
             }
             break;
+        case 'ssweb':
+            {
+                if (!text) return m.reply(`*Example* : ${usedPrefix + command} https://github.com/anubiskun`)
+                const sp = text.split('|');
+                if (!isUrl(sp[0])) return m.reply("coba cek lagi urlnya ngab!");
+                if (Number(sp[1] === "NaN")) return m.reply("parameter delay harus berisi angka!");
+                let uri = new URL(sp[0])
+                m.reply(mess.wait)
+                try {
+                    anubis.sendImage(m.chat, `https://api-anubiskun.herokuapp.com/api/ss?url=${uri}`, global.anuFooter, m)
+                } catch (err) {
+                    console.err(err, 'ssweb')
+                }
+            }
+            break;
         case 'emix2': {
             if (!text) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍`)
             if (/\|/.test(text)) {
                 args = []
                 args.push(text.split('|')[0], text.split('|')[1])
             }
+            if (/\+/.test(text)) {
+                args = []
+                args.push(text.split('+')[0], text.split('+')[1])
+            }
             let [emo1, emo2] = args
             if (!emo1) return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍`)
             if (!emo2) emo2 = emo1
-            const anu = await fetchJson(`https://tenor.googleapis.com/v2/featured?key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=${encodeURIComponent(emo1)}_${encodeURIComponent(emo2)}`)
-            anubis.sendImage(m.chat, anu.results[0].url, await shortlink(anu.results[0].url), m)
+            try {
+                const anu = await fetchJson(`https://tenor.googleapis.com/v2/featured?key=AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCYQ&contentfilter=high&media_filter=png_transparent&component=proactive&collection=emoji_kitchen_v5&q=${encodeURIComponent(emo1)}_${encodeURIComponent(emo2)}`)
+                anubis.sendImage(m.chat, anu.results[0].url, await shortlink(anu.results[0].url), m)
+            } catch (e) {
+                return m.reply(`Example: ${usedPrefix + command} 😍 😪\nExample: ${usedPrefix + command} 😍`)
+            }
+        }
+            break;
+        case 'fakewa': {
+            if (!m.quoted) return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+            if (typeof m.quoted.text !== 'string') return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+            const pesan = String(util.format(m.quoted.text))
+            const name = await anubis.getName(m.quoted.sender) || 'anubiskun'
+            m.reply(mess.wait);
+            try {
+                await anubis.sendImage(m.chat, `https://api-anubiskun.herokuapp.com/api/fakewa?name=${name}&pesan=${pesan}`, 'by anubisbot-MD', m);
+            } catch (e) {
+                console.err(e)
+                m.reply('command lagi error ngab!')
+            }
+        }
+            break;
+        case 'faketweet': {
+            if (!m.quoted) return m.reply(`- reply pesan text dengan caption ${usedPrefix + command}\n- reply pesan text dengan caption ${usedPrefix + command} username_twitter_anda|username_twitter_reply|caption_reply`)
+            const [username, replyusername, replycaption] = text.split('|')
+            if (typeof m.quoted.text !== 'string') return m.reply(`reply pesan text dengan caption ${usedPrefix + command}`)
+            const caption = String(util.format(m.quoted.text))
+            let option = ''
+            if (username) {
+                option += `username=${username}&caption=${caption}&replyusername=${replyusername}&replycaption=${replycaption}`
+            } else {
+                const name = await anubis.getName(m.quoted.sender) || 'anubiskun'
+                let pUser
+                try {
+                    pUser = await anubis.profilePictureUrl(m.quoted.sender, 'image')
+                } catch (e) {
+                    pUser = 'https://anubis.6te.net/api/thumb.png'
+                }
+                option += `pp=${encodeURIComponent(pUser)}&name=${name}&username=${name}&caption=${caption}`
+            }
+            m.reply(mess.wait);
+            try {
+                await anubis.sendImage(m.chat, `https://api-anubiskun.herokuapp.com/api/faketweet?${option}`, 'by anubisbot-MD', m);
+            } catch (e) {
+                console.err(e)
+                m.reply('command lagi error ngab!')
+            }
         }
             break;
     }
 }
-anuplug.help = ['fetch', 'google', 'removebg', 'tomp3', 'tourl', 'tovn', 'emix2']
+anuplug.help = ['fetch', 'google', 'pinterest', 'gimage', 'gimgrev (error)', 'removebg', 'tomp3', 'tourl', 'tovn', 'ssweb', 'emix2', 'ttp', 'byouo', 'faketweet', 'fakewa']
 anuplug.tags = ['tools']
-anuplug.command = /^(fetch|google|rmbg|removebg|to(mp3|url|vn)|emix2)$/i
+anuplug.command = /^(fetch|google|pinterest|gimage|gimgrev|rmbg|removebg|to(mp3|url|vn)|ssweb|emix2|ttp|byouo|fake(wa|tweet))$/i
 anuplug.isPremium = true

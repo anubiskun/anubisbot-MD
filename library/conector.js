@@ -90,7 +90,8 @@ module.exports = {
         if (typeof database.note !== "object") database.note = {};
         if (!("lastRestart" in database)) database.lastRestart = false;
         if (!("banUrl" in database)) database.banUrl = ['chat.whatsapp.com'];
-        if (!("banWords" in database)) database.banWords = ['kontol','memek','meki'];
+        if (!("banWords" in database)) database.banWords = ['kontol', 'memek', 'meki'];
+        if (!("banSticker" in database)) database.banSticker = [];
 
         if (m.isGroup) {
           if (typeof database.note[m.chat] !== "object") database.note[m.chat] = {};
@@ -104,17 +105,24 @@ module.exports = {
           if (!("antiviewonce" in chats)) chats.antiviewonce = false;
           if (!("antibadword" in chats)) chats.antibadword = false;
           if (!("antilink" in chats)) chats.antilink = false;
+          if (!("antisticker" in chats)) chats.antisticker = false;
           if (!("welcomer" in chats)) chats.welcomer = false;
+          if (!("banWords" in chats)) chats.banWords = [];
           if (!("banUrl" in chats)) chats.banUrl = [];
+          if (!("banSticker" in chats)) chats.banSticker = [];
         }
 
         if (typeof anubis.db.data.settings[botNumber] !== "object") anubis.db.data.settings[botNumber] = {};
         let setting = anubis.db.data.settings[botNumber];
         if (!("anticall" in setting)) setting.anticall = true;
         if (!("antilink" in setting)) setting.antilink = false;
+        if (!("antisticker" in setting)) setting.antisticker = false;
         if (!("antibadword" in setting)) setting.antibadword = false;
         if (!("automess" in setting)) setting.automess = true;
         if (!("restrict" in setting)) setting.restrict = false;
+        if (!isNum(setting.lastReset)) setting.lastReset = -1;
+        if (!("packname" in setting)) setting.packname = global.packname;
+        if (!("author" in setting)) setting.author = global.author;
         if (!("igCookie" in setting)) setting.igCookie = global.anuCookie.ig;
         if (!("cPlayerId" in setting)) setting.cPlayerId = '#999';
         if (typeof setting.thumbnail !== "object") setting.thumbnail = {}
@@ -128,6 +136,8 @@ module.exports = {
         m.err(err, 'setup database')
       }
       global.anuCookie.ig = anubis.db.data.settings[botNumber].igCookie
+      global.packname = anubis.db.data.settings[botNumber].packname
+      global.author = anubis.db.data.settings[botNumber].author
       if (m.message) {
         anubis.readMessages([m.key]);
         console.log(
@@ -136,19 +146,30 @@ module.exports = {
             .format("HH:mm:ss")} > ${pushname} => ` + body
         );
       }
-      if (00 >= moment.tz('Asia/Jakarta').format('HH')) {
-        if (00 <= moment.tz('Asia/Jakarta').format('mm')) {
-          let limit = Object.entries(anubis.db.data.users).map(([key, value]) => { return { ...value, jid: key } })
-          limit.map((v) => {
-            if (v.limit < 10) {
-              anubis.db.data.users[v.jid].limit = 10
-            }
-          })
+      if (anubis.db.data.settings[botNumber].lastReset < moment.tz('Asia/Jakarta').unix()) {
+        let a = await resetLimit(anubis)
+        if (!a) await anubis.sendMessage(m.anubis, { text: 'limit gagal di reset ngab!' })
+        if (a) await anubis.sendMessage(m.anubis, { text: 'limit udah di reset ngab!' })
+        if (anubis.type) {
+          if (!global.sesName) return
+          let b = await clearSession(anubis)
+          if (!b) b = await anubis.sendMessage(m.anubis, { text: 'session gagal di clear ngab!' })
+          if (b) b = await anubis.sendMessage(m.anubis, { text: 'session udah di clear ngab!' })
+        }
+        await anubis.db.write()
+      }
+      let resetPrem = Object.entries(anubis.db.data.users).map(([key, value]) => { return { ...value, jid: key } }).filter((v) => v.isPremium)
+      for (let user of resetPrem) {
+        if (user.isPremium) {
+          if (user.premTime < (new Date() * 1)) {
+            anubis.db.data.users[user.jid].isPremium = false
+            anubis.db.data.users[user.jid].premTime = -1
+          }
         }
       }
 
       const isMedia = /image|video|sticker|audio/.test(mime);
-      const isAnubis = `6289653909054${anubis.anubiskun}`.includes(m.sender);
+      const isAnubis = m.isAnubis
       const itsMe = m.sender == botNumber ? true : false;
       const isCmd = body.startsWith(prefix);
       const groupMetadata = m.isGroup ? await anubis.groupMetadata(m.chat).catch((e) => { m.err(e) }) : "";
