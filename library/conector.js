@@ -17,6 +17,8 @@ const {
   anubisFunc,
   ucapan,
   isNum,
+  resetLimit,
+  clearSession,
 } = require("./lib");
 
 module.exports = {
